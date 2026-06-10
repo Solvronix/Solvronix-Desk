@@ -7,7 +7,7 @@ def darken(hex_color, amount=15):
     return f"#{max(0, r - amount):02x}{max(0, g - amount):02x}{max(0, b - amount):02x}"
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_theme_css():
     """Return :root CSS variable overrides built from Theme Settings."""
     try:
@@ -32,7 +32,7 @@ def get_theme_css():
         return ""
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_branding():
     """Return branding config dict for JS logo/favicon/title injection."""
     try:
