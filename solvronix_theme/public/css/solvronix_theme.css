@@ -1,0 +1,396 @@
+/* =============================================================================
+   Solvronix Theme — Main Stylesheet
+   :root defaults are overridden at runtime by the <style id="st-dynamic-theme">
+   tag injected by solvronix_theme.js via api.get_theme_css()
+   ============================================================================= */
+
+/* ── CSS Custom Properties ─────────────────────────────────────────────────── */
+:root {
+  --st-primary:            #E8610A;
+  --st-primary-hover:      #cf5a08;
+  --st-primary-light:      rgba(232, 97, 10, 0.12);
+  --st-dark:               #0D1B3E;
+  --st-dark-deep:          #0A1628;
+  --st-navbar-bg:          #0D1B3E;
+  --st-sidebar-text:       #FFFFFF;
+  --st-sidebar-text-muted: rgba(255, 255, 255, 0.6);
+  --st-button-text:        #FFFFFF;
+  --st-login-bg:           #0D1B3E;
+  --st-login-card:         #FFFFFF;
+  --st-white:              #FFFFFF;
+  --st-radius:             8px;
+  --st-radius-sm:          4px;
+  --st-shadow:             0 2px 8px rgba(13, 27, 62, 0.12);
+}
+
+/* ── SIDEBAR ────────────────────────────────────────────────────────────────── */
+.layout-side-section,
+.desk-sidebar,
+.sidebar-menu,
+.standard-sidebar,
+[class*="sidebar-container"] {
+  background-color: var(--st-dark) !important;
+}
+
+/* Sidebar item text — muted by default */
+.desk-sidebar .sidebar-item,
+.desk-sidebar .standard-sidebar-item,
+.desk-sidebar .sidebar-group-title,
+.desk-sidebar a {
+  color: var(--st-sidebar-text-muted) !important;
+  border-radius: var(--st-radius-sm);
+  transition: background 0.15s, color 0.15s;
+}
+
+/* Sidebar item hover */
+.desk-sidebar .sidebar-item:hover,
+.desk-sidebar .standard-sidebar-item:hover {
+  background: var(--st-primary-light) !important;
+  color: var(--st-sidebar-text) !important;
+  border-left: 3px solid var(--st-primary);
+}
+
+/* Sidebar item selected / active */
+.desk-sidebar .sidebar-item.selected,
+.desk-sidebar .standard-sidebar-item.selected,
+.desk-sidebar .sidebar-item.active,
+.desk-sidebar .standard-sidebar-item.active {
+  background: rgba(232, 97, 10, 0.18) !important;
+  color: var(--st-white) !important;
+  border-left: 3px solid var(--st-primary);
+  font-weight: 600;
+}
+
+.desk-sidebar .sidebar-item.selected a,
+.desk-sidebar .standard-sidebar-item.selected a,
+.desk-sidebar .sidebar-item:hover a,
+.desk-sidebar .standard-sidebar-item:hover a {
+  color: var(--st-white) !important;
+}
+
+/* Sidebar icons — tint white */
+.desk-sidebar .sidebar-item-icon,
+.desk-sidebar .standard-sidebar-item svg,
+.desk-sidebar .standard-sidebar-item .icon {
+  color: var(--st-sidebar-text) !important;
+  stroke: var(--st-sidebar-text) !important;
+}
+
+.desk-sidebar .sidebar-item .sidebar-item-icon {
+  filter: brightness(0) invert(1);
+  opacity: 0.75;
+}
+.desk-sidebar .sidebar-item.selected .sidebar-item-icon,
+.desk-sidebar .sidebar-item:hover .sidebar-item-icon {
+  opacity: 1;
+}
+
+/* ── NAVBAR ─────────────────────────────────────────────────────────────────── */
+.navbar,
+.navbar-default,
+header.navbar {
+  background-color: var(--st-navbar-bg) !important;
+  border-bottom: 2px solid var(--st-primary) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.navbar .navbar-brand,
+.navbar .nav-link,
+.navbar .navbar-nav > li > a,
+.navbar .navbar-right .icon-btn,
+.navbar .navbar-right svg {
+  color: var(--st-white) !important;
+  stroke: var(--st-white) !important;
+}
+
+.navbar .nav-link:hover,
+.navbar .navbar-nav > li > a:hover {
+  color: var(--st-primary) !important;
+}
+
+.navbar .search-bar input,
+.navbar .navbar-search input {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--st-white) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  border-radius: var(--st-radius-sm) !important;
+}
+
+.navbar .search-bar input::placeholder,
+.navbar .navbar-search input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ── PRIMARY BUTTONS ────────────────────────────────────────────────────────── */
+.btn-primary,
+button.btn-primary,
+a.btn-primary {
+  background-color: var(--st-primary) !important;
+  border-color: var(--st-primary) !important;
+  color: var(--st-button-text) !important;
+  border-radius: var(--st-radius-sm) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+button.btn-primary:hover,
+button.btn-primary:focus {
+  background-color: var(--st-primary-hover) !important;
+  border-color: var(--st-primary-hover) !important;
+}
+
+.indicator-pill.blue,
+.indicator.blue {
+  background: var(--st-primary-light) !important;
+  color: var(--st-primary) !important;
+}
+
+/* ── FORMS ──────────────────────────────────────────────────────────────────── */
+.form-section .section-head,
+.section-head {
+  color: var(--st-dark) !important;
+  font-weight: 700 !important;
+  border-bottom: 2px solid var(--st-primary-light) !important;
+}
+
+/* Required field asterisk */
+.reqd .control-label::after,
+.form-group.reqd label::after {
+  color: var(--st-primary) !important;
+}
+
+/* Input focus */
+.form-control:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--st-primary) !important;
+  box-shadow: 0 0 0 2px var(--st-primary-light) !important;
+  outline: none;
+}
+
+/* Active form tab */
+.form-tabs .nav-item .nav-link.active,
+.frappe-tab.active {
+  border-bottom: 2px solid var(--st-primary) !important;
+  color: var(--st-primary) !important;
+  font-weight: 600;
+}
+
+/* Links */
+a,
+a:hover {
+  color: var(--st-primary) !important;
+}
+
+/* ── DATATABLE / LIST VIEW ──────────────────────────────────────────────────── */
+.dt-header,
+.list-row-head,
+.datatable .dt-header .dt-cell--header {
+  background: #f8f9fa !important;
+}
+
+.dt-row:hover,
+.list-row:hover {
+  background: var(--st-primary-light) !important;
+}
+
+.checkbox input:checked + span,
+input[type="checkbox"]:checked {
+  accent-color: var(--st-primary);
+}
+
+/* ── WORKSPACE / HOME CARDS ─────────────────────────────────────────────────── */
+.desk-card,
+.widget.onboarding-widget-box,
+.widget.links-widget-box,
+.widget.shortcut-widget-box {
+  border-top: 3px solid var(--st-primary) !important;
+  border-radius: var(--st-radius) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.desk-card:hover,
+.widget:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--st-primary-light) !important;
+}
+
+.widget.shortcut-widget-box:hover .widget-head .widget-title {
+  color: var(--st-primary) !important;
+}
+
+/* ── TABS ───────────────────────────────────────────────────────────────────── */
+.nav-tabs .nav-link.active,
+.tab-content .nav-tabs .nav-link.active {
+  border-bottom: 2px solid var(--st-primary) !important;
+  color: var(--st-primary) !important;
+  font-weight: 600;
+}
+
+/* ── LOGIN PAGE ─────────────────────────────────────────────────────────────── */
+body.login-page,
+.login-content,
+.for-login,
+body[data-route="login"] {
+  background-color: var(--st-login-bg) !important;
+}
+
+.login-card,
+.page-card,
+.login-content .card {
+  background-color: var(--st-login-card) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  border: none !important;
+  padding: 40px !important;
+}
+
+.login-card .btn-primary {
+  width: 100%;
+  padding: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: var(--st-radius-sm) !important;
+}
+
+.login-logo img {
+  max-height: 60px !important;
+  margin-bottom: 8px;
+}
+
+.login-content .powered-by {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ── LOADING / FREEZE SCREEN ────────────────────────────────────────────────── */
+#freeze-screen,
+.freeze-screen {
+  background: var(--st-dark) !important;
+}
+
+.loading-indicator,
+.btn-loading::after {
+  border-color: var(--st-primary) !important;
+  border-top-color: transparent !important;
+}
+
+/* ── MODULE SWITCHER (injected by JS) ───────────────────────────────────────── */
+#st-module-switch-btn {
+  width: calc(100% - 16px);
+  margin: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--st-radius-sm);
+  color: var(--st-white);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+#st-module-switch-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+#st-module-switcher-dropdown {
+  position: absolute;
+  top: 52px;
+  left: 8px;
+  background: var(--st-dark-deep);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--st-radius-sm);
+  min-width: 200px;
+  z-index: 1050;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+#st-module-switcher-dropdown .st-module-item {
+  display: block;
+  padding: 9px 14px;
+  color: var(--st-sidebar-text-muted);
+  text-decoration: none !important;
+  font-size: 13px;
+  transition: background 0.12s, color 0.12s;
+  border-left: 3px solid transparent;
+}
+
+#st-module-switcher-dropdown .st-module-item:hover {
+  background: var(--st-primary-light);
+  color: var(--st-white) !important;
+  border-left-color: var(--st-primary);
+}
+
+/* ── QUICK NAV BAR (injected by JS) ─────────────────────────────────────────── */
+#st-quick-nav {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+  background: var(--st-dark-deep);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#st-quick-nav a {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 18px;
+  text-decoration: none !important;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--st-radius-sm);
+  transition: color 0.15s, background 0.15s;
+}
+
+#st-quick-nav a:hover {
+  color: var(--st-primary) !important;
+  background: var(--st-primary-light);
+}
+
+/* ── POWERED-BY BADGE ───────────────────────────────────────────────────────── */
+#st-powered-by {
+  text-align: center;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  padding: 4px 0 10px;
+}
+
+/* ── MOBILE ─────────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .layout-side-section,
+  .desk-sidebar {
+    width: 260px !important;
+    background-color: var(--st-dark) !important;
+  }
+
+  .btn-primary,
+  .btn-default {
+    min-height: 40px;
+    font-size: 14px;
+  }
+
+  .datatable {
+    overflow-x: auto !important;
+  }
+
+  .form-grid table {
+    min-width: 600px;
+  }
+}
+
+/* ── PRINT ──────────────────────────────────────────────────────────────────── */
+@media print {
+  .layout-side-section,
+  .desk-sidebar,
+  .navbar,
+  header.navbar {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+  }
+}

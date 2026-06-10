@@ -1,0 +1,5 @@
+include MANIFEST.in
+include requirements.txt
+include *.json *.md *.py *.txt
+recursive-include solvronix_theme *.css *.html *.ico *.js *.json *.md *.png *.py *.svg *.txt
+recursive-exclude solvronix_theme *.pyc

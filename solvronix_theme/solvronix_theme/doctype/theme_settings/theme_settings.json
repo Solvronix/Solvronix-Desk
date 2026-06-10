@@ -1,0 +1,170 @@
+{
+ "actions": [],
+ "creation": "2026-06-10 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_branding",
+  "company_name",
+  "logo",
+  "column_break_branding",
+  "favicon",
+  "tagline",
+  "section_colors",
+  "primary_color",
+  "sidebar_bg",
+  "column_break_colors",
+  "navbar_bg",
+  "sidebar_text_color",
+  "button_text_color",
+  "section_login",
+  "login_bg_color",
+  "login_card_bg",
+  "column_break_login",
+  "show_powered_by",
+  "section_advanced",
+  "custom_css",
+  "column_break_advanced",
+  "hide_frappe_brand"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_branding",
+   "fieldtype": "Section Break",
+   "label": "Branding"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name on Login Page"
+  },
+  {
+   "fieldname": "logo",
+   "fieldtype": "Attach Image",
+   "label": "Logo (shown in navbar + login)"
+  },
+  {
+   "fieldname": "column_break_branding",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "favicon",
+   "fieldtype": "Attach Image",
+   "label": "Favicon"
+  },
+  {
+   "fieldname": "tagline",
+   "fieldtype": "Data",
+   "label": "Tagline shown below logo on login"
+  },
+  {
+   "fieldname": "section_colors",
+   "fieldtype": "Section Break",
+   "label": "Colors"
+  },
+  {
+   "default": "#E8610A",
+   "fieldname": "primary_color",
+   "fieldtype": "Color",
+   "label": "Primary Color"
+  },
+  {
+   "default": "#0D1B3E",
+   "fieldname": "sidebar_bg",
+   "fieldtype": "Color",
+   "label": "Sidebar Background"
+  },
+  {
+   "fieldname": "column_break_colors",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "#0D1B3E",
+   "fieldname": "navbar_bg",
+   "fieldtype": "Color",
+   "label": "Navbar Background"
+  },
+  {
+   "default": "#FFFFFF",
+   "fieldname": "sidebar_text_color",
+   "fieldtype": "Color",
+   "label": "Sidebar Text Color"
+  },
+  {
+   "default": "#FFFFFF",
+   "fieldname": "button_text_color",
+   "fieldtype": "Color",
+   "label": "Button Text Color"
+  },
+  {
+   "fieldname": "section_login",
+   "fieldtype": "Section Break",
+   "label": "Login Page"
+  },
+  {
+   "default": "#0D1B3E",
+   "fieldname": "login_bg_color",
+   "fieldtype": "Color",
+   "label": "Login Background Color"
+  },
+  {
+   "default": "#FFFFFF",
+   "fieldname": "login_card_bg",
+   "fieldtype": "Color",
+   "label": "Login Card Background"
+  },
+  {
+   "fieldname": "column_break_login",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_powered_by",
+   "fieldtype": "Check",
+   "label": "Show 'Powered by Solvronix' on login"
+  },
+  {
+   "fieldname": "section_advanced",
+   "fieldtype": "Section Break",
+   "label": "Advanced"
+  },
+  {
+   "description": "Any additional custom CSS injected after theme variables",
+   "fieldname": "custom_css",
+   "fieldtype": "Code",
+   "label": "Custom CSS",
+   "options": "CSS"
+  },
+  {
+   "fieldname": "column_break_advanced",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_frappe_brand",
+   "fieldtype": "Check",
+   "label": "Hide Frappe/ERPNext branding from navbar"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-06-10 00:00:00.000001",
+ "modified_by": "Administrator",
+ "module": "Solvronix Theme",
+ "name": "Theme Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 0,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
