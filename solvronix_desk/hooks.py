@@ -8,7 +8,7 @@ app_color = "#E8610A"
 app_icon = "octicon octicon-paintcan"
 app_version = "1.0.0"
 
-required_apps = ["frappe>=16.0.0 <17.0.0"]
+required_apps = []
 
 web_include_css = ["/assets/solvronix_desk/css/login.css?v=5"]
 web_include_js = ["/assets/solvronix_desk/js/login_theme.js?v=2"]
