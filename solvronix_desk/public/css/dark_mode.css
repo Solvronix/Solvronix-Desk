@@ -1,0 +1,1047 @@
+/* ================================================================
+   Solvronix Desk — Dark Mode
+   Activated by html[data-theme="dark"] (Frappe-native attribute).
+   Applied flash-free via localStorage IIFE in dark_mode.js.
+   All colors use CSS variables — no hardcoded hex on body/cards.
+   ================================================================ */
+
+/* ── Root variable overrides ─────────────────────────────────── */
+/* Bridge Frappe native tokens + gray scale to our semantic vars.
+   These use html[data-theme="dark"] (higher specificity than
+   solvronix_desk.css's [data-theme="dark"]) so they always win. */
+html[data-theme="dark"] {
+  /* Frappe native semantic tokens → our semantic vars */
+  --bg-color:              var(--st-page-bg);
+  --fg-color:              var(--st-card-bg);
+  --card-bg:               var(--st-card-bg);
+  --text-color:            var(--st-text);
+  --text-muted:            var(--st-text-muted);
+  --border-color:          var(--st-card-border);
+  --heading-color:         #F1F5F9;
+  --fg-hover-color:        var(--st-hover);
+  --subtle-fg:             var(--st-hover);
+  --disabled-text-color:   rgba(255,255,255,0.30);
+  --disabled-control-bg:   rgba(255,255,255,0.05);
+  --input-bg:              var(--st-input-bg);
+  --control-bg:            var(--st-input-bg);
+  --control-bg-on-gray:    var(--st-card-bg);
+  --surface-menu-bar:      var(--st-card-bg);
+
+  /* Frappe gray scale (used throughout Frappe components) */
+  --gray-50:   var(--st-card-bg);
+  --gray-100:  var(--st-card-bg);
+  --gray-200:  var(--st-input-bg);
+  --gray-300:  rgba(255,255,255,0.12);
+  --gray-400:  rgba(255,255,255,0.25);
+  --gray-500:  rgba(255,255,255,0.40);
+  --gray-600:  rgba(255,255,255,0.55);
+  --gray-700:  rgba(255,255,255,0.70);
+  --gray-800:  rgba(255,255,255,0.85);
+  --gray-900:  #F1F5F9;
+
+  /* frappe-charts uses --subtle-accent for loading bg — must be a real color */
+  --subtle-accent:          var(--st-input-bg);
+  --yellow-highlight-color: rgba(234, 179, 8, 0.07);
+  --bg-light-gray:          var(--st-card-bg);
+  --bg-gray:                var(--st-card-bg);
+  --bg-grey:                var(--st-card-bg);
+  --bg-dark-gray:           var(--st-page-bg);
+
+  /* Frappe dark.scss sets these via --gray-700/800 (dark in Frappe = near-black),
+     but our gray scale is inverted (light text on dark bg), so we override them
+     explicitly here to keep backgrounds dark. */
+  --btn-default-bg:         rgba(255,255,255,0.06);
+  --btn-default-hover-bg:   rgba(255,255,255,0.10);
+  --btn-ghost-hover-bg:     rgba(255,255,255,0.06);
+  --awesomplete-hover-bg:   var(--st-input-bg);
+  --sidebar-select-color:   rgba(255,255,255,0.06);
+  --highlight-color:        rgba(255,255,255,0.04);
+  --skeleton-bg:            var(--st-input-bg);
+  --scrollbar-track-color:  rgba(255,255,255,0.04);
+  --scrollbar-thumb-color:  rgba(255,255,255,0.15);
+
+  /* frappe-charts library vars — no built-in dark mode */
+  --charts-label-color:       var(--st-text-muted);
+  --charts-axis-line-color:   rgba(255,255,255,0.07);
+  --charts-tooltip-bg:        var(--st-input-bg);
+  --charts-tooltip-title:     #F1F5F9;
+  --charts-tooltip-label:     var(--st-text-muted);
+  --charts-tooltip-value:     var(--st-text);
+  --charts-legend-label:      var(--st-text-muted);
+  --charts-legend-value:      #CBD5E1;
+}
+
+/* ── Body & Page ─────────────────────────────────────────────── */
+html[data-theme="dark"] body,
+html[data-theme="dark"] .page-container,
+html[data-theme="dark"] .desk-page,
+html[data-theme="dark"] .main-section {
+  background-color: var(--st-page-bg) !important;
+}
+
+/* ── Left Sidebar ────────────────────────────────────────────── */
+html[data-theme="dark"] .body-sidebar,
+html[data-theme="dark"] .body-sidebar-container > .body-sidebar,
+html[data-theme="dark"] .body-sidebar-container.expanded .body-sidebar,
+html[data-theme="dark"] .body-sidebar-container .body-sidebar-placeholder {
+  background: var(--st-sidebar-bg) !important;
+  background-color: var(--st-sidebar-bg) !important;
+  border-right-color: rgba(255,255,255,0.06) !important;
+}
+
+/* ── Form & Card Surfaces ────────────────────────────────────── */
+html[data-theme="dark"] .form-page,
+html[data-theme="dark"] .frappe-card,
+html[data-theme="dark"] .list-view-empty-state,
+html[data-theme="dark"] .desk-card {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: var(--st-text) !important;
+}
+
+html[data-theme="dark"] .layout-side-section,
+html[data-theme="dark"] .layout-side-section .form-sidebar,
+html[data-theme="dark"] .layout-side-section .sidebar-wrapper {
+  background-color: var(--st-card-bg) !important;
+  border-left-color: rgba(255,255,255,0.06) !important;
+  color: var(--st-text) !important;
+}
+
+/* ── Page Head ───────────────────────────────────────────────── */
+html[data-theme="dark"] .page-head {
+  background-color: var(--st-card-bg) !important;
+  border-bottom-color: rgba(255,255,255,0.06) !important;
+}
+
+html[data-theme="dark"] .page-head .page-title,
+html[data-theme="dark"] .page-head .title-text,
+html[data-theme="dark"] .page-head .breadcrumb-area span,
+html[data-theme="dark"] .page-head .breadcrumb-area a {
+  color: var(--st-text) !important;
+}
+
+/* Workspace gradient page-head — keep dark gradient, just adjust text */
+html[data-theme="dark"] .desk-page > .page-head,
+html[data-theme="dark"] .layout-main-section > .page-head {
+  background: linear-gradient(120deg, var(--st-card-bg) 0%, var(--st-input-bg) 100%) !important;
+}
+
+/* ── Form Controls (inputs, selects, textareas) ──────────────── */
+html[data-theme="dark"] .form-control,
+html[data-theme="dark"] input[type="text"],
+html[data-theme="dark"] input[type="email"],
+html[data-theme="dark"] input[type="password"],
+html[data-theme="dark"] input[type="number"],
+html[data-theme="dark"] input[type="search"],
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
+  background-color: var(--st-input-bg) !important;
+  color: var(--st-text) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+}
+
+html[data-theme="dark"] .form-control::placeholder,
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: rgba(255,255,255,0.30) !important;
+}
+
+html[data-theme="dark"] .form-control:focus,
+html[data-theme="dark"] input:focus,
+html[data-theme="dark"] textarea:focus,
+html[data-theme="dark"] select:focus {
+  background-color: var(--st-input-bg) !important;
+}
+
+/* ── Section heads ───────────────────────────────────────────── */
+html[data-theme="dark"] .form-section .section-head,
+html[data-theme="dark"] .section-head {
+  color: var(--st-text) !important;
+}
+
+html[data-theme="dark"] .form-group label,
+html[data-theme="dark"] .control-label,
+html[data-theme="dark"] .label-area {
+  color: var(--st-text-muted) !important;
+}
+
+/* ── Dropdowns ───────────────────────────────────────────────── */
+html[data-theme="dark"] .dropdown-menu,
+html[data-theme="dark"] .frappe-menu {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+}
+
+html[data-theme="dark"] .dropdown-item {
+  color: var(--st-text) !important;
+}
+
+html[data-theme="dark"] .dropdown-item:hover,
+html[data-theme="dark"] .dropdown-item:focus {
+  background-color: rgba(255,255,255,0.06) !important;
+  color: var(--st-accent) !important;
+}
+
+html[data-theme="dark"] .dropdown-divider {
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* ── Modals & Dialogs ────────────────────────────────────────── */
+html[data-theme="dark"] .modal-content {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+}
+
+html[data-theme="dark"] .modal-body,
+html[data-theme="dark"] .modal-body p,
+html[data-theme="dark"] .modal-body label {
+  color: var(--st-text) !important;
+}
+
+html[data-theme="dark"] .modal-footer {
+  background-color: var(--st-card-bg) !important;
+  border-top-color: rgba(255,255,255,0.08) !important;
+}
+
+/* ── List View & Rows ────────────────────────────────────────── */
+html[data-theme="dark"] .list-row,
+html[data-theme="dark"] .dt-row {
+  border-color: rgba(255,255,255,0.05) !important;
+}
+
+html[data-theme="dark"] .list-row:hover,
+html[data-theme="dark"] .dt-row:hover {
+  background-color: var(--st-list-row-hover) !important;
+}
+
+html[data-theme="dark"] .list-row:nth-child(even) {
+  background-color: rgba(255,255,255,0.02) !important;
+}
+
+html[data-theme="dark"] .list-row .level-item,
+html[data-theme="dark"] .list-row .list-subject a {
+  color: var(--st-text) !important;
+}
+
+/* ── DataTable ───────────────────────────────────────────────── */
+html[data-theme="dark"] .datatable {
+  background-color: var(--st-card-bg) !important;
+  color: var(--st-text) !important;
+}
+
+html[data-theme="dark"] .datatable .dt-cell {
+  border-color: rgba(255,255,255,0.05) !important;
+  color: var(--st-text) !important;
+}
+
+html[data-theme="dark"] .datatable .dt-cell--header,
+html[data-theme="dark"] .list-row-head,
+html[data-theme="dark"] .dt-header {
+  background-color: var(--st-input-bg) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+html[data-theme="dark"] .datatable .dt-cell--header .dt-cell__content {
+  color: var(--st-text-muted) !important;
+}
+
+html[data-theme="dark"] .datatable .dt-row:hover .dt-cell {
+  background-color: rgba(255,255,255,0.04) !important;
+}
+
+html[data-theme="dark"] .datatable .dt-row-filter .dt-cell {
+  background-color: var(--st-card-bg) !important;
+}
+
+/* ── Grid (child table inside forms) ────────────────────────── */
+html[data-theme="dark"] .form-grid,
+html[data-theme="dark"] .form-grid-container {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+html[data-theme="dark"] .form-grid .grid-heading-row {
+  background-color: var(--st-input-bg) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+html[data-theme="dark"] .form-grid .grid-row:hover {
+  background-color: rgba(255,255,255,0.04) !important;
+}
+
+/* ── Form Builder / Customize Form ──────────────────────────── */
+/* Fields with [data-is-user-generated="1"] get --yellow-highlight-color
+   background. We override the variable above, but add !important here too. */
+html[data-theme="dark"] [data-is-user-generated="1"] {
+  background-color: rgba(234, 179, 8, 0.06) !important;
+}
+
+/* Form builder column container and section containers */
+html[data-theme="dark"] .form-builder-container .column,
+html[data-theme="dark"] .form-builder-container .form-section-container,
+html[data-theme="dark"] .form-builder-container .preview .tab,
+html[data-theme="dark"] .form-builder-container .preview .column,
+html[data-theme="dark"] .form-builder-container .preview .field {
+  background-color: var(--st-card-bg) !important;
+}
+
+/* Classic Customize Form field rows and section columns */
+html[data-theme="dark"] .customize-form .form-column,
+html[data-theme="dark"] .form-section .form-column {
+  background-color: transparent !important;
+}
+
+/* layout-main-section used on form pages */
+html[data-theme="dark"] .layout-main-section {
+  background-color: var(--st-card-bg) !important;
+}
+
+/* Form Builder right properties panel — .form-sidebar has no explicit bg,
+   inherits from .form-container (which uses --disabled-control-bg, often
+   near-transparent on a white parent). Force both dark explicitly. */
+html[data-theme="dark"] .form-builder-container .form-container {
+  background-color: var(--st-card-bg) !important;
+}
+html[data-theme="dark"] .form-builder-container .form-main {
+  background-color: var(--st-card-bg) !important;
+}
+html[data-theme="dark"] .form-builder-container .form-sidebar {
+  background-color: var(--st-card-bg) !important;
+  border-left-color: rgba(255,255,255,0.06) !important;
+}
+
+/* Inputs, selects, labels inside form builder properties panel */
+html[data-theme="dark"] .form-builder-container .form-sidebar input,
+html[data-theme="dark"] .form-builder-container .form-sidebar input[type="text"],
+html[data-theme="dark"] .form-builder-container .form-sidebar input[type="search"],
+html[data-theme="dark"] .form-builder-container .form-sidebar select,
+html[data-theme="dark"] .form-builder-container .form-sidebar textarea,
+html[data-theme="dark"] .form-builder-container .form-sidebar .form-control {
+  background-color: var(--st-input-bg) !important;
+  color: var(--st-text) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+}
+html[data-theme="dark"] .form-builder-container .form-sidebar label,
+html[data-theme="dark"] .form-builder-container .form-sidebar .field-label,
+html[data-theme="dark"] .form-builder-container .form-sidebar .sidebar-label,
+html[data-theme="dark"] .form-builder-container .form-sidebar .control-label {
+  color: var(--st-text-muted) !important;
+}
+
+/* User dropdown and all fixed-bg panels using light colors */
+html[data-theme="dark"] .sidebar .user-menu {
+  background-color: var(--st-card-bg) !important;
+}
+
+/* ── Workspace Widget Boxes ──────────────────────────────────── */
+html[data-theme="dark"] .widget.links-widget-box,
+html[data-theme="dark"] .widget.shortcut-widget-box,
+html[data-theme="dark"] .widget.onboarding-widget-box,
+html[data-theme="dark"] .widget.number-card-widget-box {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+html[data-theme="dark"] .widget-title,
+html[data-theme="dark"] .widget-head .widget-title {
+  color: var(--st-text) !important;
+}
+
+html[data-theme="dark"] .widget .link-item a,
+html[data-theme="dark"] .widget .link-item {
+  color: var(--st-text-muted) !important;
+}
+
+html[data-theme="dark"] .widget .link-item:hover a,
+html[data-theme="dark"] .widget .link-item:hover {
+  color: var(--st-accent) !important;
+}
+
+/* ── Nav Tabs ────────────────────────────────────────────────── */
+html[data-theme="dark"] .nav-tabs {
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+html[data-theme="dark"] .nav-tabs .nav-link {
+  color: var(--st-text-muted) !important;
+}
+
+html[data-theme="dark"] .nav-tabs .nav-link:hover {
+  background-color: rgba(255,255,255,0.04) !important;
+  color: var(--st-text) !important;
+}
+
+/* ── Filter Bar ──────────────────────────────────────────────── */
+html[data-theme="dark"] .filter-area,
+html[data-theme="dark"] .filter-box,
+html[data-theme="dark"] .tag-filters-area,
+html[data-theme="dark"] .standard-filter-section {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+html[data-theme="dark"] .filter-box .filter-field .form-control {
+  background-color: var(--st-input-bg) !important;
+  color: var(--st-text) !important;
+}
+
+/* ── Autocomplete / Link field ───────────────────────────────── */
+html[data-theme="dark"] .awesomplete > ul {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+}
+
+html[data-theme="dark"] .awesomplete > ul > li {
+  color: var(--st-text) !important;
+}
+
+html[data-theme="dark"] .awesomplete > ul > li:hover,
+html[data-theme="dark"] .awesomplete > ul [aria-selected="true"] {
+  background-color: rgba(255,255,255,0.06) !important;
+  color: var(--st-accent) !important;
+}
+
+/* ── Our Custom Components ───────────────────────────────────── */
+
+/* Options panel */
+html[data-theme="dark"] #st-options-panel {
+  background-color: var(--st-card-bg) !important;
+}
+
+html[data-theme="dark"] #st-options-search {
+  background-color: var(--st-input-bg) !important;
+  color: var(--st-text) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+}
+
+html[data-theme="dark"] #st-options-search-wrap {
+  border-bottom-color: rgba(255,255,255,0.08) !important;
+}
+
+html[data-theme="dark"] .st-op-item {
+  color: var(--st-text-muted) !important;
+}
+
+html[data-theme="dark"] .st-op-item:hover {
+  background-color: rgba(255,255,255,0.06) !important;
+  color: var(--st-accent) !important;
+}
+
+html[data-theme="dark"] .st-op-section-head {
+  color: rgba(255,255,255,0.30) !important;
+}
+
+/* Module switcher dropdown */
+html[data-theme="dark"] #st-module-switcher-dropdown {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+}
+
+html[data-theme="dark"] #st-module-search {
+  background-color: var(--st-input-bg) !important;
+  color: var(--st-text) !important;
+  border-bottom-color: rgba(255,255,255,0.08) !important;
+}
+
+html[data-theme="dark"] .st-module-item {
+  color: var(--st-text-muted) !important;
+}
+
+html[data-theme="dark"] .st-module-item:hover,
+html[data-theme="dark"] .st-module-item.st-focused {
+  background-color: rgba(255,255,255,0.06) !important;
+  color: var(--st-accent) !important;
+}
+
+html[data-theme="dark"] .st-module-category {
+  color: rgba(255,255,255,0.30) !important;
+}
+
+/* Language dropdown */
+html[data-theme="dark"] #st-lang-dropdown {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+}
+
+html[data-theme="dark"] #st-lang-search {
+  background-color: var(--st-input-bg) !important;
+  color: var(--st-text) !important;
+  border-bottom-color: rgba(255,255,255,0.08) !important;
+}
+
+html[data-theme="dark"] .st-lang-item {
+  color: var(--st-text-muted) !important;
+}
+
+html[data-theme="dark"] .st-lang-item:hover,
+html[data-theme="dark"] .st-lang-item.st-focused {
+  background-color: rgba(255,255,255,0.06) !important;
+  color: var(--st-accent) !important;
+}
+
+html[data-theme="dark"] .st-lang-item.st-active {
+  color: var(--st-accent) !important;
+}
+
+/* ── Today's View (Smart Home) ───────────────────────────────── */
+/* Most elements auto-adapt via CSS vars, but we add explicit rules
+   for safety on elements that use fallback hex colors */
+
+html[data-theme="dark"] .st-sh-greeting {
+  color: #F1F5F9 !important;
+}
+
+html[data-theme="dark"] .st-sh-date {
+  color: var(--st-text-muted) !important;
+}
+
+html[data-theme="dark"] .st-sh-kpi {
+  background: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+html[data-theme="dark"] .st-sh-kpi:hover {
+  background: var(--st-input-bg) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+}
+
+html[data-theme="dark"] .st-sh-kpi-num {
+  color: var(--st-text) !important;
+}
+
+html[data-theme="dark"] .st-sh-kpi-label {
+  color: var(--st-text-muted) !important;
+}
+
+html[data-theme="dark"] .st-sh-card {
+  background: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+html[data-theme="dark"] .st-sh-card-head {
+  border-bottom-color: rgba(255,255,255,0.08) !important;
+  color: var(--st-text-muted) !important;
+}
+
+html[data-theme="dark"] .st-sh-doc-row {
+  border-bottom-color: rgba(255,255,255,0.05) !important;
+}
+
+html[data-theme="dark"] .st-sh-doc-row:hover {
+  background: rgba(255,255,255,0.04) !important;
+}
+
+html[data-theme="dark"] .st-sh-doc-name {
+  color: var(--st-text) !important;
+}
+
+html[data-theme="dark"] .st-sh-qc-row {
+  color: var(--st-text) !important;
+  border-bottom-color: rgba(255,255,255,0.05) !important;
+}
+
+html[data-theme="dark"] .st-sh-qc-row:hover {
+  background: rgba(255,255,255,0.04) !important;
+  color: var(--st-accent) !important;
+}
+
+html[data-theme="dark"] .st-sh-pending-row {
+  color: var(--st-text) !important;
+  border-bottom-color: rgba(255,255,255,0.05) !important;
+}
+
+html[data-theme="dark"] .st-sh-pending-row:hover {
+  background: rgba(255,255,255,0.04) !important;
+}
+
+html[data-theme="dark"] .st-sh-spin {
+  border-color: rgba(255,255,255,0.10) !important;
+  border-top-color: var(--st-accent) !important;
+}
+
+html[data-theme="dark"] .st-sh-empty {
+  color: rgba(255,255,255,0.35) !important;
+}
+
+/* ── Scrollbars in dark mode ─────────────────────────────────── */
+html[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.14) !important;
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.20) !important;
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--st-accent) !important;
+}
+
+/* ── Misc: tooltips, toasts, badges ─────────────────────────── */
+html[data-theme="dark"] .alert-primary,
+html[data-theme="dark"] .alert-info {
+  background: rgba(255,255,255,0.05) !important;
+  color: var(--st-text) !important;
+  border-left-color: var(--st-accent) !important;
+}
+
+html[data-theme="dark"] .alert-success {
+  background: rgba(34,197,94,0.08) !important;
+  color: #86efac !important;
+}
+
+html[data-theme="dark"] .alert-danger,
+html[data-theme="dark"] .alert-error {
+  background: rgba(239,68,68,0.08) !important;
+  color: #fca5a5 !important;
+}
+
+html[data-theme="dark"] .alert-warning {
+  background: rgba(234,179,8,0.08) !important;
+  color: #fde68a !important;
+}
+
+/* Indicator pills in dark mode */
+html[data-theme="dark"] .indicator-pill.gray,
+html[data-theme="dark"] .indicator-pill.grey {
+  background: rgba(255,255,255,0.08) !important;
+  color: var(--st-text-muted) !important;
+}
+
+/* Link field results popup */
+html[data-theme="dark"] .link-btn,
+html[data-theme="dark"] .results {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: var(--st-text) !important;
+}
+
+/* Global search popup (command palette / search dialog) */
+html[data-theme="dark"] .search-dialog .modal-content,
+html[data-theme="dark"] .global-search-modal .modal-content {
+  background-color: var(--st-card-bg) !important;
+}
+
+/* Dark mode toggle — always visible on the dark toolbar regardless of page theme */
+#st-dark-toggle {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.70);
+  border: 1px solid rgba(255,255,255,0.18);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+#st-dark-toggle:hover {
+  background: rgba(255,255,255,0.16);
+  color: #fff;
+  border-color: rgba(255,255,255,0.35);
+}
+html[data-theme="dark"] #st-dark-toggle {
+  background: rgba(255,255,255,0.10);
+  color: #F59E0B;
+  border-color: rgba(255,255,255,0.18);
+}
+html[data-theme="dark"] #st-dark-toggle:hover {
+  background: rgba(255,255,255,0.18);
+  color: #FBB040;
+  border-color: rgba(255,255,255,0.35);
+}
+
+/* ── Dashboard / Charts ──────────────────────────────────────── */
+
+/* Dashboard chart widget box containers */
+html[data-theme="dark"] .widget.dashboard-widget-box,
+html[data-theme="dark"] .widget.chart-widget-box {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* .chart-loading-state is the "Loading…" / "No Data" div — uses
+   var(--subtle-accent) which we fix in :root above, but !important
+   here as belt-and-suspenders */
+html[data-theme="dark"] .chart-loading-state {
+  background-color: var(--st-input-bg) !important;
+  color: var(--st-text-muted) !important;
+}
+
+/* Chart wrapper and container */
+html[data-theme="dark"] .chart-container,
+html[data-theme="dark"] .frappe-chart,
+html[data-theme="dark"] .chart-wrapper,
+html[data-theme="dark"] .dashboard-graph-wrapper,
+html[data-theme="dark"] .widget-body .chart-container,
+html[data-theme="dark"] .number-card-chart {
+  background-color: var(--st-card-bg) !important;
+}
+
+/* Frappe chart SVG — override any inline white fill set by JS */
+html[data-theme="dark"] .frappe-chart svg,
+html[data-theme="dark"] .chart-container svg {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Chart text / axis labels via CSS vars (already overridden in :root block above) */
+html[data-theme="dark"] .frappe-chart .x.axis text,
+html[data-theme="dark"] .frappe-chart .y.axis text,
+html[data-theme="dark"] .chart-label {
+  fill: var(--st-text-muted) !important;
+  color: var(--st-text-muted) !important;
+}
+
+/* Chart grid lines */
+html[data-theme="dark"] .frappe-chart .chart-draw line,
+html[data-theme="dark"] .frappe-chart line {
+  stroke: rgba(255,255,255,0.07) !important;
+}
+
+/* Dashboard number cards */
+html[data-theme="dark"] .number-card .number-card-label {
+  color: var(--st-text-muted) !important;
+}
+html[data-theme="dark"] .number-card .number-card-number {
+  color: var(--st-text) !important;
+}
+
+/* ── Dashboard & widget card hover — keep background dark ────── */
+/* Frappe uses --btn-default-bg/hover via gray-700/800 for action
+   buttons that appear on card hover; override all card surfaces. */
+
+html[data-theme="dark"] .widget.number-widget-box:hover,
+html[data-theme="dark"] .widget.number-card-widget-box:hover,
+html[data-theme="dark"] .widget.dashboard-widget-box:hover,
+html[data-theme="dark"] .widget.chart-widget-box:hover,
+html[data-theme="dark"] .widget.shortcut-widget-box:hover,
+html[data-theme="dark"] .widget.links-widget-box:hover,
+html[data-theme="dark"] .widget.quick-list-widget-box:hover,
+html[data-theme="dark"] .widget.onboarding-widget-box:hover {
+  background-color: var(--st-card-bg) !important;
+}
+
+/* Action/filter buttons that appear on card hover */
+html[data-theme="dark"] .widget:hover .btn-xs,
+html[data-theme="dark"] .widget:hover .btn-default,
+html[data-theme="dark"] .widget:hover .widget-control .btn,
+html[data-theme="dark"] .widget:hover .chart-actions .btn,
+html[data-theme="dark"] .widget:hover .filter-chart,
+html[data-theme="dark"] .widget .btn-xs,
+html[data-theme="dark"] .widget .chart-menu,
+html[data-theme="dark"] .widget .widget-head .widget-control .btn {
+  background-color: rgba(255,255,255,0.07) !important;
+  color: var(--st-text) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+}
+
+html[data-theme="dark"] .widget:hover .btn-xs:hover,
+html[data-theme="dark"] .widget:hover .btn-default:hover,
+html[data-theme="dark"] .widget:hover .widget-control .btn:hover,
+html[data-theme="dark"] .widget:hover .chart-actions .btn:hover {
+  background-color: rgba(255,255,255,0.13) !important;
+}
+
+/* Quick-list item rows inside widgets */
+html[data-theme="dark"] .widget.quick-list-widget-box .quick-list-item,
+html[data-theme="dark"] .widget.quick-list-widget-box .quick-list-item:hover,
+html[data-theme="dark"] .widget.quick-list-widget-box .see-all,
+html[data-theme="dark"] .widget.quick-list-widget-box .refresh-list,
+html[data-theme="dark"] .widget.quick-list-widget-box .filter-list,
+html[data-theme="dark"] .widget.quick-list-widget-box .add-new {
+  background-color: rgba(255,255,255,0.04) !important;
+  color: var(--st-text) !important;
+}
+html[data-theme="dark"] .widget.quick-list-widget-box .quick-list-item:hover,
+html[data-theme="dark"] .widget.quick-list-widget-box .see-all:hover,
+html[data-theme="dark"] .widget.quick-list-widget-box .refresh-list:hover,
+html[data-theme="dark"] .widget.quick-list-widget-box .filter-list:hover,
+html[data-theme="dark"] .widget.quick-list-widget-box .add-new:hover {
+  background-color: rgba(255,255,255,0.09) !important;
+}
+
+/* ── Quill Rich Text Editor ──────────────────────────────────── */
+/* Frappe sets .ql-editor{background:var(--control-bg)} but the toolbar
+   and container have no background, so they inherit white from parent. */
+html[data-theme="dark"] .ql-toolbar.ql-snow,
+html[data-theme="dark"] .ql-container.ql-snow,
+html[data-theme="dark"] .frappe-text-editor,
+html[data-theme="dark"] .ql-editor {
+  background-color: var(--st-input-bg) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: var(--st-text) !important;
+}
+
+html[data-theme="dark"] .ql-toolbar.ql-snow {
+  border-bottom-color: rgba(255,255,255,0.08) !important;
+}
+
+/* Quill toolbar icons */
+html[data-theme="dark"] .ql-snow .ql-stroke {
+  stroke: var(--st-text-muted) !important;
+}
+html[data-theme="dark"] .ql-snow .ql-fill {
+  fill: var(--st-text-muted) !important;
+}
+html[data-theme="dark"] .ql-snow .ql-picker {
+  color: var(--st-text-muted) !important;
+}
+html[data-theme="dark"] .ql-snow .ql-picker-options {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: var(--st-text) !important;
+}
+html[data-theme="dark"] .ql-snow.ql-toolbar button:hover .ql-stroke,
+html[data-theme="dark"] .ql-snow .ql-toolbar button:hover .ql-stroke,
+html[data-theme="dark"] .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+html[data-theme="dark"] .ql-snow .ql-toolbar button.ql-active .ql-stroke {
+  stroke: var(--st-accent) !important;
+}
+html[data-theme="dark"] .ql-snow .ql-tooltip {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: var(--st-text) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+}
+html[data-theme="dark"] .ql-snow .ql-tooltip input[type="text"] {
+  background-color: var(--st-input-bg) !important;
+  color: var(--st-text) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+}
+html[data-theme="dark"] .ql-editor.ql-blank::before {
+  color: rgba(255,255,255,0.30) !important;
+}
+
+/* ── Date/Time pickers ───────────────────────────────────────── */
+html[data-theme="dark"] .datepicker,
+html[data-theme="dark"] .bootstrap-datetimepicker-widget,
+html[data-theme="dark"] .frappe-control[data-fieldtype="Date"] .ui-datepicker,
+html[data-theme="dark"] .ui-datepicker,
+html[data-theme="dark"] .datepicker--nav,
+html[data-theme="dark"] .datepicker--days,
+html[data-theme="dark"] .datepicker--time {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: var(--st-text) !important;
+}
+html[data-theme="dark"] .datepicker--day-name {
+  color: var(--st-text-muted) !important;
+}
+html[data-theme="dark"] .datepicker--cell.-current- {
+  color: var(--st-accent) !important;
+}
+html[data-theme="dark"] .datepicker--cell.-selected- {
+  background: var(--st-accent) !important;
+  color: #fff !important;
+}
+html[data-theme="dark"] .datepicker--nav-title,
+html[data-theme="dark"] .datepicker--nav-action {
+  color: var(--st-text) !important;
+}
+
+/* ── Toast / Notification toasts ────────────────────────────── */
+html[data-theme="dark"] .toast,
+html[data-theme="dark"] .frappe-toast,
+html[data-theme="dark"] .alert.desk-alert {
+  background-color: var(--st-input-bg) !important;
+  color: var(--st-text) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+}
+
+/* ── Attach / Upload area ────────────────────────────────────── */
+html[data-theme="dark"] .attach-image-wrapper,
+html[data-theme="dark"] .frappe-control[data-fieldtype="Attach"] .btn-attach,
+html[data-theme="dark"] .drop-target {
+  background-color: rgba(255,255,255,0.03) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+}
+
+/* ── Table / Form grid rows + empty state ───────────────────── */
+html[data-theme="dark"] .grid-empty,
+html[data-theme="dark"] .grid-body,
+html[data-theme="dark"] .form-grid {
+  background-color: var(--st-card-bg) !important;
+}
+html[data-theme="dark"] .grid-row {
+  border-color: rgba(255,255,255,0.05) !important;
+}
+html[data-theme="dark"] .grid-row:nth-child(even) .data-row {
+  background-color: rgba(255,255,255,0.02) !important;
+}
+html[data-theme="dark"] .grid-row-open .data-row,
+html[data-theme="dark"] .form-in-grid {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+html[data-theme="dark"] .row-check .checkbox-input-area,
+html[data-theme="dark"] .grid-row-open .row-actions {
+  background-color: var(--st-input-bg) !important;
+}
+html[data-theme="dark"] .col-header,
+html[data-theme="dark"] .form-grid .grid-heading-row .col-header {
+  color: var(--st-text-muted) !important;
+}
+
+/* ── Card / Kanban / Report views ───────────────────────────── */
+html[data-theme="dark"] .kanban-column {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+html[data-theme="dark"] .kanban-card {
+  background-color: var(--st-card-bg) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+html[data-theme="dark"] .report-wrapper,
+html[data-theme="dark"] .report-chart {
+  background-color: var(--st-card-bg) !important;
+}
+
+/* ── Page-level background (list, form, report pages) ───────── */
+html[data-theme="dark"] .desk-page,
+html[data-theme="dark"] .page-container,
+html[data-theme="dark"] .layout-main,
+html[data-theme="dark"] .layout-main-section-wrapper {
+  background-color: var(--st-page-bg) !important;
+}
+
+/* ── Misc elements that use light hardcoded backgrounds ─────── */
+html[data-theme="dark"] .frappe-login-page,
+html[data-theme="dark"] code,
+html[data-theme="dark"] pre {
+  background-color: var(--st-input-bg) !important;
+  color: var(--st-text) !important;
+}
+html[data-theme="dark"] .btn-default,
+html[data-theme="dark"] .btn-secondary {
+  background-color: var(--st-input-bg) !important;
+  color: var(--st-text) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+}
+html[data-theme="dark"] .btn-default:hover,
+html[data-theme="dark"] .btn-secondary:hover {
+  background-color: var(--st-card-bg) !important;
+  color: var(--st-accent) !important;
+  border-color: var(--st-accent) !important;
+}
+
+/* ── Command Palette — dark selected/hover states ────────────── */
+/* --st-primary-50 is color-mix(5% primary + white) — too light for dark bg */
+html[data-theme="dark"] .st-cp-item.st-selected {
+  background: color-mix(in srgb, var(--st-accent) 18%, var(--st-card-bg)) !important;
+  outline: 1.5px solid color-mix(in srgb, var(--st-accent) 35%, var(--st-card-bg)) !important;
+}
+
+html[data-theme="dark"] .st-cp-item:hover {
+  background: rgba(255,255,255,0.05) !important;
+}
+
+html[data-theme="dark"] .st-cp-item-name {
+  color: var(--st-text) !important;
+}
+
+html[data-theme="dark"] .st-cp-item-sub {
+  color: var(--st-text-muted) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LIGHT MODE RESETS
+   sidebar.css / solvronix_desk.css unconditionally apply dark
+   sidebar backgrounds and white text. The rules below undo that
+   when data-theme="dark" is NOT present.
+   dark_mode.css loads last, so these win on equal specificity.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Sidebar background → white ─────────────────────────────── */
+html:not([data-theme="dark"]) .body-sidebar,
+html:not([data-theme="dark"]) .body-sidebar-container > .body-sidebar,
+html:not([data-theme="dark"]) .body-sidebar-container.expanded .body-sidebar,
+html:not([data-theme="dark"]) .body-sidebar-container .body-sidebar-placeholder,
+html:not([data-theme="dark"]) .desk-sidebar {
+  background: var(--fg-color, #fff) !important;
+  background-color: var(--fg-color, #fff) !important;
+  border-right: 1px solid rgba(0,0,0,0.08) !important;
+}
+
+/* ── Company header border ───────────────────────────────────── */
+html:not([data-theme="dark"]) #st-company-header {
+  border-bottom-color: rgba(0,0,0,0.08) !important;
+}
+
+/* ── Company name → dark text ────────────────────────────────── */
+html:not([data-theme="dark"]) .st-company-name {
+  color: var(--text-color, #1A1A2E) !important;
+}
+
+/* ── Sidebar item links → dark text ─────────────────────────── */
+html:not([data-theme="dark"]) .body-sidebar .standard-sidebar-item .item-anchor,
+html:not([data-theme="dark"]) .desk-sidebar .sidebar-item,
+html:not([data-theme="dark"]) .desk-sidebar .standard-sidebar-item,
+html:not([data-theme="dark"]) .desk-sidebar .sidebar-item a,
+html:not([data-theme="dark"]) .desk-sidebar .standard-sidebar-item a {
+  color: var(--text-color, #333) !important;
+}
+
+/* ── Hover → light gray ──────────────────────────────────────── */
+html:not([data-theme="dark"]) .body-sidebar .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover,
+html:not([data-theme="dark"]) .body-sidebar .standard-sidebar-item:not(.active-sidebar):has(a:not(.section-break)):hover,
+html:not([data-theme="dark"]) .desk-sidebar .sidebar-item:hover,
+html:not([data-theme="dark"]) .desk-sidebar .standard-sidebar-item:hover {
+  background: rgba(0,0,0,0.05) !important;
+  color: var(--text-color, #1A1A2E) !important;
+  transform: none !important;
+}
+
+/* ── Icons → dark/muted ──────────────────────────────────────── */
+html:not([data-theme="dark"]) .body-sidebar .standard-sidebar-item .sidebar-item-icon,
+html:not([data-theme="dark"]) .body-sidebar .standard-sidebar-item .sidebar-item-icon svg use,
+html:not([data-theme="dark"]) .body-sidebar .standard-sidebar-item .sidebar-item-icon svg,
+html:not([data-theme="dark"]) .body-sidebar .sidebar-item-icon .es-icon,
+html:not([data-theme="dark"]) .body-sidebar .sidebar-item-icon .icon,
+html:not([data-theme="dark"]) .desk-sidebar .sidebar-item-icon,
+html:not([data-theme="dark"]) .desk-sidebar .standard-sidebar-item svg,
+html:not([data-theme="dark"]) .desk-sidebar .standard-sidebar-item .icon {
+  color: var(--text-muted, #6B7280) !important;
+  stroke: var(--text-muted, #6B7280) !important;
+  fill: var(--text-muted, #6B7280) !important;
+  opacity: 1 !important;
+}
+
+/* Remove the brightness(0) invert(1) filter that makes icons white —
+   that filter renders icons invisible on a white background. */
+html:not([data-theme="dark"]) .desk-sidebar .sidebar-item .sidebar-item-icon,
+html:not([data-theme="dark"]) .desk-sidebar .standard-sidebar-item .sidebar-item-icon {
+  filter: none !important;
+}
+
+/* ── Section / group labels ──────────────────────────────────── */
+html:not([data-theme="dark"]) .body-sidebar .sidebar-item-container.section-item .item-anchor .sidebar-item-label,
+html:not([data-theme="dark"]) .body-sidebar .section-break .sidebar-item-label,
+html:not([data-theme="dark"]) .desk-sidebar .sidebar-group-title,
+html:not([data-theme="dark"]) .desk-sidebar .sidebar-section-head,
+html:not([data-theme="dark"]) .desk-sidebar .standard-sidebar-section > .standard-sidebar-label {
+  color: rgba(0,0,0,0.40) !important;
+}
+
+/* ── Dividers ────────────────────────────────────────────────── */
+html:not([data-theme="dark"]) .body-sidebar .divider {
+  border-color: rgba(0,0,0,0.08) !important;
+}
+
+/* ── Collapse / onboarding links ─────────────────────────────── */
+html:not([data-theme="dark"]) .body-sidebar .collapse-sidebar-link,
+html:not([data-theme="dark"]) .body-sidebar .collapse-sidebar-link span {
+  color: var(--text-muted, #6B7280) !important;
+}
+html:not([data-theme="dark"]) .body-sidebar .onboarding-sidebar {
+  color: rgba(0,0,0,0.5) !important;
+}
+html:not([data-theme="dark"]) .body-sidebar .onboarding-sidebar:hover {
+  color: rgba(0,0,0,0.8) !important;
+}
+
+/* ── Scrollbar inside sidebar ────────────────────────────────── */
+html:not([data-theme="dark"]) .body-sidebar .body-sidebar-top::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.15) !important;
+}
+
+/* ── Resize handle ───────────────────────────────────────────── */
+html:not([data-theme="dark"]) .body-sidebar .sidebar-resize-handle {
+  background: rgba(0,0,0,0.05) !important;
+}
+html:not([data-theme="dark"]) .body-sidebar .sidebar-resize-handle:hover {
+  background: rgba(0,0,0,0.10) !important;
+}

@@ -4,7 +4,7 @@ with open("requirements.txt") as f:
     install_requires = [l.strip() for l in f if l.strip() and not l.startswith("#")]
 
 setup(
-    name="solvronix_theme",
+    name="solvronix_desk",
     version="1.0.0",
     description="Professional white-label theme for Frappe/ERPNext v15 and v16",
     author="Solvronix",

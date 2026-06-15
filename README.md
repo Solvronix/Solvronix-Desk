@@ -22,6 +22,9 @@ Press `Ctrl+K` from anywhere. Type what you're looking for — a document, a lis
 ### White-Label Branding
 Go to Theme Settings, enter your company name, upload your logo, pick your two brand colors. Save. The entire system — sidebar, navbar, login page, buttons — instantly becomes your brand.
 
+### Quick Color Presets
+Four one-click color presets appear above the color pickers in Theme Settings. Pick a preset — Brand Color and Accent Color update instantly. Includes Solvronix (Navy + Orange), Forest (Green + Gold), Midnight (Slate + Violet), and Plum (Purple + Amber). Use as-is or as a starting point before tweaking.
+
 ### Auto Color System
 You set one brand color. The system automatically generates your complete color palette — backgrounds, hover states, borders, shadows — using CSS `color-mix()`. Change your brand color and everything updates instantly. No developer needed.
 
@@ -72,12 +75,12 @@ bench get-app https://github.com/Solvronix/Solvronix-Desk
 
 **Step 2 — Install on your site**
 ```bash
-bench --site your-site.com install-app solvronix_theme
+bench --site your-site.com install-app solvronix_desk
 ```
 
 **Step 3 — Build and restart**
 ```bash
-bench build --app solvronix_theme
+bench build --app solvronix_desk
 bench restart
 ```
 
@@ -97,6 +100,8 @@ After installation, open **Theme Settings** — search for it with `Ctrl+K` or f
 | Company Logo | Shown in the navbar and login page |
 | Brand Color | Sets sidebar, navbar, and login page background |
 | Accent Color | Sets buttons, active states, and highlights |
+
+**Tip:** The **Quick Presets** row above the color pickers lets you apply a complete color pair in one click. Click any swatch → both fields update → click **Save**.
 
 Click **Save** — the entire system updates instantly.
 
@@ -157,7 +162,7 @@ Works with ERPNext and any other Frappe-based application.
 ## Uninstalling
 
 ```bash
-bench --site your-site.com uninstall-app solvronix_theme
+bench --site your-site.com uninstall-app solvronix_desk
 bench build
 bench restart
 ```
@@ -189,7 +194,7 @@ Solvronix builds Frappe/ERPNext products for businesses globally, based in Lahor
 
 ## Support
 
-Something not working? Open an issue on [GitHub Issues](https://github.com/solvronix/solvronix_theme/issues) or contact us directly.
+Something not working? Open an issue on [GitHub Issues](https://github.com/solvronix/solvronix_desk/issues) or contact us directly.
 
 - Email: sales@solvronix.com
 - WhatsApp: +92 307 9484220
