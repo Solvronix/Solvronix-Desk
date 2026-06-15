@@ -1,8 +1,8 @@
 # Solvronix Desk
 
-> A professional theme for Frappe/ERPNext that makes your ERP look and feel like a modern SaaS product.
+> A professional white-label theme for Frappe/ERPNext v16 that makes your ERP look and feel like a modern SaaS product.
 
-![Solvronix Desk Login]![alt text](image-1.png)
+![Solvronix Desk](docs/screenshots/smart-home.png)
 
 ---
 
@@ -17,10 +17,10 @@ ERPNext is powerful. But the default interface is overwhelming — too many menu
 ## What You Get
 
 ### Command Palette — `Ctrl+K`
-Press `Ctrl+K` from anywhere. Type what you're looking for — a document, a list, a setting — and navigate instantly. No menu hunting. No memorizing paths. Your users will never go back to clicking through menus.
+Press `Ctrl+K` from anywhere. Type what you're looking for — a document, a list, a setting — and navigate instantly. No menu hunting. No memorizing paths.
 
 ### White-Label Branding
-Go to Theme Settings, enter your company name, upload your logo, pick your two brand colors. Save. The entire system — sidebar, navbar, login page, buttons — instantly becomes your brand. Your staff see your company, not ERPNext.
+Go to Theme Settings, enter your company name, upload your logo, pick your two brand colors. Save. The entire system — sidebar, navbar, login page, buttons — instantly becomes your brand.
 
 ### Auto Color System
 You set one brand color. The system automatically generates your complete color palette — backgrounds, hover states, borders, shadows — using CSS `color-mix()`. Change your brand color and everything updates instantly. No developer needed.
@@ -38,13 +38,17 @@ A full-screen branded login experience with your company logo and colors. First 
 
 ## Screenshots
 
-| Login Page | Today's View | Theme Settings |
-|---|---|---|
-| ![Login] (image-2.png) | ![Today](image-3.png) | ![Settings](image-4.png) |
+| Login Page | Today's View |
+|:---:|:---:|
+| ![Login Page](docs/screenshots/login.png) | ![Today's View](docs/screenshots/smart-home.png) |
 
-| Dark Mode | Command Palette | Slim Sidebar |
-|---|---|---|
-| ![Dark]![alt text](image-5.png) | ![Ctrl+K](image-6.png) | ![Sidebar]-(image-7.png) |
+| Theme Settings | Dark Mode |
+|:---:|:---:|
+| ![Theme Settings](docs/screenshots/theme-settings.png) | ![Dark Mode](docs/screenshots/dark-mode.png) |
+
+| Command Palette | Slim Sidebar |
+|:---:|:---:|
+| ![Command Palette](docs/screenshots/command-palette.png) | ![Slim Sidebar](docs/screenshots/sidebar.png) |
 
 ---
 
@@ -52,8 +56,8 @@ A full-screen branded login experience with your company logo and colors. First 
 
 | Requirement | Version |
 |---|---|
-| Frappe Framework | v15 or v16 |
-| ERPNext | v15 or v16 (optional — works on any Frappe app) |
+| Frappe Framework | v16 |
+| ERPNext | v16 (optional — works on any Frappe app) |
 | Python | 3.10+ |
 | Node | 18+ |
 
@@ -63,17 +67,17 @@ A full-screen branded login experience with your company logo and colors. First 
 
 **Step 1 — Download the app**
 ```bash
-bench get-app https://github.com/solvronix/solvronix_desk
+bench get-app https://github.com/Solvronix/Solvronix-Desk
 ```
 
 **Step 2 — Install on your site**
 ```bash
-bench --site your-site.com install-app solvronix_desk
+bench --site your-site.com install-app solvronix_theme
 ```
 
 **Step 3 — Build and restart**
 ```bash
-bench build --app solvronix_desk
+bench build --app solvronix_theme
 bench restart
 ```
 
@@ -116,7 +120,7 @@ This means any company — whether their brand is navy, green, red, or black —
 
 ---
 
-## Default Colors (Solvronix Brand)
+## Default Colors
 
 | Color | Hex | Used For |
 |---|---|---|
@@ -143,17 +147,17 @@ This means any company — whether their brand is navy, green, red, or black —
 | Frappe Version | Status |
 |---|---|
 | v16 | ✅ Fully supported |
-| v15 | ✅ Fully supported |
-| v14 | ⚠️ Not tested |
+| v15 | ⚠️ Not tested |
+| v14 | ❌ Not supported |
 
-Works on ERPNext and any other Frappe-based application.
+Works with ERPNext and any other Frappe-based application.
 
 ---
 
 ## Uninstalling
 
 ```bash
-bench --site your-site.com uninstall-app solvronix_desk
+bench --site your-site.com uninstall-app solvronix_theme
 bench build
 bench restart
 ```
@@ -166,7 +170,7 @@ Your ERPNext returns to its default appearance. No data is deleted.
 
 MIT License — free to use, modify, and distribute commercially.
 
-See [LICENSE](LICENSE) for full details.
+See [LICENSE](license.txt) for full details.
 
 ---
 
@@ -176,7 +180,7 @@ Solvronix builds Frappe/ERPNext products for businesses globally, based in Lahor
 
 - Website: [solvronix.com](https://solvronix.com)
 - Email: sales@solvronix.com
-- WhatsApp: +92 
+- WhatsApp: +92 307 9484220
 
 **Other products:**
 - [Edvronix](https://solvronix.com/edvronix) — School management system built on ERPNext. Fee collection, attendance, timetables, parent portal, and more.
@@ -185,7 +189,7 @@ Solvronix builds Frappe/ERPNext products for businesses globally, based in Lahor
 
 ## Support
 
-Something not working? Open an issue on [GitHub Issues](https://github.com/solvronix/solvronix_desk/issues) or contact us directly.
+Something not working? Open an issue on [GitHub Issues](https://github.com/solvronix/solvronix_theme/issues) or contact us directly.
 
 - Email: sales@solvronix.com
 - WhatsApp: +92 307 9484220
