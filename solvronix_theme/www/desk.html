@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html data-theme-mode="{{ desk_theme.lower() }}" data-theme="{{ desk_theme.lower() }}"
+      style="background-color:{% if desk_theme.lower() == 'dark' %}#0F1117{% else %}color-mix(in srgb, {{ boot.st_brand or '#1B1D26' }} 4%, white){% endif %};"
+      dir={{ layout_direction }} lang="{{ lang }}">
+	<head>
+		<meta charset="UTF-8">
+		<!-- Chrome, Firefox OS and Opera -->
+		<meta name="theme-color" content="#0089FF">
+		<!-- Windows Phone -->
+		<meta name="msapplication-navbutton-color" content="#0089FF">
+		<!-- iOS Safari -->
+		<meta name="apple-mobile-web-app-status-bar-style" content="#0089FF">
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+		<meta name="author" content="">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0,
+			maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="white">
+		<meta name="mobile-web-app-capable" content="yes">
+		<title>{{ app_name }}</title>
+		<link rel="shortcut icon"
+			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
+		<link rel="icon"
+			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
+
+		{% for include in app_include_css -%}
+		{{ include_style(include) }}
+		{%- endfor -%}
+
+		{# SOLVRONIX: inline CSS vars AFTER app CSS so we override any static fallbacks.
+		   boot.st_brand / boot.st_accent / boot.st_sidebar come from boot.py.
+		   This block is in <head> — applied before any JS or DOM content renders.
+		   Zero flash even on first load or cleared cache. #}
+		<style id="st-inline-theme">
+:root {
+  --st-brand:   {{ boot.st_brand  or '#1B1D26' }};
+  --st-primary: {{ boot.st_brand  or '#1B1D26' }};
+  --st-accent:  {{ boot.st_accent or '#6B3E66' }};
+}
+{% if desk_theme.lower() == 'dark' %}
+/* Flash-prevention: sidebar/navbar = brand; content area = fixed neutral dark. */
+html[data-theme="dark"] {
+  --st-page-bg:  #0F1117;
+  --st-card-bg:  #1A1D27;
+  --st-input-bg: #252836;
+  --bg-color:    #0F1117;
+  --fg-color:    #1A1D27;
+  --card-bg:     #1A1D27;
+  --modal-bg:    #1A1D27;
+  --control-bg:  #252836;
+  --input-bg:    #252836;
+  --subtle-accent: #252836;
+  --surface-menu-bar: #1A1D27;
+  --bg-light-gray: #1A1D27;
+  --bg-gray:     #1A1D27;
+  --text-color:  #E2E8F0;
+  --text-muted:  #94A3B8;
+  --border-color: rgba(255,255,255,0.08);
+  --subtle-fg:   rgba(255,255,255,0.06);
+  --yellow-highlight-color: rgba(234,179,8,0.07);
+}
+html[data-theme="dark"] body,
+html[data-theme="dark"] .main-section,
+html[data-theme="dark"] .page-container {
+  background-color: #0F1117 !important;
+}
+html[data-theme="dark"] .layout-main-section,
+html[data-theme="dark"] .frappe-card,
+html[data-theme="dark"] .form-page {
+  background-color: #1A1D27 !important;
+}
+html[data-theme="dark"] .body-sidebar,
+html[data-theme="dark"] .desk-sidebar {
+  background-color: {{ boot.st_brand or '#1B1D26' }} !important;
+}
+{% endif %}
+		</style>
+
+		{% if lang == "eo" %}
+		<script type="text/javascript">
+			var _jipt = [];
+			_jipt.push(['project', 'frappe']);
+		</script>
+		<script type="text/javascript" src="https://cdn.crowdin.com/jipt/jipt.js"></script>
+		{% endif %}
+	</head>
+	<body>
+		{% include "templates/includes/splash_screen.html" %}
+		<div class="main-section">
+			<header></header>
+			<div id="body"></div>
+			<footer></footer>
+		</div>
+		<div id="all-symbols" style="display:none"></div>
+		<div id="build-events-overlay"></div>
+
+		<script type="text/javascript">
+			window._version_number = "{{ build_version }}";
+			// browser support
+			window.app = true;
+			window.dev_server = {{ dev_server }};
+
+			if (!window.frappe) window.frappe = {};
+
+			frappe.boot = {{ frappe.utils.orjson_dumps(boot, default=frappe.json_handler) }};
+			frappe._messages = frappe.boot["__messages"];
+			frappe.csrf_token = "{{ csrf_token }}";
+
+
+		</script>
+
+		{%- for path in app_include_icons -%}
+		{{ include_icons(path) }}
+		{%- endfor -%}
+
+	{% for include in app_include_js %}
+	{{ include_script(include) }}
+	{% endfor %}
+
+	{% include "templates/includes/app_analytics/google_analytics.html" %}
+
+		{% for sound in (sounds or []) %}
+		<audio preload="auto" id="sound-{{ sound.name }}" volume={{ sound.volume or 1 }}>
+			<source src="{{ sound.src }}"></source>
+		</audio>
+		{% endfor %}
+	</body>
+</html>

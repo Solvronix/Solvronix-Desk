@@ -1,0 +1,265 @@
+/* ================================================================
+   Solvronix Desk — Module Card Grid (Workspaces / App Grid)
+   Renders as Odoo-style app picker on /app/home route.
+   Each card uses --mod-color CSS var set inline per card.
+   ================================================================ */
+
+/* ── Outer wrapper replacing the default home workspace ───────── */
+#st-module-grid {
+  padding: 36px 40px 48px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* ── Page header ──────────────────────────────────────────────── */
+.st-ws-header {
+  margin-bottom: 32px;
+}
+
+.st-ws-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--heading-color, #1f272e);
+  margin: 0 0 6px 0;
+}
+
+.st-ws-subtitle {
+  font-size: 13px;
+  color: var(--text-muted, #8d99a6);
+}
+
+/* ── Search bar ───────────────────────────────────────────────── */
+.st-ws-search-wrap {
+  margin-bottom: 28px;
+  max-width: 380px;
+}
+
+.st-ws-search {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color, #ebeff2);
+  background: var(--card-bg, #fff);
+  color: var(--text-color, #1f272e);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 180ms, box-shadow 180ms;
+}
+
+.st-ws-search:focus {
+  border-color: var(--st-accent, #F57C00);
+  box-shadow: 0 0 0 3px rgba(var(--st-accent-rgb, 245,124,0), 0.12);
+}
+
+.st-ws-search::placeholder {
+  color: var(--text-muted, #8d99a6);
+}
+
+/* ── Cards grid ───────────────────────────────────────────────── */
+.st-ws-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 18px;
+}
+
+/* ── Individual card ──────────────────────────────────────────── */
+.st-ws-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #ebeff2);
+  border-radius: 14px;
+  padding: 24px 20px 20px;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  transition: transform 160ms cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 160ms ease,
+              border-color 160ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.st-ws-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--mod-color, var(--st-accent, #F57C00));
+  opacity: 0;
+  transition: opacity 160ms ease;
+  border-radius: 14px 14px 0 0;
+}
+
+.st-ws-card:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.10);
+  border-color: var(--mod-color, var(--st-accent, #F57C00));
+  text-decoration: none;
+}
+
+.st-ws-card:hover::before {
+  opacity: 1;
+}
+
+.st-ws-card:focus {
+  outline: 2px solid var(--mod-color, var(--st-accent, #F57C00));
+  outline-offset: 2px;
+}
+
+/* ── Card icon circle ─────────────────────────────────────────── */
+.st-ws-card-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--mod-color, var(--st-accent, #F57C00)) 12%, var(--card-bg, #fff));
+  color: var(--mod-color, var(--st-accent, #F57C00));
+  transition: background 160ms ease;
+}
+
+.st-ws-card:hover .st-ws-card-icon {
+  background: color-mix(in srgb, var(--mod-color, var(--st-accent, #F57C00)) 20%, var(--card-bg, #fff));
+}
+
+/* ── Card text ────────────────────────────────────────────────── */
+.st-ws-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.st-ws-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color, #1f272e);
+  line-height: 1.3;
+}
+
+.st-ws-card-desc {
+  font-size: 12px;
+  color: var(--text-muted, #8d99a6);
+  line-height: 1.4;
+}
+
+/* ── Empty state ──────────────────────────────────────────────── */
+.st-ws-empty {
+  grid-column: 1 / -1;
+  padding: 48px;
+  text-align: center;
+  color: var(--text-muted, #8d99a6);
+  font-size: 13px;
+}
+
+/* ── Skeleton loader cards ────────────────────────────────────── */
+.st-ws-card.st-skeleton {
+  pointer-events: none;
+}
+
+.st-ws-card.st-skeleton .st-ws-card-icon,
+.st-ws-card.st-skeleton .st-ws-card-name,
+.st-ws-card.st-skeleton .st-ws-card-desc {
+  background: var(--border-color, #ebeff2) !important;
+  border-radius: 6px;
+  animation: st-shimmer 1.4s ease-in-out infinite;
+}
+
+.st-ws-card.st-skeleton .st-ws-card-name {
+  width: 70%;
+  height: 16px;
+  color: transparent;
+}
+
+.st-ws-card.st-skeleton .st-ws-card-desc {
+  width: 90%;
+  height: 12px;
+  color: transparent;
+}
+
+@keyframes st-shimmer {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* ── Dark mode overrides ──────────────────────────────────────── */
+html[data-theme="dark"] #st-module-grid {
+  /* inherits bg from body dark override */
+}
+
+html[data-theme="dark"] .st-ws-title {
+  color: #F1F5F9;
+}
+
+html[data-theme="dark"] .st-ws-card {
+  background: #1E2130;
+  border-color: rgba(255,255,255,0.08);
+}
+
+html[data-theme="dark"] .st-ws-card:hover {
+  box-shadow: 0 8px 28px rgba(0,0,0,0.40);
+}
+
+html[data-theme="dark"] .st-ws-card-icon {
+  background: color-mix(in srgb, var(--mod-color, var(--st-accent, #F97316)) 15%, #1E2130);
+}
+
+html[data-theme="dark"] .st-ws-card:hover .st-ws-card-icon {
+  background: color-mix(in srgb, var(--mod-color, var(--st-accent, #F97316)) 25%, #1E2130);
+}
+
+html[data-theme="dark"] .st-ws-card-name {
+  color: #E2E8F0;
+}
+
+html[data-theme="dark"] .st-ws-search {
+  background: #252836;
+  border-color: rgba(255,255,255,0.10);
+  color: #E2E8F0;
+}
+
+html[data-theme="dark"] .st-ws-search::placeholder {
+  color: rgba(255,255,255,0.30);
+}
+
+html[data-theme="dark"] .st-ws-skeleton .st-ws-card-icon,
+html[data-theme="dark"] .st-ws-skeleton .st-ws-card-name,
+html[data-theme="dark"] .st-ws-skeleton .st-ws-card-desc {
+  background: rgba(255,255,255,0.06) !important;
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  #st-module-grid {
+    padding: 24px 20px 40px;
+  }
+  .st-ws-cards {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (max-width: 640px) {
+  #st-module-grid {
+    padding: 16px 16px 32px;
+  }
+  .st-ws-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .st-ws-card {
+    padding: 18px 14px 14px;
+    gap: 10px;
+  }
+  .st-ws-card-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+  }
+}

@@ -1,0 +1,26 @@
+import frappe
+
+
+def theme_settings_after_save(doc, method):
+    """Broadcast theme change to all connected desk users instantly.
+    No room/user specified → frappe uses get_site_room() → all desk users.
+    after_commit=True → fires only after the DB transaction commits.
+    """
+    try:
+        css = frappe.get_attr("solvronix_theme.api.get_theme_css")()
+        frappe.publish_realtime(
+            "st_theme_changed",
+            {
+                "css": css,
+                "branding": {
+                    "company_name": doc.company_name or "",
+                    "logo":         doc.logo         or "",
+                    "favicon":      doc.favicon       or "",
+                    "tagline":      doc.tagline       or "",
+                },
+            },
+            after_commit=True,
+        )
+    except Exception:
+        # Never break Theme Settings save on realtime failure
+        pass

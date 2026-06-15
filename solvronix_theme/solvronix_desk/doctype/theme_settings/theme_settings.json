@@ -1,0 +1,124 @@
+{
+ "actions": [],
+ "creation": "2026-06-10 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_branding",
+  "company_name",
+  "logo",
+  "column_break_branding",
+  "favicon",
+  "tagline",
+  "section_colors",
+  "brand_color",
+  "column_break_colors",
+  "accent_color",
+  "section_features",
+  "enable_command_palette",
+  "column_break_features",
+  "dark_mode_default",
+  "enable_smart_home"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_branding",
+   "fieldtype": "Section Break",
+   "label": "Branding"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name"
+  },
+  {
+   "fieldname": "logo",
+   "fieldtype": "Attach Image",
+   "label": "Logo"
+  },
+  {
+   "fieldname": "column_break_branding",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "favicon",
+   "fieldtype": "Attach Image",
+   "label": "Favicon"
+  },
+  {
+   "fieldname": "tagline",
+   "fieldtype": "Data",
+   "label": "Tagline (optional)"
+  },
+  {
+   "fieldname": "section_colors",
+   "fieldtype": "Section Break",
+   "label": "Colors"
+  },
+  {
+   "default": "#1B3F7E",
+   "description": "Your company’s main color — sets sidebar, navbar, and login page",
+   "fieldname": "brand_color",
+   "fieldtype": "Color",
+   "label": "Brand Color"
+  },
+  {
+   "fieldname": "column_break_colors",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "#F57C00",
+   "description": "Color for buttons and highlights",
+   "fieldname": "accent_color",
+   "fieldtype": "Color",
+   "label": "Accent Color"
+  },
+  {
+   "fieldname": "section_features",
+   "fieldtype": "Section Break",
+   "label": "Features"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_command_palette",
+   "fieldtype": "Check",
+   "label": "Enable Command Palette (Ctrl+K)"
+  },
+  {
+   "fieldname": "column_break_features",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dark_mode_default",
+   "fieldtype": "Check",
+   "label": "Start in Dark Mode"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_smart_home",
+   "fieldtype": "Check",
+   "label": "Enable Smart Home Screen"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-06-12 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Solvronix Desk",
+ "name": "Theme Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 0,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

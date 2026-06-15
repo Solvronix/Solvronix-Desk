@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: solvronix_theme
+Version: 1.0.0
+Summary: Professional white-label theme for Frappe/ERPNext v15 and v16
+Author: Solvronix
+Author-email: sales@solvronix.com
+Dynamic: author
+Dynamic: author-email
+Dynamic: summary

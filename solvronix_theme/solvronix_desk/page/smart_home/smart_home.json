@@ -1,0 +1,10 @@
+{
+ "doctype": "Page",
+ "name": "smart-home",
+ "page_name": "smart-home",
+ "title": "Today's View",
+ "standard": "Yes",
+ "system_page": 0,
+ "module": "Solvronix Desk",
+ "roles": []
+}

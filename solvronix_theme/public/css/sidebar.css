@@ -1,0 +1,286 @@
+/* =============================================
+   SOLVRONIX THEME — SIDEBAR (Frappe v16)
+   The actual sidebar is .body-sidebar inside
+   .body-sidebar-container. Frappe handles
+   collapse/expand natively via .expanded class.
+   ============================================= */
+
+/* Override Frappe's sidebar width variables */
+:root {
+  --sidebar-width: 240px;           /* expanded width */
+  --sidebar-border-color: rgba(255,255,255,0.06);
+  --sidebar-hover-color:  rgba(255,255,255,0.1);
+  --sidebar-active-color: var(--st-sidebar-active);
+}
+
+/* ── HIDE Frappe's native workspace-title header (shows app name + user) ── */
+.body-sidebar .sidebar-header,
+.body-sidebar a.sidebar-header {
+  display: none !important;
+}
+
+/* ── COMPANY BRANDING HEADER ── */
+#st-company-header {
+  height: 56px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+
+/* In collapsed mode: center the logo, hide the name */
+.body-sidebar-container:not(.expanded) #st-company-header {
+  justify-content: center;
+  padding: 0;
+}
+
+.body-sidebar-container:not(.expanded) .st-company-name {
+  display: none;
+}
+
+#st-company-header img {
+  height: 28px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.st-company-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* ── COLLAPSED: 64px icon-only sidebar ── */
+.body-sidebar {
+  width: 64px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  transition: width 0.25s ease !important;
+}
+
+/* ── EXPANDED: overlay at 240px (set by :root --sidebar-width) ── */
+.body-sidebar-container.expanded .body-sidebar {
+  width: var(--sidebar-width) !important;
+}
+
+/* ── BACKGROUND: driven by --st-sidebar (user-set via Theme Settings) ── */
+.body-sidebar,
+.body-sidebar-container > .body-sidebar,
+.body-sidebar-container.expanded .body-sidebar {
+  background: var(--st-sidebar-bg) !important;
+  background-color: var(--st-sidebar-bg) !important;
+  border-right: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+/* ── COLLAPSED: center icons, hide text labels ── */
+.body-sidebar-container:not(.expanded) .item-anchor {
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+.body-sidebar-container:not(.expanded) .sidebar-item-label {
+  width: 0 !important;
+  max-width: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  flex: 0 0 0 !important;
+  transition: max-width 0.3s cubic-bezier(0.4,0,0.2,1),
+              opacity 0.3s cubic-bezier(0.4,0,0.2,1) !important;
+}
+
+/* Hide section-break dividers in collapsed mode — no space for group titles */
+.body-sidebar-container:not(.expanded) .section-break,
+.body-sidebar-container:not(.expanded) .sidebar-item-container.section-item {
+  display: none !important;
+}
+
+/* ── EXPANDED: restore labels with smooth animation ── */
+.body-sidebar-container.expanded .sidebar-item-label {
+  width: auto !important;
+  max-width: 160px !important;
+  opacity: 1 !important;
+  flex: 1 1 auto !important;
+  transition: max-width 0.3s cubic-bezier(0.4,0,0.2,1),
+              opacity 0.3s cubic-bezier(0.4,0,0.2,1) !important;
+}
+
+.body-sidebar-container.expanded .item-anchor {
+  justify-content: flex-start !important;
+}
+
+.body-sidebar-container.expanded .section-break,
+.body-sidebar-container.expanded .sidebar-item-container.section-item {
+  display: block !important;
+}
+
+/* Placeholder that reserves layout space when sidebar is expanded */
+.body-sidebar-placeholder {
+  width: var(--sidebar-width) !important;
+  transition: width 0.25s ease !important;
+}
+
+/* ---- Sidebar Items ---- */
+.body-sidebar .standard-sidebar-item .item-anchor {
+  color: rgba(255,255,255,0.75) !important;
+  border-radius: 8px !important;
+  padding: 2px 4px !important;
+}
+
+.body-sidebar .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover,
+.body-sidebar .standard-sidebar-item:not(.active-sidebar):has(a:not(.section-break)):hover {
+  background-color: rgba(255,255,255,0.1) !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+}
+
+/* Active/selected item */
+.body-sidebar .standard-sidebar-item.active-sidebar .item-anchor {
+  background: var(--st-sidebar-active) !important;
+  color: var(--st-accent) !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  border-left: 3px solid var(--st-accent) !important;
+  padding-left: 5px !important;
+}
+
+/* ---- Icons ---- */
+.body-sidebar .standard-sidebar-item .sidebar-item-icon {
+  color: rgba(255,255,255,0.7) !important;
+}
+
+.body-sidebar .standard-sidebar-item .sidebar-item-icon svg use,
+.body-sidebar .standard-sidebar-item .sidebar-item-icon svg {
+  color: rgba(255,255,255,0.7) !important;
+  stroke: rgba(255,255,255,0.7) !important;
+}
+
+.body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg use,
+.body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg {
+  color: var(--st-accent) !important;
+  stroke: var(--st-accent) !important;
+}
+
+/* ---- Labels ---- */
+.body-sidebar .standard-sidebar-item .sidebar-item-label {
+  color: inherit !important;
+}
+
+/* Section break / group labels */
+.body-sidebar .sidebar-item-container.section-item .item-anchor .sidebar-item-label,
+.body-sidebar .section-break .sidebar-item-label {
+  color: rgba(255,255,255,0.35) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+}
+
+/* ---- Dividers ---- */
+.body-sidebar .divider {
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* ---- Bottom area: hide user section — moved to top toolbar ---- */
+.body-sidebar .body-sidebar-bottom .nav-item.dropdown-navbar-user,
+.body-sidebar .body-sidebar-bottom .dropdown-mobile,
+.body-sidebar .sidebar-user-button {
+  display: none !important;
+}
+
+/* ---- Onboarding / Getting Started link ---- */
+.body-sidebar .onboarding-sidebar {
+  color: rgba(255,255,255,0.5) !important;
+}
+
+.body-sidebar .onboarding-sidebar:hover {
+  color: rgba(255,255,255,0.9) !important;
+}
+
+/* ---- Collapse sidebar link ---- */
+.body-sidebar .collapse-sidebar-link,
+.body-sidebar .collapse-sidebar-link span {
+  color: rgba(255,255,255,0.5) !important;
+}
+
+.body-sidebar .collapse-sidebar-link:hover,
+.body-sidebar .collapse-sidebar-link:hover span {
+  color: rgba(255,255,255,0.9) !important;
+  text-decoration: none !important;
+}
+
+/* ---- Resize handle ---- */
+.body-sidebar .sidebar-resize-handle {
+  background: rgba(255,255,255,0.05) !important;
+}
+
+.body-sidebar .sidebar-resize-handle:hover {
+  background: rgba(255,255,255,0.12) !important;
+}
+
+/* ---- Sidebar icons for svg .es-icon ---- */
+.body-sidebar .sidebar-item-icon .es-icon,
+.body-sidebar .sidebar-item-icon .icon {
+  color: rgba(255,255,255,0.7) !important;
+  fill: rgba(255,255,255,0.7) !important;
+}
+
+.body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .es-icon,
+.body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .icon {
+  color: var(--st-accent) !important;
+  fill: var(--st-accent) !important;
+}
+
+/* ---- Custom scrollbar inside sidebar ---- */
+.body-sidebar .body-sidebar-top::-webkit-scrollbar { width: 3px; }
+.body-sidebar .body-sidebar-top::-webkit-scrollbar-track { background: transparent; }
+.body-sidebar .body-sidebar-top::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
+}
+
+/* ---- Sidebar placeholder (reserves space in layout) ---- */
+.body-sidebar-container .body-sidebar-placeholder {
+  background: var(--st-sidebar-bg) !important;
+}
+
+/* ---- Tooltip for collapsed sidebar items ---- */
+.st-sidebar-tooltip {
+  position: fixed;
+  left: 72px;
+  background: var(--st-sidebar-bg, #1e1e2e);
+  color: rgba(255,255,255,0.9);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.st-sidebar-tooltip.visible {
+  opacity: 1;
+}
+
+/* ---- Chevron toggle button rotation ---- */
+.body-sidebar .collapse-sidebar-link svg,
+.body-sidebar .collapse-sidebar-link .icon {
+  transition: transform 0.25s ease;
+}
+.body-sidebar-container.expanded .collapse-sidebar-link svg,
+.body-sidebar-container.expanded .collapse-sidebar-link .icon {
+  transform: rotate(180deg);
+}

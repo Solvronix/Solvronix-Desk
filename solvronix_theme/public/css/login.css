@@ -1,0 +1,336 @@
+/* =============================================================================
+   Solvronix Desk — Login Page Styles
+   Loaded via web_include_css (applies to /login, /signup, /forgot).
+   Gradient lives on body (via :has()) so it always fills the full viewport.
+   CSS vars are fallbacks; login_theme.js injects live brand values from API.
+   ============================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ── FALLBACK VARIABLES ─────────────────────────────────────────────────── */
+:root {
+  --st-brand:        #1B3F7E;
+  --st-accent:       #F57C00;
+  --st-text:         #1A1A2E;
+  --st-text-muted:   #6B7280;
+  --st-card-bg:      #FFFFFF;
+}
+
+/* ── GRADIENT ANIMATION ─────────────────────────────────────────────────── */
+@keyframes st-login-gradient {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+/* ── FULL-PAGE GRADIENT — html+body both need min-height so gradient fills ── */
+html:has(.for-login),
+html:has(.for-forgot),
+html:has(.for-signup),
+html:has(.for-email-login),
+html:has(.for-login-with-email-link) {
+  min-height: 100vh !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body:has(.for-login),
+body:has(.for-forgot),
+body:has(.for-signup),
+body:has(.for-email-login),
+body:has(.for-login-with-email-link) {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: linear-gradient(
+    135deg,
+    var(--st-brand) 0%,
+    color-mix(in srgb, var(--st-brand) 45%, #000) 100%
+  ) !important;
+  background-size: 200% 200% !important;
+  animation: st-login-gradient 10s ease infinite alternate !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* ── HIDE WEB NAVBAR AND FOOTER ON LOGIN PAGES ───────────────────────────── */
+body:has(.for-login) .navbar,
+body:has(.for-forgot) .navbar,
+body:has(.for-signup) .navbar,
+body:has(.for-email-login) .navbar,
+body:has(.for-login) footer.web-footer,
+body:has(.for-forgot) footer.web-footer,
+body:has(.for-signup) footer.web-footer,
+body:has(.for-email-login) footer.web-footer,
+body:has(.for-login-with-email-link) footer.web-footer {
+  display: none !important;
+}
+
+/* ── KILL CONTAINER/WRAPPER CHROME BETWEEN body AND .for-login ──────────── */
+body:has(.for-login) .page-content-wrapper,
+body:has(.for-forgot) .page-content-wrapper,
+body:has(.for-signup) .page-content-wrapper,
+body:has(.for-login) main,
+body:has(.for-forgot) main,
+body:has(.for-signup) main,
+body:has(.for-login) .page_content,
+body:has(.for-forgot) .page_content,
+body:has(.for-signup) .page_content,
+body:has(.for-login) .page-breadcrumbs,
+body:has(.for-forgot) .page-breadcrumbs,
+body:has(.for-login) .page-header-wrapper,
+body:has(.for-forgot) .page-header-wrapper {
+  background: transparent !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* ── .for-login WRAPPER: transparent flex center ────────────────────────── */
+/* ONLY .for-login gets display:flex here.
+   The other sections (.for-forgot, .for-signup, etc.) are hidden by Frappe's
+   login.bundle.css (display:none) and shown by Frappe's JS (.toggle(true) sets
+   inline display:block). Setting display:flex !important here would override
+   that inline none and show ALL sections simultaneously.
+   login_theme.js upgrades display:block → flex via MutationObserver instead. */
+.for-login {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
+  padding: 40px 20px !important;
+  background: transparent !important;
+}
+.for-forgot,
+.for-signup,
+.for-email-login,
+.for-login-with-email-link {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: transparent;
+}
+
+/* Remove Frappe's split-panel pseudo-element */
+.for-login::before,
+.for-forgot::before,
+.for-signup::before {
+  display: none !important;
+}
+
+/* ── CARD HEAD (logo + title) ── top half of the unified card ───────────── */
+.for-login .page-card-head,
+.for-forgot .page-card-head,
+.for-signup .page-card-head,
+.for-email-login .page-card-head,
+.for-login-with-email-link .page-card-head {
+  width: 420px !important;
+  max-width: 92vw !important;
+  background: var(--st-card-bg, #FFFFFF) !important;
+  border-radius: 16px 16px 0 0 !important;
+  padding: 40px 48px 20px !important;
+  text-align: center !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-bottom: none !important;
+  margin: 0 !important;
+}
+
+.for-login .page-card-head .app-logo,
+.for-forgot .page-card-head .app-logo,
+.for-signup .page-card-head .app-logo,
+.for-email-login .page-card-head .app-logo,
+.for-login-with-email-link .page-card-head .app-logo {
+  max-height: 56px !important;
+  max-width: 160px !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 auto 14px !important;
+}
+
+.for-login .page-card-head h4,
+.for-forgot .page-card-head h4,
+.for-signup .page-card-head h4,
+.for-email-login .page-card-head h4 {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: var(--st-text, #1A1A2E) !important;
+  margin: 0 !important;
+}
+
+/* ── CARD BODY ── bottom half of the unified card ───────────────────────── */
+.for-login .login-content.page-card,
+.for-forgot .login-content.page-card,
+.for-signup .login-content.page-card,
+.for-email-login .login-content.page-card,
+.for-login-with-email-link .login-content.page-card,
+.for-login .page-card,
+.for-forgot .page-card,
+.for-signup .page-card {
+  flex: none !important;
+  width: 420px !important;
+  max-width: 92vw !important;
+  min-height: auto !important;
+  border-radius: 0 0 16px 16px !important;
+  padding: 8px 48px 40px !important;
+  background: var(--st-card-bg, #FFFFFF) !important;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.35) !important;
+  border: none !important;
+  margin: 0 auto !important;
+}
+
+/* ── FORM SPACING ────────────────────────────────────────────────────────── */
+.for-login .page-card-body,
+.for-forgot .page-card-body {
+  padding: 12px 0 0 !important;
+}
+.for-login .page-card .form-group,
+.for-forgot .page-card .form-group {
+  margin-bottom: 14px !important;
+}
+
+/* ── INPUT FIELDS ────────────────────────────────────────────────────────── */
+.for-login .page-card .form-control,
+.for-forgot .page-card .form-control,
+.for-signup .page-card .form-control {
+  height: 48px !important;
+  border-radius: 8px !important;
+  border: 1.5px solid rgba(0,0,0,0.15) !important;
+  padding: 0 40px 0 35px !important;
+  font-size: 14px !important;
+  background: #F9FAFB !important;
+  color: var(--st-text, #1A1A2E) !important;
+  width: 100% !important;
+  box-shadow: none !important;
+  margin-bottom: 0 !important;
+  transition: border-color 200ms, box-shadow 200ms !important;
+}
+.for-login .page-card .form-control:focus,
+.for-forgot .page-card .form-control:focus {
+  border-color: var(--st-brand) !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--st-brand) 14%, transparent) !important;
+  outline: none !important;
+}
+
+/* ── LOGIN / SUBMIT BUTTON ───────────────────────────────────────────────── */
+.for-login .btn-login,
+.for-login .btn-primary.btn-block,
+.for-forgot .btn-forgot,
+.for-forgot .btn-primary.btn-block,
+.for-signup .btn-primary.btn-block {
+  width: 100% !important;
+  height: 48px !important;
+  background: var(--st-accent) !important;
+  background-image: none !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  color: #FFFFFF !important;
+  letter-spacing: 0.02em !important;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--st-accent) 40%, transparent) !important;
+  transition: transform 180ms, box-shadow 180ms !important;
+  margin-top: 8px !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  display: block !important;
+}
+.for-login .btn-login:hover,
+.for-login .btn-primary.btn-block:hover,
+.for-forgot .btn-forgot:hover,
+.for-forgot .btn-primary.btn-block:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--st-accent) 55%, transparent) !important;
+  background: color-mix(in srgb, var(--st-accent) 90%, white) !important;
+  color: #FFFFFF !important;
+}
+.for-login .page-card .btn,
+.for-forgot .page-card .btn {
+  margin-top: 0 !important;
+}
+
+/* ── FORGOT PASSWORD & SIGN UP LINKS ─────────────────────────────────────── */
+.for-login .forgot-password-message a,
+.for-forgot .forgot-password-message a {
+  color: var(--st-brand) !important;
+  font-size: 13px !important;
+  text-decoration: none !important;
+}
+.for-login .forgot-password-message a:hover {
+  text-decoration: underline !important;
+}
+.for-login .sign-up-message,
+.for-forgot .sign-up-message {
+  color: rgba(255,255,255,0.82) !important;
+  margin-top: 20px !important;
+  font-size: 13px !important;
+  text-align: center;
+}
+.for-login .sign-up-message a,
+.for-forgot .sign-up-message a {
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+}
+
+/* ── "POWERED BY SOLVRONIX" ──────────────────────────────────────────────── */
+.for-login .page-card-actions::after,
+.for-forgot .page-card-actions::after {
+  content: "Powered by Solvronix";
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  color: var(--st-text-muted, #9CA3AF);
+  margin-top: 22px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+}
+
+/* ── DARK MODE ───────────────────────────────────────────────────────────── */
+[data-theme="dark"] .for-login .page-card-head,
+[data-theme="dark"] .for-forgot .page-card-head {
+  background: #1A1D27 !important;
+}
+[data-theme="dark"] .for-login .login-content.page-card,
+[data-theme="dark"] .for-login .page-card,
+[data-theme="dark"] .for-forgot .login-content.page-card,
+[data-theme="dark"] .for-forgot .page-card {
+  background: #1A1D27 !important;
+}
+[data-theme="dark"] .for-login .page-card-head h4,
+[data-theme="dark"] .for-forgot .page-card-head h4 {
+  color: #E2E8F0 !important;
+}
+[data-theme="dark"] .for-login .page-card .form-control,
+[data-theme="dark"] .for-forgot .page-card .form-control {
+  background: #252836 !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: #E2E8F0 !important;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .for-login .page-card-head,
+  .for-forgot .page-card-head,
+  .for-signup .page-card-head {
+    padding: 32px 24px 16px !important;
+  }
+  .for-login .login-content.page-card,
+  .for-forgot .login-content.page-card,
+  .for-signup .login-content.page-card {
+    padding: 4px 24px 32px !important;
+  }
+}

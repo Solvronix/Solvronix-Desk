@@ -1,0 +1,282 @@
+/* ================================================================
+   Solvronix Desk — Smart Home (Today's View)
+   All colors use CSS variables — never hardcoded hex.
+   ================================================================ */
+
+.st-smart-home {
+  padding: 28px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── Header ──────────────────────────────────────────────────── */
+.st-sh-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.st-sh-greeting {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--heading-color, #1f272e);
+  margin: 0 0 6px 0;
+}
+
+.st-sh-name {
+  color: var(--st-accent, #F57C00);
+}
+
+.st-sh-date {
+  font-size: 13px;
+  color: var(--text-muted, #8d99a6);
+}
+
+.st-sh-all-ws {
+  font-size: 13px;
+  color: var(--st-accent, #F57C00);
+  text-decoration: none;
+  white-space: nowrap;
+  margin-top: 4px;
+  opacity: 0.8;
+}
+
+.st-sh-all-ws:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* ── KPI Row ─────────────────────────────────────────────────── */
+.st-sh-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.st-sh-kpi {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #ebeff2);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: box-shadow 150ms, transform 150ms, border-color 150ms;
+}
+
+.st-sh-kpi:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  text-decoration: none;
+  border-color: var(--st-accent, #F57C00);
+}
+
+.st-sh-kpi-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+.st-sh-kpi.kpi-orange .st-sh-kpi-icon { background: var(--st-accent-50);  color: var(--st-accent); }
+.st-sh-kpi.kpi-blue   .st-sh-kpi-icon { background: rgba(30, 102, 210, 0.1); color: #1e66d2; }
+.st-sh-kpi.kpi-green  .st-sh-kpi-icon { background: rgba(22, 163, 74, 0.1);  color: #16a34a; }
+.st-sh-kpi.kpi-purple .st-sh-kpi-icon { background: rgba(124, 58, 237, 0.1); color: #7c3aed; }
+
+.st-sh-kpi-icon svg,
+.st-sh-kpi-icon .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.st-sh-kpi-num {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-color, #1f272e);
+}
+
+.st-sh-kpi-label {
+  font-size: 12px;
+  color: var(--text-muted, #8d99a6);
+  margin-top: 4px;
+}
+
+/* ── Layout ──────────────────────────────────────────────────── */
+.st-sh-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+}
+
+/* ── Card ────────────────────────────────────────────────────── */
+.st-sh-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #ebeff2);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.st-sh-card:last-child {
+  margin-bottom: 0;
+}
+
+.st-sh-card-head {
+  padding: 13px 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted, #8d99a6);
+  border-bottom: 1px solid var(--border-color, #ebeff2);
+}
+
+.st-sh-card-body {
+  padding: 4px 0;
+}
+
+/* ── Recent documents ────────────────────────────────────────── */
+.st-sh-doc-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-color, #ebeff2);
+  transition: background 100ms;
+}
+
+.st-sh-doc-row:last-child {
+  border-bottom: none;
+}
+
+.st-sh-doc-row:hover {
+  background: var(--fg-hover-color, #f8f9fa);
+  text-decoration: none;
+}
+
+.st-sh-doc-dt {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--st-accent, #F57C00);
+  background: var(--st-accent-50);
+  border-radius: 4px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.st-sh-doc-name {
+  font-size: 13px;
+  color: var(--text-color, #1f272e);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Quick Create ────────────────────────────────────────────── */
+.st-sh-qc-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  font-size: 13px;
+  color: var(--text-color, #1f272e);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-color, #ebeff2);
+  transition: all 100ms;
+}
+
+.st-sh-qc-row:last-child {
+  border-bottom: none;
+}
+
+.st-sh-qc-row:hover {
+  background: var(--fg-hover-color, #f8f9fa);
+  color: var(--st-accent, #F57C00);
+  text-decoration: none;
+  padding-left: 24px;
+}
+
+.st-sh-qc-plus {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--st-accent-50);
+  color: var(--st-accent, #F57C00);
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* ── Pending items ───────────────────────────────────────────── */
+.st-sh-pending-row {
+  display: block;
+  padding: 10px 20px;
+  font-size: 13px;
+  color: var(--text-color, #1f272e);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-color, #ebeff2);
+  transition: background 100ms;
+}
+
+.st-sh-pending-row:last-child {
+  border-bottom: none;
+}
+
+.st-sh-pending-row:hover {
+  background: var(--fg-hover-color, #f8f9fa);
+  text-decoration: none;
+}
+
+/* ── Shared states ───────────────────────────────────────────── */
+.st-sh-empty {
+  padding: 18px 20px;
+  font-size: 13px;
+  color: var(--text-muted, #8d99a6);
+  text-align: center;
+}
+
+.st-sh-all-clear {
+  color: var(--green, #16a34a);
+}
+
+.st-sh-spin {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-color, #ebeff2);
+  border-top-color: var(--st-accent, #F57C00);
+  border-radius: 50%;
+  animation: st-spin 0.8s linear infinite;
+  margin: 16px auto;
+}
+
+@keyframes st-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .st-sh-kpi-row    { grid-template-columns: repeat(2, 1fr); }
+  .st-sh-layout     { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .st-smart-home    { padding: 16px; }
+  .st-sh-kpi-row    { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .st-sh-header     { flex-direction: column; gap: 8px; }
+  .st-sh-greeting   { font-size: 18px; }
+}

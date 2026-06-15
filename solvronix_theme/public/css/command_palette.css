@@ -1,0 +1,217 @@
+/* =============================================
+   SOLVRONIX THEME — COMMAND PALETTE (Ctrl+K)
+   Uses Frappe CSS variables so it auto-adapts
+   to light / dark mode with zero extra code.
+   ============================================= */
+
+.st-cp-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  padding-top: 12vh !important;
+  animation: st-cp-overlay-in 0.12s ease forwards !important;
+}
+
+.st-cp-overlay.closing {
+  animation: st-cp-overlay-out 0.1s ease forwards !important;
+}
+
+.st-cp-modal {
+  /* --fg-color = white in light, dark surface in dark mode */
+  background: var(--fg-color, #fff) !important;
+  border: 1px solid var(--border-color, #e2e8f0) !important;
+  border-radius: 14px !important;
+  width: 580px !important;
+  max-width: 92vw !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.45), 0 0 0 1px var(--border-color, rgba(0,0,0,0.06)) !important;
+  overflow: hidden !important;
+  animation: st-cp-modal-in 0.15s cubic-bezier(0.34, 1.3, 0.64, 1) forwards !important;
+}
+
+/* ── Search row ── */
+.st-cp-search-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 14px 16px !important;
+  border-bottom: 1px solid var(--border-color, #f1f5f9) !important;
+}
+
+.st-cp-search-icon {
+  font-size: 16px !important;
+  color: var(--text-muted, #94a3b8) !important;
+  flex-shrink: 0 !important;
+  line-height: 1 !important;
+}
+
+.st-cp-input {
+  flex: 1 !important;
+  border: none !important;
+  outline: none !important;
+  font-size: 15px !important;
+  color: var(--text-color, #0f172a) !important;
+  background: transparent !important;
+  font-family: inherit !important;
+  caret-color: var(--st-accent) !important;
+}
+
+.st-cp-input::placeholder {
+  color: var(--text-muted, #94a3b8) !important;
+}
+
+.st-cp-kbd-hint {
+  font-size: 11px !important;
+  color: var(--text-muted, #94a3b8) !important;
+  background: var(--control-bg, #f8fafc) !important;
+  border: 1px solid var(--border-color, #e2e8f0) !important;
+  border-radius: 4px !important;
+  padding: 2px 6px !important;
+  font-family: inherit !important;
+  flex-shrink: 0 !important;
+}
+
+/* ── Results ── */
+.st-cp-results {
+  max-height: 380px !important;
+  overflow-y: auto !important;
+  padding: 6px 8px !important;
+}
+
+.st-cp-results::-webkit-scrollbar { width: 4px; }
+.st-cp-results::-webkit-scrollbar-thumb {
+  background: var(--border-color, #e2e8f0);
+  border-radius: 2px;
+}
+
+/* Section label */
+.st-cp-section {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+  text-transform: uppercase !important;
+  color: var(--text-muted, #94a3b8) !important;
+  padding: 8px 8px 3px !important;
+}
+
+/* Result item */
+.st-cp-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 7px 8px !important;
+  border-radius: 7px !important;
+  cursor: pointer !important;
+  transition: background 0.08s ease !important;
+}
+
+.st-cp-item:hover {
+  background: var(--control-bg, #f8fafc) !important;
+}
+
+.st-cp-item.st-selected {
+  background: var(--st-primary-50, color-mix(in srgb, var(--st-primary) 8%, var(--fg-color))) !important;
+  outline: 1.5px solid var(--st-primary-100, color-mix(in srgb, var(--st-primary) 15%, var(--fg-color))) !important;
+}
+
+/* Item icon */
+.st-cp-item-ico {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 7px !important;
+  background: var(--control-bg, #f1f5f9) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 14px !important;
+  flex-shrink: 0 !important;
+}
+
+.st-cp-item-ico.orange {
+  background: var(--st-accent-50, color-mix(in srgb, var(--st-accent) 10%, var(--fg-color))) !important;
+}
+
+.st-cp-item-ico.green {
+  background: color-mix(in srgb, #10b981 10%, var(--fg-color, #fff)) !important;
+}
+
+.st-cp-item-text { flex: 1; min-width: 0; }
+
+.st-cp-item-name {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--text-color, #0f172a) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.st-cp-item-sub {
+  font-size: 11px !important;
+  color: var(--text-muted, #64748b) !important;
+  margin-top: 1px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Empty state */
+.st-cp-empty {
+  text-align: center !important;
+  padding: 32px 20px !important;
+  color: var(--text-muted, #94a3b8) !important;
+  font-size: 13px !important;
+}
+
+.st-cp-empty-icon {
+  font-size: 28px !important;
+  display: block !important;
+  margin-bottom: 8px !important;
+}
+
+/* ── Footer ── */
+.st-cp-footer {
+  border-top: 1px solid var(--border-color, #f1f5f9) !important;
+  padding: 7px 14px !important;
+  display: flex !important;
+  gap: 14px !important;
+  align-items: center !important;
+  background: var(--control-bg, #f8fafc) !important;
+}
+
+.st-cp-hint {
+  font-size: 11px !important;
+  color: var(--text-muted, #94a3b8) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+}
+
+.st-cp-hint kbd {
+  background: var(--fg-color, #f1f5f9) !important;
+  border: 1px solid var(--border-color, #e2e8f0) !important;
+  border-radius: 3px !important;
+  padding: 1px 4px !important;
+  font-size: 10px !important;
+  font-family: inherit !important;
+  color: var(--text-color, #475569) !important;
+}
+
+/* ── Animations ── */
+@keyframes st-cp-overlay-in {
+  from { opacity: 0 }
+  to   { opacity: 1 }
+}
+@keyframes st-cp-overlay-out {
+  from { opacity: 1 }
+  to   { opacity: 0 }
+}
+@keyframes st-cp-modal-in {
+  from { opacity: 0; transform: scale(0.96) translateY(-8px) }
+  to   { opacity: 1; transform: scale(1) translateY(0) }
+}

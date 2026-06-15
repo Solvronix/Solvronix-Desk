@@ -1,0 +1,329 @@
+/* =============================================================================
+   Solvronix Desk — Notification Center (Feature 7)
+   ============================================================================= */
+
+/* ── Bell button in toolbar ── */
+#st-notif-bell {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: rgba(255,255,255,0.85);
+  font-size: 15px;
+  line-height: 1;
+  transition: background 150ms;
+}
+
+#st-notif-bell:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+.st-notif-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  background: var(--st-accent, #F57C00);
+  color: #fff;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  padding: 0 4px;
+  pointer-events: none;
+}
+
+.st-notif-badge.st-hidden {
+  display: none;
+}
+
+/* ── Overlay (click-outside to close) ── */
+#st-notif-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1065;
+}
+
+#st-notif-overlay.open {
+  display: block;
+}
+
+/* ── Slide panel ── */
+#st-notif-panel {
+  position: fixed;
+  top: 36px;
+  right: 0;
+  width: 380px;
+  height: calc(100vh - 36px);
+  background: var(--bg-color, #fff);
+  border-left: 1px solid var(--border-color, #e2e8f0);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+  z-index: 1066;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 250ms cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+}
+
+#st-notif-panel.open {
+  transform: translateX(0);
+}
+
+/* ── Panel header ── */
+.st-notif-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  flex-shrink: 0;
+}
+
+.st-notif-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color, #1a1a2e);
+}
+
+.st-notif-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.st-notif-action-btn {
+  background: none;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--text-muted, #6c757d);
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+  line-height: 1.4;
+  font-family: inherit;
+}
+
+.st-notif-action-btn:hover {
+  background: var(--fg-hover, rgba(0,0,0,0.04));
+  color: var(--text-color, #1a1a2e);
+}
+
+.st-notif-close-btn {
+  border: none !important;
+  font-size: 14px !important;
+  padding: 4px 6px !important;
+}
+
+/* ── Tabs ── */
+.st-notif-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  flex-shrink: 0;
+}
+
+.st-notif-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted, #6c757d);
+  cursor: pointer;
+  transition: color 150ms, border-color 150ms;
+  line-height: 1.2;
+  font-family: inherit;
+}
+
+.st-notif-tab:hover {
+  color: var(--text-color, #1a1a2e);
+}
+
+.st-notif-tab.active {
+  color: var(--st-accent, #F57C00);
+  border-bottom-color: var(--st-accent, #F57C00);
+}
+
+/* ── Scrollable list ── */
+.st-notif-list {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.st-notif-list::-webkit-scrollbar { width: 4px; }
+.st-notif-list::-webkit-scrollbar-track { background: transparent; }
+.st-notif-list::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.12);
+  border-radius: 4px;
+}
+
+/* ── Notification item ── */
+.st-notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  cursor: pointer;
+  transition: background 120ms;
+  position: relative;
+}
+
+.st-notif-item:last-child {
+  border-bottom: none;
+}
+
+.st-notif-item:hover {
+  background: var(--fg-hover, rgba(0,0,0,0.03));
+}
+
+.st-notif-item.unread {
+  background: rgba(232,97,10,0.04);
+}
+
+.st-notif-item.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--st-accent, #F57C00);
+  border-radius: 0 2px 2px 0;
+}
+
+/* avatar column */
+.st-notif-avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.st-notif-avatar .avatar {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+/* text column */
+.st-notif-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.st-notif-subject {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-color, #1a1a2e);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.st-notif-item.read .st-notif-subject {
+  font-weight: 400;
+  color: var(--text-muted, #6c757d);
+}
+
+.st-notif-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.st-notif-doctype {
+  font-size: 10px;
+  color: var(--text-muted, #6c757d);
+  background: var(--control-bg, rgba(0,0,0,0.05));
+  border-radius: 4px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+.st-notif-time {
+  font-size: 10px;
+  color: var(--text-extra-muted, #adb5bd);
+  white-space: nowrap;
+}
+
+/* mark-as-read dot (appears on hover) */
+.st-notif-mark-read {
+  flex-shrink: 0;
+  align-self: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--st-accent, #F57C00);
+  font-size: 10px;
+  padding: 4px;
+  opacity: 0;
+  transition: opacity 150ms;
+  line-height: 1;
+  font-family: inherit;
+  border-radius: 4px;
+}
+
+.st-notif-item:hover .st-notif-mark-read {
+  opacity: 1;
+}
+
+/* ── Loading / empty states ── */
+.st-notif-loading,
+.st-notif-empty {
+  padding: 48px 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted, #6c757d);
+}
+
+.st-notif-empty-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+/* ── Footer ── */
+.st-notif-foot {
+  border-top: 1px solid var(--border-color, #e2e8f0);
+  padding: 12px 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.st-notif-view-all {
+  font-size: 12px;
+  color: var(--st-accent, #F57C00);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.st-notif-view-all:hover {
+  text-decoration: underline;
+}
+
+/* ── Mobile ── */
+@media (max-width: 600px) {
+  #st-notif-panel {
+    width: 100vw;
+  }
+}
