@@ -324,10 +324,6 @@
     $("body").append($dropdown);
   }
 
-  function toggleModuleDropdown() {
-    var $btn = $("#st-module-switch-btn");
-    if ($btn.length) $btn.click();
-  }
 
   /* ────────────────────────────────────────────────────────────────────────────
      6. BREADCRUMB BUILDER (CommitStreet)
@@ -647,35 +643,8 @@
       $qnav.append($btn);
     });
     $right.append($qnav);
-
-    /* Bell / Notification button */
-    var $bellBtn = $(
-      '<button id="st-tb-bell" class="st-tb-qn-btn" title="Notifications">' +
-        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
-          '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>' +
-          '<path d="M13.73 21a2 2 0 0 1-3.46 0"/>' +
-        '</svg>' +
-        '<span id="st-tb-bell-count"></span>' +
-      '</button>'
-    );
-    $bellBtn.on("click", function () {
-      /* Open Frappe's native notification panel if it exists, else route */
-      var $nativeBell = $(".navbar .notification-button, .navbar .notifications-icon").first();
-      if ($nativeBell.length) { $nativeBell.trigger("click"); }
-      else { frappe.set_route("List", "Notification Log"); }
-    });
-    function updateBellCount() {
-      var count = (frappe.notification_count || 0) + (frappe.mention_count || 0);
-      var $badge = $("#st-tb-bell-count");
-      if (count > 0) {
-        $badge.text(count > 99 ? "99+" : count).show();
-      } else {
-        $badge.hide();
-      }
-    }
-    updateBellCount();
-    $(document).on("notification_update page-change", updateBellCount);
-    $right.append($bellBtn);
+    /* Bell placeholder — Frappe's native .desktop-notifications is moved here by moveNativeBell() */
+    $right.append('<span id="st-tb-bell-anchor"></span>');
     $right.append('<span class="st-tb-sep"></span>');
 
     $langWrap.append($langBtn);
@@ -797,6 +766,20 @@
 
     /* ── Build options panel ── */
     buildOptionsPanel();
+  }
+
+  /* ── Move Frappe's native notification bell into our toolbar ── */
+  function moveNativeBell() {
+    var $anchor = $("#st-tb-bell-anchor");
+    if (!$anchor.length) return;
+
+    var $bell = $(".desktop-notifications").first();
+    if (!$bell.length) return;
+
+    /* Already moved — nothing to do */
+    if ($bell.closest("#st-top-toolbar").length) return;
+
+    $bell.insertAfter($anchor);
   }
 
   /* ── Language switch ── */
@@ -1040,11 +1023,14 @@
     /* Breadcrumb */
     setTimeout(buildBreadcrumb, 800);
 
+    /* Move Frappe's native notification bell into toolbar after desktop page renders */
+    setTimeout(moveNativeBell, 800);
     $(document).on("page-change", function () {
       setTimeout(buildBreadcrumb, 350);
       patchNativeSidebar();
       injectPoweredBy();
       injectSetupGuide();
+      setTimeout(moveNativeBell, 400);
     });
 
     /* One-time redirect: if the page loaded at a bare /desk URL (empty route),

@@ -24,19 +24,4 @@ frappe.ui.form.on("Theme Settings", {
 			});
 		}, __("Actions"));
 	},
-
-	after_save(frm) {
-		frappe.call({
-			method: "solvronix_theme.api.get_theme_css",
-			callback(r) {
-				if (!r.message) return;
-				let existing = document.getElementById("st-dynamic-theme");
-				if (existing) existing.remove();
-				let style = document.createElement("style");
-				style.id = "st-dynamic-theme";
-				style.textContent = r.message;
-				document.head.appendChild(style);
-			},
-		});
-	},
 });

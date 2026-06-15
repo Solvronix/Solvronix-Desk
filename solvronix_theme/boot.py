@@ -7,6 +7,7 @@ def add_boot_data(bootinfo):
         if frappe.db.get_single_value("Theme Settings", "enable_smart_home"):
             bootinfo.home_page = "smart-home"
     except Exception:
+        frappe.log_error("solvronix_theme: boot home_page check failed")
         pass
 
     # Color vars + branding in boot — zero API calls needed in JS
@@ -22,7 +23,8 @@ def add_boot_data(bootinfo):
             "tagline":      s.tagline      or "",
         }
     except Exception:
-        bootinfo.st_brand  = "#1B1D26"
-        bootinfo.st_accent = "#6B3E66"
+        frappe.log_error("solvronix_theme: boot data failed")
+        bootinfo.st_brand  = "#1B3F7E"
+        bootinfo.st_accent = "#F57C00"
         bootinfo.st_dark_mode_default = 0
         bootinfo.st_branding = {}

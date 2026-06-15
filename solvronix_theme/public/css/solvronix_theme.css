@@ -308,7 +308,7 @@ html:not([data-theme="dark"]) .layout-main-section {
   border-left: none !important;
   border-radius: var(--st-radius-sm) !important;
   font-weight: 600 !important;
-  box-shadow: 0 2px 8px rgba(232,97,10,0.35) !important;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--st-accent) 35%, transparent) !important;
 }
 
 .desk-sidebar .sidebar-item.selected a,
@@ -426,7 +426,7 @@ a.btn-primary {
 }
 .btn-primary:hover,
 button.btn-primary:hover {
-  box-shadow: 0 4px 14px rgba(232,97,10,0.45) !important;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--st-accent) 45%, transparent) !important;
   transform: translateY(-1px);
   opacity: 0.95;
 }
@@ -1203,7 +1203,7 @@ html[data-theme="dark"] .for-forgot .page-card-actions::after {
 }
 #st-quick-nav a:hover {
   color: var(--st-accent) !important;
-  background: rgba(232,97,10,0.12);
+  background: color-mix(in srgb, var(--st-accent) 12%, transparent);
 }
 
 /* ── POWERED-BY BADGE ───────────────────────────────────────────────────────── */
@@ -1636,26 +1636,40 @@ body.st-has-toolbar header.navbar {
   color: #fff;
 }
 
-/* Bell notification button badge */
-#st-tb-bell {
-  position: relative;
+/* Native Frappe bell (.desktop-notifications) re-parented into toolbar */
+#st-top-toolbar .desktop-notifications {
+  display: flex;
+  align-items: center;
 }
-#st-tb-bell-count {
-  display: none;
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 3px;
-  background: #ef4444;
-  color: #fff;
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 16px;
-  border-radius: 8px;
-  text-align: center;
-  pointer-events: none;
+#st-top-toolbar .desktop-notifications .btn-reset,
+#st-top-toolbar .desktop-notifications .nav-link {
+  width: 30px;
+  height: 30px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: rgba(255,255,255,0.6) !important;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+  padding: 0 !important;
+}
+#st-top-toolbar .desktop-notifications .btn-reset:hover,
+#st-top-toolbar .desktop-notifications .nav-link:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff !important;
+}
+#st-top-toolbar .desktop-notifications .icon {
+  color: currentColor !important;
+  fill: currentColor !important;
+}
+/* Keep the dropdown positioned correctly */
+#st-top-toolbar .desktop-notifications .dropdown-menu {
+  top: 100% !important;
+  right: 0 !important;
+  left: auto !important;
 }
 
 /* "All Options" button ── */
@@ -1676,7 +1690,7 @@ body.st-has-toolbar header.navbar {
   letter-spacing: 0.02em;
 }
 #st-options-btn:hover {
-  box-shadow: 0 2px 10px rgba(232,97,10,0.5);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--st-accent) 50%, transparent);
   opacity: 0.92;
 }
 #st-options-btn .st-options-icon {

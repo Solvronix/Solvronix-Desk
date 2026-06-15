@@ -190,7 +190,7 @@
 }
 
 .st-notif-item.unread {
-  background: rgba(232,97,10,0.04);
+  background: color-mix(in srgb, var(--st-accent) 4%, var(--fg-color));
 }
 
 .st-notif-item.unread::before {

@@ -23,36 +23,41 @@
 }
 
 /* ── FULL-PAGE GRADIENT — html+body both need min-height so gradient fills ── */
-html:has(.for-login),
-html:has(.for-forgot),
-html:has(.for-signup),
-html:has(.for-email-login),
-html:has(.for-login-with-email-link) {
-  min-height: 100vh !important;
-  height: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
+/* Requires :has() (Chrome 105+, Safari 15.4+, Firefox 121+).
+   @supports selector(:has(*)) gates the rules; a @supports not fallback below
+   covers Chrome 83-104, Safari 14.1-15.3, Firefox 69-120. */
+@supports selector(:has(*)) {
+  html:has(.for-login),
+  html:has(.for-forgot),
+  html:has(.for-signup),
+  html:has(.for-email-login),
+  html:has(.for-login-with-email-link) {
+    min-height: 100vh !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
 
-body:has(.for-login),
-body:has(.for-forgot),
-body:has(.for-signup),
-body:has(.for-email-login),
-body:has(.for-login-with-email-link) {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-  min-height: 100vh !important;
-  width: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  background: linear-gradient(
-    135deg,
-    var(--st-brand) 0%,
-    color-mix(in srgb, var(--st-brand) 45%, #000) 100%
-  ) !important;
-  background-size: 200% 200% !important;
-  animation: st-login-gradient 10s ease infinite alternate !important;
-  display: flex !important;
-  flex-direction: column !important;
+  body:has(.for-login),
+  body:has(.for-forgot),
+  body:has(.for-signup),
+  body:has(.for-email-login),
+  body:has(.for-login-with-email-link) {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: linear-gradient(
+      135deg,
+      var(--st-brand) 0%,
+      color-mix(in srgb, var(--st-brand) 45%, #000) 100%
+    ) !important;
+    background-size: 200% 200% !important;
+    animation: st-login-gradient 10s ease infinite alternate !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
 }
 
 /* ── HIDE WEB NAVBAR AND FOOTER ON LOGIN PAGES ───────────────────────────── */
@@ -332,5 +337,27 @@ body:has(.for-forgot) .page-header-wrapper {
   .for-forgot .login-content.page-card,
   .for-signup .login-content.page-card {
     padding: 4px 24px 32px !important;
+  }
+}
+
+/* ── FALLBACK FOR BROWSERS WITHOUT :has() (Chrome 83-104, Safari 14.1-15.3) ── */
+@supports not selector(:has(*)) {
+  .for-login,
+  .for-forgot,
+  .for-signup,
+  .for-email-login,
+  .for-login-with-email-link {
+    background: linear-gradient(
+      135deg,
+      var(--st-brand, #1B3F7E) 0%,
+      color-mix(in srgb, var(--st-brand, #1B3F7E) 45%, #000) 100%
+    ) !important;
+    background-size: 200% 200% !important;
+    animation: st-login-gradient 10s ease infinite alternate !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 }

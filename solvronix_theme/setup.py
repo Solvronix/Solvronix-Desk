@@ -19,7 +19,7 @@ def after_install():
                 frappe.db.set_single_value("Theme Settings", field, val)
         frappe.db.commit()
         print("\n✅ Solvronix Desk installed!")
-        print("→ Configure at /app/theme-settings\n")
+        print("→ Configure at /desk/theme-settings\n")
     except Exception as e:
         frappe.log_error(str(e), "Solvronix Desk Install")
         print(f"\n⚠️  after_install warning: {e}\n")

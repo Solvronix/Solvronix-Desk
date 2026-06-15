@@ -25,7 +25,7 @@ def get_theme_settings():
             "tagline":                s.tagline,
             "brand_color":            s.brand_color  or "#1B3F7E",
             "accent_color":           s.accent_color or "#F57C00",
-            "custom_css":             s.custom_css,
+
             "enable_command_palette": s.enable_command_palette,
             "enable_smart_home":      s.enable_smart_home,
             "dark_mode_default":      s.dark_mode_default,

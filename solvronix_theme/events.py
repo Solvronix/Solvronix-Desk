@@ -1,4 +1,5 @@
 import frappe
+from solvronix_theme.api import get_theme_css
 
 
 def theme_settings_after_save(doc, method):
@@ -7,7 +8,7 @@ def theme_settings_after_save(doc, method):
     after_commit=True → fires only after the DB transaction commits.
     """
     try:
-        css = frappe.get_attr("solvronix_theme.api.get_theme_css")()
+        css = get_theme_css()
         frappe.publish_realtime(
             "st_theme_changed",
             {
@@ -22,5 +23,6 @@ def theme_settings_after_save(doc, method):
             after_commit=True,
         )
     except Exception:
+        frappe.log_error("solvronix_theme: st_theme_changed realtime broadcast failed")
         # Never break Theme Settings save on realtime failure
         pass

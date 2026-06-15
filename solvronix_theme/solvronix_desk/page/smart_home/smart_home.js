@@ -60,7 +60,7 @@ solvronix_theme.SmartHome = class SmartHome {
 			      '<h2 class="st-sh-greeting">' + greeting + ', <span class="st-sh-name">' + this._esc(fname) + '</span></h2>' +
 			      '<div class="st-sh-date">' + date_label + '</div>' +
 			    '</div>' +
-			    '<a href="/app/home" class="st-sh-all-ws">' + __("All Workspaces") + ' &rarr;</a>' +
+			    '<a href="/desk/home" class="st-sh-all-ws">' + __("All Workspaces") + ' &rarr;</a>' +
 			  '</div>' +
 
 			  '<div class="st-sh-kpi-row" id="st-sh-kpis"></div>' +
@@ -110,7 +110,7 @@ solvronix_theme.SmartHome = class SmartHome {
 				label: __("Unpaid Invoices"),
 				dt: "Sales Invoice",
 				filters: { status: ["in", ["Unpaid", "Overdue"]], docstatus: 1 },
-				route: "/app/sales-invoice?status=Unpaid",
+				route: "/desk/sales-invoice?status=Unpaid",
 				icon: "file-text",
 				accent: "orange",
 			},
@@ -118,7 +118,7 @@ solvronix_theme.SmartHome = class SmartHome {
 				label: __("Open Orders"),
 				dt: "Sales Order",
 				filters: { status: ["in", ["To Deliver and Bill", "To Bill", "To Deliver"]], docstatus: 1 },
-				route: "/app/sales-order",
+				route: "/desk/sales-order",
 				icon: "shopping-cart",
 				accent: "blue",
 			},
@@ -126,7 +126,7 @@ solvronix_theme.SmartHome = class SmartHome {
 				label: __("Open Tasks"),
 				dt: "Task",
 				filters: { status: "Open" },
-				route: "/app/task?status=Open",
+				route: "/desk/task?status=Open",
 				icon: "list-todo",
 				accent: "green",
 			},
@@ -134,7 +134,7 @@ solvronix_theme.SmartHome = class SmartHome {
 				label: __("My ToDos"),
 				dt: "ToDo",
 				filters: { status: "Open" },
-				route: "/app/todo?status=Open",
+				route: "/desk/todo?status=Open",
 				icon: "circle-check",
 				accent: "purple",
 			},
@@ -208,7 +208,7 @@ solvronix_theme.SmartHome = class SmartHome {
 
 		$body.html(items.map(function (item) {
 			var slug = frappe.router.slug(item.doctype);
-			var url = "/app/" + slug + "/" + encodeURIComponent(item.name);
+			var url = "/desk/" + slug + "/" + encodeURIComponent(item.name);
 			return '<a href="' + url + '" class="st-sh-doc-row">' +
 				'<span class="st-sh-doc-dt">' + item.doctype + '</span>' +
 				'<span class="st-sh-doc-name">' + item.name + '</span>' +
@@ -237,7 +237,7 @@ solvronix_theme.SmartHome = class SmartHome {
 
 		$body.html(items.map(function (dt) {
 			var slug = frappe.router.slug(dt);
-			return '<a href="/app/' + slug + '/new" class="st-sh-qc-row">' +
+			return '<a href="/desk/' + slug + '/new" class="st-sh-qc-row">' +
 				'<span class="st-sh-qc-plus">+</span>' +
 				'<span>' + __(dt) + '</span>' +
 			'</a>';
@@ -250,10 +250,10 @@ solvronix_theme.SmartHome = class SmartHome {
 		var can_read = (frappe.boot.user && frappe.boot.user.can_read) || [];
 
 		var checks = [
-			{ dt: "Sales Invoice",     filters: { status: "Overdue", docstatus: 1 },             label: __("{0} overdue sales invoices"),               route: "/app/sales-invoice?status=Overdue" },
-			{ dt: "Purchase Order",    filters: { status: "To Receive and Bill", docstatus: 1 },  label: __("{0} pending purchase orders"),              route: "/app/purchase-order" },
-			{ dt: "Leave Application", filters: { status: "Open", docstatus: 0 },                 label: __("{0} leave applications awaiting approval"),  route: "/app/leave-application?status=Open" },
-			{ dt: "Expense Claim",     filters: { approval_status: "Draft", docstatus: 0 },       label: __("{0} expense claims pending"),               route: "/app/expense-claim" },
+			{ dt: "Sales Invoice",     filters: { status: "Overdue", docstatus: 1 },             label: __("{0} overdue sales invoices"),               route: "/desk/sales-invoice?status=Overdue" },
+			{ dt: "Purchase Order",    filters: { status: "To Receive and Bill", docstatus: 1 },  label: __("{0} pending purchase orders"),              route: "/desk/purchase-order" },
+			{ dt: "Leave Application", filters: { status: "Open", docstatus: 0 },                 label: __("{0} leave applications awaiting approval"),  route: "/desk/leave-application?status=Open" },
+			{ dt: "Expense Claim",     filters: { approval_status: "Draft", docstatus: 0 },       label: __("{0} expense claims pending"),               route: "/desk/expense-claim" },
 		].filter(function (c) { return can_read.indexOf(c.dt) !== -1; });
 
 		if (!checks.length) {

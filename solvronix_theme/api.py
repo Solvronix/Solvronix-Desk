@@ -19,6 +19,7 @@ def get_theme_css():
 }}"""
         return css
     except Exception:
+        frappe.log_error("solvronix_theme.api.get_theme_css failed")
         return ""
 
 
@@ -34,6 +35,7 @@ def get_branding():
             "tagline":      s.tagline,
         }
     except Exception:
+        frappe.log_error("solvronix_theme.api.get_branding failed")
         return {}
 
 
@@ -49,6 +51,7 @@ def get_available_languages():
         )
         return langs
     except Exception:
+        frappe.log_error("solvronix_theme.api.get_available_languages failed")
         return []
 
 
