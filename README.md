@@ -1,4 +1,4 @@
-# Solvronix Theme
+# Solvronix Desk
 
 **Professional white-label theme for Frappe/ERPNext v15 and v16**
 
@@ -11,7 +11,7 @@ Built on [Frappe](https://frappeframework.com) · by [Solvronix](https://solvron
 
 ## What it is
 
-Solvronix Theme is a drop-in Frappe app that transforms any Frappe or ERPNext installation with a
+Solvronix Desk is a drop-in Frappe app that transforms any Frappe or ERPNext installation with a
 professional dark-navy-and-orange brand identity. Colors and branding are configured through a simple
 **Theme Settings** form — no code changes, no redeploys.
 
@@ -69,3 +69,4 @@ page for a full refresh.
 ## License
 
 MIT — see [license.txt](license.txt)
+# Solvronix-Desk
