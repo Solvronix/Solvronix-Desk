@@ -1,12 +1,14 @@
 app_name = "solvronix_desk"
 app_title = "Solvronix Desk"
 app_publisher = "Solvronix"
-app_description = "Professional white-label theme for Frappe/ERPNext v15 and v16"
+app_description = "Professional white-label theme for Frappe/ERPNext"
 app_email = "sales@solvronix.com"
 app_license = "MIT"
 app_color = "#E8610A"
 app_icon = "octicon octicon-paintcan"
 app_version = "1.0.0"
+
+required_apps = ["frappe>=16.0.0 <17.0.0"]
 
 web_include_css = ["/assets/solvronix_desk/css/login.css?v=5"]
 web_include_js = ["/assets/solvronix_desk/js/login_theme.js?v=2"]
