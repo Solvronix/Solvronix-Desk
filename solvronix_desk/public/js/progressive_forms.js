@@ -119,14 +119,17 @@
     injectToggle(frm, optFields);
   }
 
+  var _lastFrm = null;
+
   frappe.ui.form.on("*", {
     refresh: function (frm) {
+      _lastFrm = frm;
       setTimeout(function () { applyProgressiveForms(frm); }, 150);
     },
   });
 
   $(document).on("page-change", function () {
-    var frm = cur_frm;
+    var frm = _lastFrm;
     if (!frm) return;
     setTimeout(function () { applyProgressiveForms(frm); }, 300);
   });

@@ -28,7 +28,7 @@ app_include_js = [
     "/assets/solvronix_desk/js/solvronix_desk.js?v=32",
     "/assets/solvronix_desk/js/sidebar.js?v=3",
     "/assets/solvronix_desk/js/command_palette.js?v=3",
-    "/assets/solvronix_desk/js/progressive_forms.js?v=2",
+    "/assets/solvronix_desk/js/progressive_forms.js?v=4",
     "/assets/solvronix_desk/js/notification_center.js?v=2",
     "/assets/solvronix_desk/js/module_cards.js?v=3",
 ]

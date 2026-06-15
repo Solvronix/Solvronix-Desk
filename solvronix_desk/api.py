@@ -61,7 +61,6 @@ def set_user_language(lang_code):
     if not frappe.session.user or frappe.session.user == "Guest":
         frappe.throw("Not permitted")
     frappe.db.set_value("User", frappe.session.user, "language", lang_code)
-    frappe.db.commit()
     return {"ok": True}
 
 
@@ -86,7 +85,6 @@ def reset_workspace_for_user():
         frappe.delete_doc("Workspace", name, ignore_permissions=True, force=True)
 
     frappe.cache.hdel("bootinfo", user)
-    frappe.db.commit()
     return {"reset": len(user_workspaces)}
 
 
@@ -103,5 +101,4 @@ def set_user_theme(theme):
     if theme not in ("Dark", "Light", "Automatic"):
         return
     frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
-    frappe.db.commit()
     return {"ok": True}
