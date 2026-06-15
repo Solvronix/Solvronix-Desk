@@ -3,17 +3,18 @@ name = "solvronix_desk"
 authors = [
     { name = "Solvronix", email = "sales@solvronix.com" }
 ]
-description = "Professional white-label theme for Frappe/ERPNext v16"
+description = "Professional white-label theme for Frappe/ERPNext"
 requires-python = ">=3.10.0"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = []
 
+[project.urls]
+Repository = "https://github.com/Solvronix/Solvronix-Desk.git"
+
 [build-system]
 requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"
 
-[tool.bench.dev-dependencies]
-
-[deploy.dependencies.apt]
-packages = []
+[tool.bench.frappe-dependencies]
+frappe = ">=15.0.0 <17.0.0"
