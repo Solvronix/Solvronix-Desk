@@ -63,7 +63,7 @@ Press `Ctrl+M` from anywhere to open a searchable workspace switcher. Type a mod
 When a System Manager saves Theme Settings, the color and branding changes propagate instantly to all connected users via Frappe's realtime layer — no reload required.
 
 ### Setup Guide Banner
-On first install, a checklist banner guides System Manager users through the initial configuration steps: set company name, upload logo, choose brand colors. Dismisses permanently once complete.
+On first launch, a checklist banner guides System Manager users through the initial configuration steps: set company name, upload logo, choose brand colors. Dismisses permanently once complete.
 
 ---
 
@@ -94,33 +94,9 @@ On first install, a checklist banner guides System Manager users through the ini
 
 ---
 
-## Installation
-
-**Step 1 — Download the app**
-```bash
-bench get-app https://github.com/Solvronix/Solvronix-Desk
-```
-
-**Step 2 — Install on your site**
-```bash
-bench --site your-site.com install-app solvronix_desk
-```
-
-**Step 3 — Build and restart**
-```bash
-bench build --app solvronix_desk
-bench restart
-```
-
-**Step 4 — Open your site**
-
-Go to `your-site.com/desk`. The theme is now active with default Solvronix colors.
-
----
-
 ## Setup Your Branding (5 minutes)
 
-After installation, open **Theme Settings** — search for it with `Ctrl+K` or find it in the sidebar.
+Open **Theme Settings** — search for it with `Ctrl+K` or find it in the sidebar.
 
 | Field | What it does |
 |---|---|
@@ -186,16 +162,6 @@ This means any company — whether their brand is navy, green, red, or black —
 Works with ERPNext and any other Frappe-based application.
 
 ---
-
-## Uninstalling
-
-```bash
-bench --site your-site.com uninstall-app solvronix_desk
-bench build
-bench restart
-```
-
-Your ERPNext returns to its default appearance. No data is deleted.
 
 ---
 
