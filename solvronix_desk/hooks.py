@@ -14,8 +14,8 @@ web_include_css = ["/assets/solvronix_desk/css/login.css?v=5"]
 web_include_js = ["/assets/solvronix_desk/js/login_theme.js?v=2"]
 
 app_include_css = [
-    "/assets/solvronix_desk/css/solvronix_desk.css?v=35",
-    "/assets/solvronix_desk/css/sidebar.css?v=13",
+    "/assets/solvronix_desk/css/solvronix_desk.css?v=40",
+    "/assets/solvronix_desk/css/sidebar.css?v=18",
     "/assets/solvronix_desk/css/command_palette.css?v=4",
     "/assets/solvronix_desk/css/smart_home.css?v=2",
     "/assets/solvronix_desk/css/progressive_forms.css?v=3",
@@ -25,11 +25,11 @@ app_include_css = [
 ]
 app_include_js = [
     "/assets/solvronix_desk/js/dark_mode.js?v=7",
-    "/assets/solvronix_desk/js/solvronix_desk.js?v=32",
+    "/assets/solvronix_desk/js/solvronix_desk.js?v=35",
     "/assets/solvronix_desk/js/sidebar.js?v=3",
-    "/assets/solvronix_desk/js/command_palette.js?v=3",
+    "/assets/solvronix_desk/js/command_palette.js?v=5",
     "/assets/solvronix_desk/js/progressive_forms.js?v=4",
-    "/assets/solvronix_desk/js/notification_center.js?v=2",
+    "/assets/solvronix_desk/js/notification_center.js?v=3",
     "/assets/solvronix_desk/js/module_cards.js?v=3",
 ]
 

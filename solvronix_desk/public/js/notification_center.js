@@ -169,10 +169,10 @@
     $list.empty();
     if (!items.length) {
       $list.html(
-        '<div class="st-notif-empty">' +
-          '<div class="st-notif-empty-icon">&#128276;</div>' +
-          'You’re all caught up!' +
-        '</div>'
+        ‘<div class="st-notif-empty">’ +
+          ‘<div class="st-notif-empty-icon">&#128276;</div>’ +
+          __("You’re all caught up!") +
+        ‘</div>’
       );
       return;
     }

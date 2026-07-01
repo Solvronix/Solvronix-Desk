@@ -60,7 +60,10 @@ def set_user_language(lang_code):
     """Persist the chosen language on the logged-in User record."""
     if not frappe.session.user or frappe.session.user == "Guest":
         frappe.throw("Not permitted")
+    if not frappe.db.exists("Language", lang_code):
+        frappe.throw(f"Invalid language code: {lang_code}")
     frappe.db.set_value("User", frappe.session.user, "language", lang_code)
+    frappe.cache.hdel("bootinfo", frappe.session.user)
     return {"ok": True}
 
 

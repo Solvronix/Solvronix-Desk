@@ -20,7 +20,6 @@ def theme_settings_after_save(doc, method):
                     "tagline":      doc.tagline       or "",
                 },
             },
-            user=frappe.session.user,
             after_commit=True,
         )
     except Exception:

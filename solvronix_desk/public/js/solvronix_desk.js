@@ -143,29 +143,7 @@
      4. SIDEBAR COLLAPSE TOGGLE (Infinitrix)
   ──────────────────────────────────────────────────────────────────────────── */
   function injectSidebarCollapseToggle() {
-    /* Frappe v16 handles sidebar collapse natively — no custom toggle needed */
-    return;
-
-    /* Inject header row */
-    var $hdr = $('<div id="st-sidebar-header">' +
-      '<span class="st-app-brand">Menu</span>' +
-      '<button id="st-sidebar-collapse" title="Toggle sidebar">&#9776;</button>' +
-      '</div>');
-
-    $hdr.find("#st-sidebar-collapse").on("click", function () {
-      var isNowCollapsed = document.body.classList.toggle("st-sidebar-collapsed");
-      localStorage.setItem(COLLAPSE_KEY, isNowCollapsed ? "1" : "0");
-      $(this).html(isNowCollapsed ? "&#9658;" : "&#9776;");
-      $(this).attr("title", isNowCollapsed ? "Expand sidebar" : "Collapse sidebar");
-    });
-
-    $sidebar.prepend($hdr);
-
-    /* Restore persisted state */
-    if (localStorage.getItem(COLLAPSE_KEY) === "1") {
-      document.body.classList.add("st-sidebar-collapsed");
-      $sidebar.find("#st-sidebar-collapse").html("&#9658;").attr("title", "Expand sidebar");
-    }
+    /* Frappe v16 handles sidebar collapse natively. */
   }
 
   /* ────────────────────────────────────────────────────────────────────────────
@@ -278,12 +256,17 @@
 
     function openDropdown() {
       var rect = $btn[0].getBoundingClientRect();
-      $dropdown.css({
-        display: "block",
-        top: rect.bottom + "px",
-        left: rect.left + "px",
-        width: Math.max(rect.width, 220) + "px",
-      });
+      var isRTL = document.documentElement.dir === "rtl";
+      var w = Math.max(rect.width, 220);
+      var pos = { display: "block", top: rect.bottom + "px", width: w + "px" };
+      if (isRTL) {
+        pos.right = (window.innerWidth - rect.right) + "px";
+        pos.left = "auto";
+      } else {
+        pos.left = rect.left + "px";
+        pos.right = "auto";
+      }
+      $dropdown.css(pos);
       $btn.addClass("open");
       setTimeout(function () { $search.focus(); }, 50);
     }
@@ -508,11 +491,16 @@
 
     function openLangDrop() {
       var rect = $langBtn[0].getBoundingClientRect();
-      $langDrop.css({
-        display: "block",
-        top: (rect.bottom + 4) + "px",
-        left: rect.left + "px",
-      });
+      var isRTL = document.documentElement.dir === "rtl";
+      var pos = { display: "block", top: (rect.bottom + 4) + "px" };
+      if (isRTL) {
+        pos.right = (window.innerWidth - rect.right) + "px";
+        pos.left = "auto";
+      } else {
+        pos.left = rect.left + "px";
+        pos.right = "auto";
+      }
+      $langDrop.css(pos);
       $langBtn.addClass("open");
       setTimeout(function () { $langSearch.focus(); }, 40);
 
@@ -710,10 +698,16 @@
 
     function openUserDrop() {
       var rect = $userBtn[0].getBoundingClientRect();
-      $userDrop.css({
-        top: (rect.bottom + 8) + "px",
-        right: (window.innerWidth - rect.right) + "px",
-      }).addClass("open");
+      var isRTL = document.documentElement.dir === "rtl";
+      var pos = { top: (rect.bottom + 8) + "px" };
+      if (isRTL) {
+        pos.left = rect.left + "px";
+        pos.right = "auto";
+      } else {
+        pos.right = (window.innerWidth - rect.right) + "px";
+        pos.left = "auto";
+      }
+      $userDrop.css(pos).addClass("open");
       $userBtn.addClass("active");
     }
     function closeUserDrop() {
@@ -788,7 +782,20 @@
       args: { lang_code: code },
       callback: function () {
         frappe.show_alert({ message: frappe._("Language updated. Reloading…"), indicator: "green" });
-        setTimeout(function () { window.location.reload(); }, 900);
+        setTimeout(function () {
+          // Frappe embeds boot (including lang+translations) directly in desk.html.
+          // A normal reload can get a cached 304 response with the old boot.
+          // Saving the current route to localStorage lets Frappe restore it after a
+          // fresh navigation. Adding a timestamp to the URL forces the browser to
+          // bypass its HTTP cache and bfcache for a guaranteed fresh page fetch.
+          try {
+            var route = frappe.router && frappe.router.current_route;
+            if (route && route.length) {
+              localStorage.setItem("session_last_route", route.join("/"));
+            }
+          } catch (e) {}
+          window.location.replace("/desk?_lang_reload=" + Date.now());
+        }, 900);
       },
       error: function () {
         frappe.show_alert({ message: frappe._("Could not update language."), indicator: "red" });
@@ -889,7 +896,7 @@
       var $items = $('<div class="st-op-items" id="' + sectionId + '"></div>');
 
       items.forEach(function (p) {
-        var slug = p.route || frappe.router.slug(p.title || p.name);
+        var slug = p.route || (frappe.router && frappe.router.slug(p.title || p.name)) || encodeURIComponent((p.title || p.name || "").toLowerCase());
         var $a = $(
           '<a class="st-op-item" href="/desk/' + slug + '" data-title="' + (p.title || p.name) + '">' +
             '<span class="st-op-dot"></span>' +

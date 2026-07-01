@@ -27,6 +27,7 @@ def add_boot_data(bootinfo):
         # becomes invalid after reinstall and the setup guide shows again.
         creation = frappe.db.get_single_value("Theme Settings", "creation") or ""
         bootinfo.st_install_key = str(creation)[:10].replace("-", "")
+        bootinfo.enable_command_palette = int(s.enable_command_palette or 1)
     except Exception:
         frappe.log_error("solvronix_desk: boot data failed")
         bootinfo.st_brand  = "#1B3F7E"

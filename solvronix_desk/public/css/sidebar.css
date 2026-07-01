@@ -1,15 +1,16 @@
 /* =============================================
    SOLVRONIX THEME — SIDEBAR (Frappe v16)
-   The actual sidebar is .body-sidebar inside
-   .body-sidebar-container. Frappe handles
-   collapse/expand natively via .expanded class.
+   Light sidebar style: white background, dark
+   text, solid accent active pill.
+   Dark mode: brand-colored sidebar (override
+   block at bottom restores white-on-dark).
    ============================================= */
 
 /* Override Frappe's sidebar width variables */
 :root {
   --sidebar-width: 240px;           /* expanded width */
-  --sidebar-border-color: rgba(255,255,255,0.06);
-  --sidebar-hover-color:  rgba(255,255,255,0.1);
+  --sidebar-border-color: rgba(0,0,0,0.08);
+  --sidebar-hover-color:  rgba(0,0,0,0.05);
   --sidebar-active-color: var(--st-sidebar-active);
 }
 
@@ -27,7 +28,7 @@
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(0,0,0,0.08);
   overflow: hidden;
 }
 
@@ -52,7 +53,7 @@
 .st-company-name {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255,255,255,0.92);
+  color: #1C2333;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -73,13 +74,13 @@
   width: var(--sidebar-width) !important;
 }
 
-/* ── BACKGROUND: driven by --st-sidebar (user-set via Theme Settings) ── */
+/* ── BACKGROUND: white in light mode, brand-colored in dark mode ── */
 .body-sidebar,
 .body-sidebar-container > .body-sidebar,
 .body-sidebar-container.expanded .body-sidebar {
   background: var(--st-sidebar-bg) !important;
   background-color: var(--st-sidebar-bg) !important;
-  border-right: 1px solid rgba(255,255,255,0.06) !important;
+  border-right: 1px solid rgba(0,0,0,0.08) !important;
 }
 
 /* ── COLLAPSED: center icons, hide text labels ── */
@@ -130,56 +131,86 @@
 }
 
 /* ---- Sidebar Items ---- */
-.body-sidebar .standard-sidebar-item .item-anchor {
-  color: rgba(255,255,255,0.75) !important;
+/* 4-class chain beats Frappe's 3-class rule; covers top-level AND nested items */
+.body-sidebar-container .body-sidebar .standard-sidebar-item .item-anchor,
+.body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item .item-anchor,
+.body-sidebar-container .body-sidebar .standard-sidebar-item.indent .item-anchor {
+  color: #374151 !important;
   border-radius: 8px !important;
   padding: 2px 4px !important;
 }
 
-.body-sidebar .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover,
-.body-sidebar .standard-sidebar-item:not(.active-sidebar):has(a:not(.section-break)):hover {
-  background-color: rgba(255,255,255,0.1) !important;
-  color: #fff !important;
+.body-sidebar-container .body-sidebar .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover,
+.body-sidebar-container .body-sidebar .standard-sidebar-item:not(.active-sidebar):has(a:not(.section-break)):hover,
+.body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover {
+  background-color: rgba(0,0,0,0.05) !important;
+  color: #111827 !important;
   border-radius: 8px !important;
   text-decoration: none !important;
 }
 
-/* Active/selected item */
-.body-sidebar .standard-sidebar-item.active-sidebar .item-anchor {
-  background: var(--st-sidebar-active) !important;
-  color: var(--st-accent) !important;
+/* Active/selected item — solid accent pill with white text */
+.body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor,
+.body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .item-anchor {
+  background: var(--st-accent) !important;
+  color: #ffffff !important;
   font-weight: 600 !important;
   border-radius: 8px !important;
-  border-left: 3px solid var(--st-accent) !important;
-  padding-left: 5px !important;
+  border-left: none !important;
+}
+
+/* Force white on every child of the active anchor */
+.body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor .sidebar-item-label,
+.body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor span,
+.body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor a,
+.body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .item-anchor .sidebar-item-label,
+.body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .item-anchor span {
+  color: #ffffff !important;
 }
 
 /* ---- Icons ---- */
-.body-sidebar .standard-sidebar-item .sidebar-item-icon {
-  color: rgba(255,255,255,0.7) !important;
+.body-sidebar-container .body-sidebar .standard-sidebar-item .sidebar-item-icon,
+.body-sidebar-container .body-sidebar .standard-sidebar-item .sidebar-item-icon.text-ink-gray-7 {
+  color: #6B7280 !important;
 }
 
-.body-sidebar .standard-sidebar-item .sidebar-item-icon svg use,
-.body-sidebar .standard-sidebar-item .sidebar-item-icon svg {
-  color: rgba(255,255,255,0.7) !important;
-  stroke: rgba(255,255,255,0.7) !important;
+.body-sidebar-container .body-sidebar .standard-sidebar-item .sidebar-item-icon svg use,
+.body-sidebar-container .body-sidebar .standard-sidebar-item .sidebar-item-icon svg {
+  color: #6B7280 !important;
+  stroke: #6B7280 !important;
 }
 
-.body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg use,
-.body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg {
-  color: var(--st-accent) !important;
-  stroke: var(--st-accent) !important;
+.body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon,
+.body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon.text-ink-gray-7,
+.body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .sidebar-item-icon {
+  color: #ffffff !important;
+}
+
+.body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg use,
+.body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg,
+.body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .sidebar-item-icon svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .es-icon,
+.body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .icon,
+.body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .sidebar-item-icon .es-icon,
+.body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .sidebar-item-icon .icon {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 /* ---- Labels ---- */
-.body-sidebar .standard-sidebar-item .sidebar-item-label {
+.body-sidebar-container .body-sidebar .standard-sidebar-item .sidebar-item-label {
   color: inherit !important;
 }
 
 /* Section break / group labels */
 .body-sidebar .sidebar-item-container.section-item .item-anchor .sidebar-item-label,
 .body-sidebar .section-break .sidebar-item-label {
-  color: rgba(255,255,255,0.35) !important;
+  color: #9CA3AF !important;
   font-size: 10px !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
@@ -188,7 +219,15 @@
 
 /* ---- Dividers ---- */
 .body-sidebar .divider {
-  border-color: rgba(255,255,255,0.08) !important;
+  border-color: rgba(0,0,0,0.06) !important;
+}
+
+/* ---- Hide Frappe native search/notification from sidebar (handled by our custom toolbar) ---- */
+.body-sidebar .navbar-search-bar,
+.body-sidebar .sidebar-notification,
+.body-sidebar .dropdown-notifications,
+.body-sidebar .standard-items-sections {
+  display: none !important;
 }
 
 /* ---- Bottom area: hide user section — moved to top toolbar ---- */
@@ -200,52 +239,52 @@
 
 /* ---- Onboarding / Getting Started link ---- */
 .body-sidebar .onboarding-sidebar {
-  color: rgba(255,255,255,0.5) !important;
+  color: #6B7280 !important;
 }
 
 .body-sidebar .onboarding-sidebar:hover {
-  color: rgba(255,255,255,0.9) !important;
+  color: #111827 !important;
 }
 
 /* ---- Collapse sidebar link ---- */
 .body-sidebar .collapse-sidebar-link,
 .body-sidebar .collapse-sidebar-link span {
-  color: rgba(255,255,255,0.5) !important;
+  color: #6B7280 !important;
 }
 
 .body-sidebar .collapse-sidebar-link:hover,
 .body-sidebar .collapse-sidebar-link:hover span {
-  color: rgba(255,255,255,0.9) !important;
+  color: #111827 !important;
   text-decoration: none !important;
 }
 
 /* ---- Resize handle ---- */
 .body-sidebar .sidebar-resize-handle {
-  background: rgba(255,255,255,0.05) !important;
+  background: rgba(0,0,0,0.04) !important;
 }
 
 .body-sidebar .sidebar-resize-handle:hover {
-  background: rgba(255,255,255,0.12) !important;
+  background: rgba(0,0,0,0.08) !important;
 }
 
 /* ---- Sidebar icons for svg .es-icon ---- */
 .body-sidebar .sidebar-item-icon .es-icon,
 .body-sidebar .sidebar-item-icon .icon {
-  color: rgba(255,255,255,0.7) !important;
-  fill: rgba(255,255,255,0.7) !important;
+  color: #6B7280 !important;
+  fill: #6B7280 !important;
 }
 
 .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .es-icon,
 .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .icon {
-  color: var(--st-accent) !important;
-  fill: var(--st-accent) !important;
+  color: #ffffff !important;
+  fill: #ffffff !important;
 }
 
 /* ---- Custom scrollbar inside sidebar ---- */
 .body-sidebar .body-sidebar-top::-webkit-scrollbar { width: 3px; }
 .body-sidebar .body-sidebar-top::-webkit-scrollbar-track { background: transparent; }
 .body-sidebar .body-sidebar-top::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.15);
   border-radius: 4px;
 }
 
@@ -254,11 +293,11 @@
   background: var(--st-sidebar-bg) !important;
 }
 
-/* ---- Tooltip for collapsed sidebar items ---- */
+/* ---- Tooltip for collapsed sidebar items — always dark ---- */
 .st-sidebar-tooltip {
   position: fixed;
   left: 72px;
-  background: var(--st-sidebar-bg, #1e1e2e);
+  background: #1e1e2e;
   color: rgba(255,255,255,0.9);
   font-size: 12px;
   font-weight: 500;
@@ -283,4 +322,84 @@
 .body-sidebar-container.expanded .collapse-sidebar-link svg,
 .body-sidebar-container.expanded .collapse-sidebar-link .icon {
   transform: rotate(180deg);
+}
+
+/* ══════════════════════════════════════════════════════════
+   DARK MODE — sidebar is brand-colored → restore white text
+   ══════════════════════════════════════════════════════════ */
+html[data-theme="dark"] .body-sidebar,
+html[data-theme="dark"] .body-sidebar-container > .body-sidebar {
+  border-right: 1px solid rgba(255,255,255,0.06) !important;
+}
+html[data-theme="dark"] #st-company-header {
+  border-bottom-color: rgba(255,255,255,0.08) !important;
+}
+html[data-theme="dark"] .st-company-name {
+  color: rgba(255,255,255,0.92) !important;
+}
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item .item-anchor {
+  color: rgba(255,255,255,0.75) !important;
+}
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover {
+  background-color: rgba(255,255,255,0.1) !important;
+  color: #fff !important;
+}
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor {
+  background: color-mix(in srgb, var(--st-accent) 15%, transparent) !important;
+  color: var(--st-accent) !important;
+  border-left: 3px solid var(--st-accent) !important;
+  padding-left: 5px !important;
+}
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item .sidebar-item-icon {
+  color: rgba(255,255,255,0.7) !important;
+}
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item .sidebar-item-icon svg use,
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item .sidebar-item-icon svg {
+  color: rgba(255,255,255,0.7) !important;
+  stroke: rgba(255,255,255,0.7) !important;
+}
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg use,
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg {
+  color: var(--st-accent) !important;
+  stroke: var(--st-accent) !important;
+}
+html[data-theme="dark"] .body-sidebar .sidebar-item-container.section-item .item-anchor .sidebar-item-label,
+html[data-theme="dark"] .body-sidebar .section-break .sidebar-item-label {
+  color: rgba(255,255,255,0.35) !important;
+}
+html[data-theme="dark"] .body-sidebar .divider {
+  border-color: rgba(255,255,255,0.08) !important;
+}
+html[data-theme="dark"] .body-sidebar .onboarding-sidebar {
+  color: rgba(255,255,255,0.5) !important;
+}
+html[data-theme="dark"] .body-sidebar .onboarding-sidebar:hover {
+  color: rgba(255,255,255,0.9) !important;
+}
+html[data-theme="dark"] .body-sidebar .collapse-sidebar-link,
+html[data-theme="dark"] .body-sidebar .collapse-sidebar-link span {
+  color: rgba(255,255,255,0.5) !important;
+}
+html[data-theme="dark"] .body-sidebar .collapse-sidebar-link:hover,
+html[data-theme="dark"] .body-sidebar .collapse-sidebar-link:hover span {
+  color: rgba(255,255,255,0.9) !important;
+}
+html[data-theme="dark"] .body-sidebar .sidebar-resize-handle {
+  background: rgba(255,255,255,0.05) !important;
+}
+html[data-theme="dark"] .body-sidebar .sidebar-resize-handle:hover {
+  background: rgba(255,255,255,0.12) !important;
+}
+html[data-theme="dark"] .body-sidebar .body-sidebar-top::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+}
+html[data-theme="dark"] .body-sidebar .sidebar-item-icon .es-icon,
+html[data-theme="dark"] .body-sidebar .sidebar-item-icon .icon {
+  color: rgba(255,255,255,0.7) !important;
+  fill: rgba(255,255,255,0.7) !important;
+}
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .es-icon,
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .icon {
+  color: var(--st-accent) !important;
+  fill: var(--st-accent) !important;
 }

@@ -39,6 +39,34 @@ A full-screen branded login experience with your company logo and colors. First 
 
 ---
 
+## Full Feature List
+
+### Progressive Forms
+Optional fields are hidden by default — forms look clean out of the box. A "Show More" toggle reveals them when needed. Reduces cognitive load for new users.
+
+### Top Toolbar
+A persistent top bar adds a live clock, a **Today's View** shortcut, the global search, dark mode toggle, and language switcher — all in one row, always visible.
+
+### Language Switcher
+A searchable dropdown lists all enabled system languages. Selecting one applies it instantly — no page reload required. Respects Frappe's translation layer.
+
+### All Options Panel
+A slide-in panel (triggered from the toolbar) shows every workspace grouped by category. Lets users explore the full system without navigating away from their current page.
+
+### User Avatar Dropdown
+Clicking the user avatar opens a dropdown with an installed apps grid, edit profile, reset workspace layout, and logout — all in one place.
+
+### Module Switcher — `Ctrl+M`
+Press `Ctrl+M` from anywhere to open a searchable workspace switcher. Type a module name and press Enter to jump to it instantly.
+
+### Real-Time Theme Sync
+When a System Manager saves Theme Settings, the color and branding changes propagate instantly to all connected users via Frappe's realtime layer — no reload required.
+
+### Setup Guide Banner
+On first install, a checklist banner guides System Manager users through the initial configuration steps: set company name, upload logo, choose brand colors. Dismisses permanently once complete.
+
+---
+
 ## Screenshots
 
 | Login Page | Today's View |
@@ -194,7 +222,7 @@ Solvronix builds Frappe/ERPNext products for businesses globally, based in Lahor
 
 ## Support
 
-Something not working? Open an issue on [GitHub Issues](https://github.com/solvronix/solvronix_desk/issues) or contact us directly.
+Something not working? Open an issue on [GitHub Issues](https://github.com/Solvronix/Solvronix-Desk/issues) or contact us directly.
 
 - Email: sales@solvronix.com
 - WhatsApp: +92 307 9484220
