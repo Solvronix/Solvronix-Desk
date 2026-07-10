@@ -2,6 +2,10 @@
 
 > A professional white-label theme for Frappe/ERPNext v16 that makes your ERP look and feel like a modern SaaS product.
 
+[![Available on Frappe Cloud Marketplace](https://img.shields.io/badge/Frappe%20Cloud-Marketplace-0089FF)](https://cloud.frappe.io/marketplace/apps/solvronix_desk)
+
+**Available on Frappe Cloud Marketplace** — install Solvronix Desk on your Frappe Cloud site in one click: [cloud.frappe.io/marketplace/apps/solvronix_desk](https://cloud.frappe.io/marketplace/apps/solvronix_desk)
+
 ![Solvronix Desk](docs/screenshots/smart-home.png)
 
 ---

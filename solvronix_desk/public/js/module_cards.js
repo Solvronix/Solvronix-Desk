@@ -130,7 +130,10 @@
   /* ── Render one card ─────────────────────────────────────────── */
   function buildCard(page, idx) {
     var title = page.title || page.name || "Module";
-    var slug  = page.name || "";
+    /* Use the Frappe workspace slug (lowercase, spaces → hyphens) for navigation */
+    var slug  = (frappe.router && frappe.router.slug)
+                ? frappe.router.slug(page.name || "")
+                : (page.name || "").toLowerCase().replace(/ /g, "-");
     var color = wsColor(title, idx);
     var icon  = wsIcon(title, page.icon);
     var desc  = wsDesc(title);
@@ -226,16 +229,27 @@
 
   /* ── Find the best content container to take over ───────────── */
   function getPageContent() {
-    /* Try the page-content wrapper Frappe renders workspace into */
-    return document.querySelector(".main-section .page-content") ||
-           document.querySelector(".desk-page .page-body") ||
-           document.querySelector(".main-section");
+    /* Frappe v16: active page container's layout-main-section */
+    if (frappe.container && frappe.container.page) {
+      var c = frappe.container.page.querySelector(".layout-main-section");
+      if (c) return c;
+    }
+    /* Fallback: any visible layout-main-section */
+    return document.querySelector("#body .layout-main-section") ||
+           document.querySelector(".layout-main-section");
   }
 
   /* ── Check if we're on the Home route ───────────────────────── */
   function isHomeRoute() {
-    var route = (frappe.get_route && frappe.get_route()) || [];
-    return route.length === 1 && route[0].toLowerCase() === "home";
+    var route = frappe.get_route && frappe.get_route();
+    /* Router not initialised yet — don't inject; wait for "change" event */
+    if (!route) return false;
+    /* Empty route: user is at /desk with no sub-path (Frappe Desktop page) */
+    if (!route.length || route[0] === "") return true;
+    var r0 = route[0].toLowerCase();
+    /* Old-style ["home"] route */
+    if (route.length === 1 && r0 === "home") return true;
+    return false;
   }
 
   /* ── Main injection logic ────────────────────────────────────── */
