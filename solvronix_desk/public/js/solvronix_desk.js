@@ -1,6 +1,6 @@
 /* =============================================================================
    Solvronix Desk — Desk JavaScript
-   Infinitrix + CommitStreet SaaS design patterns
+   Solvronix design system — original visual language for Frappe Desk
    Loaded on every Frappe desk page via app_include_js in hooks.py
    ============================================================================= */
 
@@ -140,14 +140,14 @@
   }
 
   /* ────────────────────────────────────────────────────────────────────────────
-     4. SIDEBAR COLLAPSE TOGGLE (Infinitrix)
+     4. SIDEBAR COLLAPSE TOGGLE
   ──────────────────────────────────────────────────────────────────────────── */
   function injectSidebarCollapseToggle() {
     /* Frappe v16 handles sidebar collapse natively. */
   }
 
   /* ────────────────────────────────────────────────────────────────────────────
-     5. MODULE SWITCHER — search + keyboard nav (Infinitrix)
+     5. MODULE SWITCHER — search + keyboard nav
   ──────────────────────────────────────────────────────────────────────────── */
   function injectModuleSwitcher() {
     if (!frappe.desk) return;
@@ -309,7 +309,7 @@
 
 
   /* ────────────────────────────────────────────────────────────────────────────
-     6. BREADCRUMB BUILDER (CommitStreet)
+     6. BREADCRUMB BUILDER
   ──────────────────────────────────────────────────────────────────────────── */
   /* buildBreadcrumb removed — Frappe renders its own native breadcrumb */
 
@@ -823,7 +823,7 @@
     );
     var $body = $('<div id="st-options-body"><p class="st-op-empty">Loading…</p></div>');
 
-    $panel.append($head).append($searchWrap).append($body);
+    $panel.append($head).append($searchWrap).append(buildAppearanceSection()).append($body);
     $("body").append($overlay).append($panel);
 
     /* Close handlers */
@@ -846,6 +846,79 @@
         renderOptionsPanel(pages);
       },
     });
+  }
+
+  /* ── Appearance controls (density / font size / theme mode) ──
+     Sits at the top of the All-Options panel. State + persistence live in
+     personalization.js (stSetDensity, stAdjustFont) and dark_mode.js
+     (stSetThemeMode) — this only renders the controls. */
+  function buildAppearanceSection() {
+    var $sec = $(
+      '<div id="st-op-appearance">' +
+        '<div class="st-op-section-head"><span>' + frappe._("Appearance") + '</span></div>' +
+
+        '<div class="st-ap-row">' +
+          '<span class="st-ap-label">' + frappe._("Theme") + '</span>' +
+          '<div class="st-ap-seg" data-group="theme">' +
+            '<button data-mode="light">' + frappe._("Light") + '</button>' +
+            '<button data-mode="dark">' + frappe._("Dark") + '</button>' +
+            '<button data-mode="auto">' + frappe._("Auto") + '</button>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="st-ap-row">' +
+          '<span class="st-ap-label">' + frappe._("Density") + '</span>' +
+          '<div class="st-ap-seg" data-group="density">' +
+            '<button data-mode="comfortable">' + frappe._("Comfortable") + '</button>' +
+            '<button data-mode="compact">' + frappe._("Compact") + '</button>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="st-ap-row">' +
+          '<span class="st-ap-label">' + frappe._("Font Size") + '</span>' +
+          '<div class="st-ap-seg" data-group="font">' +
+            '<button data-font="-1" title="' + frappe._("Smaller") + '">A&minus;</button>' +
+            '<button data-font="0" title="' + frappe._("Reset to default") + '">A</button>' +
+            '<button data-font="1" title="' + frappe._("Larger") + '">A+</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>'
+    );
+
+    function refreshActive() {
+      var theme = window.stGetThemeMode ? window.stGetThemeMode() : "light";
+      $sec.find('[data-group="theme"] button').each(function () {
+        $(this).toggleClass("st-active", $(this).data("mode") === theme);
+      });
+      var density = window.stGetDensity ? window.stGetDensity() : "comfortable";
+      $sec.find('[data-group="density"] button').each(function () {
+        $(this).toggleClass("st-active", $(this).data("mode") === density);
+      });
+      var scale = window.stGetFontScale ? window.stGetFontScale() : null;
+      $sec.find('[data-font="0"]').toggleClass("st-active", scale === null || scale === 100);
+    }
+
+    $sec.on("click", '[data-group="theme"] button', function () {
+      if (window.stSetThemeMode) window.stSetThemeMode($(this).data("mode"));
+      refreshActive();
+    });
+    $sec.on("click", '[data-group="density"] button', function () {
+      if (window.stSetDensity) window.stSetDensity($(this).data("mode"));
+      refreshActive();
+    });
+    $sec.on("click", '[data-group="font"] button', function () {
+      if (window.stAdjustFont) window.stAdjustFont(parseInt($(this).data("font"), 10));
+      refreshActive();
+    });
+
+    /* Stay in sync when the theme is changed from the toolbar toggle */
+    document.addEventListener("st:density-changed", refreshActive);
+    document.addEventListener("st:font-changed", refreshActive);
+    refreshActive();
+    /* Toolbar dark toggle has no event — refresh whenever the panel opens */
+    $sec.data("st-refresh", refreshActive);
+
+    return $sec;
   }
 
   var _optionsSections = [];
@@ -952,6 +1025,8 @@
 
   function openOptionsPanel() {
     $("#st-options-overlay").addClass("open");
+    var refresh = $("#st-op-appearance").data("st-refresh");
+    if (refresh) refresh();
     setTimeout(function () {
       $("#st-options-panel").addClass("open");
       $("#st-options-search").focus();

@@ -1,6 +1,6 @@
 /* ================================================================
    Solvronix Desk — Module Card Grid (Workspaces / App Grid)
-   Renders as Odoo-style app picker on /app/home route.
+   Renders as app launcher grid on /app/home route.
    Each card uses --mod-color CSS var set inline per card.
    ================================================================ */
 

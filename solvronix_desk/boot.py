@@ -16,6 +16,17 @@ def add_boot_data(bootinfo):
         bootinfo.st_brand  = s.brand_color  or "#1B3F7E"
         bootinfo.st_accent = s.accent_color or "#F57C00"
         bootinfo.st_dark_mode_default = int(s.dark_mode_default or 0)
+
+        # Personalization defaults (v1.2.0) — per-user localStorage overrides win in JS
+        theme_mode = getattr(s, "default_theme_mode", None) or ""
+        if not theme_mode:
+            # legacy fallback: old "Start in Dark Mode" checkbox
+            theme_mode = "Dark" if s.dark_mode_default else "Light"
+        bootinfo.st_theme_mode_default = theme_mode.lower()          # light | dark | auto
+        bootinfo.st_density_default    = (getattr(s, "default_density", None) or "Comfortable").lower()
+        from solvronix_desk.api import FONT_SIZE_CSS
+        bootinfo.st_font_size_default  = FONT_SIZE_CSS.get(
+            getattr(s, "base_font_size", None) or "Default", "100%")
         bootinfo.st_branding = {
             "company_name": s.company_name or "",
             "logo":         s.logo         or "",
@@ -33,5 +44,8 @@ def add_boot_data(bootinfo):
         bootinfo.st_brand  = "#1B3F7E"
         bootinfo.st_accent = "#F57C00"
         bootinfo.st_dark_mode_default = 0
+        bootinfo.st_theme_mode_default = "light"
+        bootinfo.st_density_default = "comfortable"
+        bootinfo.st_font_size_default = "100%"
         bootinfo.st_branding = {}
         bootinfo.st_install_key = "v1"

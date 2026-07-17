@@ -1,10 +1,10 @@
 /* =============================================================================
    Solvronix Desk — Premium Stylesheet
-   Inspired by Infinitrix Theme + CommitStreet SaaS Theme
+   Solvronix design system — original visual language for Frappe Desk
    :root defaults overridden at runtime by <style id="st-dynamic-theme">
    ============================================================================= */
 
-/* ── INTER FONT (Infinitrix) ────────────────────────────────────────────────── */
+/* ── INTER FONT ────────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 body,
@@ -188,7 +188,7 @@ textarea,
   transition: box-shadow var(--st-transition) !important;
 }
 
-/* ── CUSTOM SCROLLBAR (Infinitrix) ──────────────────────────────────────────── */
+/* ── CUSTOM SCROLLBAR ──────────────────────────────────────────── */
 ::-webkit-scrollbar              { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track        { background: transparent; }
 ::-webkit-scrollbar-thumb        { background: rgba(0,0,0,0.18); border-radius: 10px; }
@@ -256,7 +256,7 @@ html[data-theme="dark"] .desk-page {
   opacity: 0.85;
 }
 
-/* Collapse toggle button (Infinitrix) */
+/* Collapse toggle button */
 #st-sidebar-collapse {
   width: 28px;
   height: 28px;
@@ -277,7 +277,7 @@ html[data-theme="dark"] .desk-page {
   color: #fff;
 }
 
-/* Section group labels — ALL CAPS with letter-spacing (Infinitrix) */
+/* Section group labels — ALL CAPS with letter-spacing */
 .desk-sidebar .sidebar-group-title,
 .desk-sidebar .sidebar-section-head,
 .desk-sidebar .standard-sidebar-section > .standard-sidebar-label {
@@ -290,7 +290,7 @@ html[data-theme="dark"] .desk-page {
   margin: 0 !important;
 }
 
-/* Sidebar items — pill style (Infinitrix) */
+/* Sidebar items — pill style */
 .desk-sidebar .sidebar-item,
 .desk-sidebar .standard-sidebar-item {
   margin: 2px 8px !important;
@@ -310,7 +310,7 @@ html[data-theme="dark"] .desk-page {
   transform: translateX(2px);
 }
 
-/* Active — solid primary fill (Infinitrix) */
+/* Active — solid primary fill */
 .desk-sidebar .sidebar-item.selected,
 .desk-sidebar .sidebar-item.active,
 .desk-sidebar .standard-sidebar-item.selected,
@@ -347,7 +347,7 @@ html[data-theme="dark"] .desk-page {
   filter: none;
 }
 
-/* ── SIDEBAR COLLAPSED STATE (Infinitrix) ───────────────────────────────────── */
+/* ── SIDEBAR COLLAPSED STATE ───────────────────────────────────── */
 body.st-sidebar-collapsed .desk-sidebar,
 body.st-sidebar-collapsed .layout-side-section {
   width: var(--st-sidebar-collapsed) !important;
@@ -423,7 +423,7 @@ header.navbar {
   color: rgba(255,255,255,0.45) !important;
 }
 
-/* ── GRADIENT BUTTONS (Infinitrix) ──────────────────────────────────────────── */
+/* ── GRADIENT BUTTONS ──────────────────────────────────────────── */
 .btn-primary,
 button.btn-primary,
 a.btn-primary {
@@ -461,7 +461,7 @@ button.btn-primary:active {
   color: var(--st-accent) !important;
 }
 
-/* ── FORMS (Infinitrix left-bar sections) ───────────────────────────────────── */
+/* ── FORMS (left-bar sections) ───────────────────────────────────── */
 
 /* Section heads — left colored bar instead of bottom border */
 .form-section .section-head,
@@ -586,7 +586,7 @@ html:not([data-theme="dark"]) .frappe-control[data-fieldtype="Data"] .control-in
 a { color: var(--st-accent) !important; }
 a:hover { color: var(--st-primary-hover) !important; opacity: 0.85; }
 
-/* ── DATATABLE / LIST VIEW (CommitStreet) ───────────────────────────────────── */
+/* ── DATATABLE / LIST VIEW ───────────────────────────────────── */
 
 /* List headers — ALL CAPS muted label row */
 .list-row-head,
@@ -652,7 +652,7 @@ input[type="checkbox"]:checked {
   accent-color: var(--st-accent);
 }
 
-/* ── WORKSPACE / HOME CARDS (Infinitrix + CommitStreet) ─────────────────────── */
+/* ── WORKSPACE / HOME CARDS ─────────────────────── */
 
 /* Cards — layered shadow, no top stripe */
 .desk-card,
@@ -735,7 +735,7 @@ html[data-theme="dark"] .desk-page > .page-head .st-breadcrumb {
   color: rgba(255,255,255,0.65) !important;
 }
 
-/* Stat/Number card (CommitStreet) */
+/* Stat/Number card */
 .number-card .number-card-head {
   background: var(--st-primary-gradient) !important;
   border-radius: var(--st-radius-lg) var(--st-radius-lg) 0 0 !important;
@@ -766,7 +766,7 @@ html[data-theme="dark"] .desk-page > .page-head .st-breadcrumb {
   background: var(--st-primary-light);
 }
 
-/* ── STATUS BADGE PILLS (CommitStreet) ──────────────────────────────────────── */
+/* ── STATUS BADGE PILLS ──────────────────────────────────────── */
 .indicator-pill,
 .badge {
   border-radius: var(--st-radius-pill) !important;
@@ -787,7 +787,7 @@ html[data-theme="dark"] .desk-page > .page-head .st-breadcrumb {
 .indicator-pill.gray,
 .indicator-pill.grey   { background: rgba(107,114,128,0.1) !important; color: #4b5563 !important; }
 
-/* ── MODAL / DIALOG GRADIENT HEADER (CommitStreet) ──────────────────────────── */
+/* ── MODAL / DIALOG GRADIENT HEADER ──────────────────────────── */
 .modal-header {
   background: linear-gradient(120deg, var(--st-dark) 0%, var(--st-dark-mid) 100%) !important;
   color: #fff !important;
@@ -824,7 +824,7 @@ html[data-theme="dark"] .desk-page > .page-head .st-breadcrumb {
   border-radius: 0 0 var(--st-radius-lg) var(--st-radius-lg) !important;
 }
 
-/* ── PAGE TITLE / BREADCRUMB BAR (CommitStreet) ─────────────────────────────── */
+/* ── PAGE TITLE / BREADCRUMB BAR ─────────────────────────────── */
 .page-head .page-title,
 .page-head .title-text {
   font-weight: 700 !important;
@@ -848,7 +848,7 @@ html[data-theme="dark"] .desk-page > .page-head .st-breadcrumb {
   opacity: 0.4;
 }
 
-/* ── ALERT / MESSAGE BOXES (CommitStreet) ───────────────────────────────────── */
+/* ── ALERT / MESSAGE BOXES ───────────────────────────────────── */
 .alert,
 .alert-primary,
 .alert-info {
@@ -2178,4 +2178,50 @@ html[dir="rtl"] #st-lang-dropdown {
   }
   body { background: white !important; }
   .page-head { background: none !important; color: inherit !important; }
+}
+
+/* ── APPEARANCE CONTROLS (All-Options panel, v1.2.0) ───────────────────────── */
+#st-op-appearance {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+}
+#st-op-appearance .st-op-section-head {
+  padding: 0 0 8px 0;
+  cursor: default;
+}
+.st-ap-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+}
+.st-ap-label {
+  font-size: 12px;
+  color: var(--text-muted, var(--text-color));
+}
+.st-ap-seg {
+  display: inline-flex;
+  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.12));
+  border-radius: 8px;
+  overflow: hidden;
+}
+.st-ap-seg button {
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 11.5px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.st-ap-seg button + button {
+  border-inline-start: 1px solid var(--border-color, rgba(0, 0, 0, 0.12));
+}
+.st-ap-seg button:hover {
+  background: color-mix(in srgb, var(--st-brand) 8%, transparent);
+}
+.st-ap-seg button.st-active {
+  background: var(--st-brand);
+  color: white;
 }

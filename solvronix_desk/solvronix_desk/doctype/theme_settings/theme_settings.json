@@ -14,6 +14,13 @@
   "brand_color",
   "column_break_colors",
   "accent_color",
+  "section_presets",
+  "custom_presets",
+  "section_personalization",
+  "default_theme_mode",
+  "base_font_size",
+  "column_break_personalization",
+  "default_density",
   "section_features",
   "enable_command_palette",
   "column_break_features",
@@ -74,6 +81,52 @@
    "label": "Accent Color"
   },
   {
+   "collapsible": 1,
+   "fieldname": "section_presets",
+   "fieldtype": "Section Break",
+   "label": "Saved Presets"
+  },
+  {
+   "description": "Your own named color presets — they appear as swatches above alongside the built-in ones",
+   "fieldname": "custom_presets",
+   "fieldtype": "Table",
+   "label": "Custom Presets",
+   "options": "Theme Preset"
+  },
+  {
+   "fieldname": "section_personalization",
+   "fieldtype": "Section Break",
+   "label": "Personalization Defaults"
+  },
+  {
+   "default": "Light",
+   "description": "Default appearance for new users. Auto follows the operating system. Each user can override from the toolbar.",
+   "fieldname": "default_theme_mode",
+   "fieldtype": "Select",
+   "label": "Default Theme Mode",
+   "options": "Light\nDark\nAuto"
+  },
+  {
+   "default": "Default",
+   "description": "Site-wide base font size. Each user can override with A− / A+ in All Options.",
+   "fieldname": "base_font_size",
+   "fieldtype": "Select",
+   "label": "Base Font Size",
+   "options": "Small\nDefault\nLarge"
+  },
+  {
+   "fieldname": "column_break_personalization",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Comfortable",
+   "description": "Compact shows more rows on screen. Each user can override in All Options.",
+   "fieldname": "default_density",
+   "fieldtype": "Select",
+   "label": "Default Density",
+   "options": "Comfortable\nCompact"
+  },
+  {
    "fieldname": "section_features",
    "fieldtype": "Section Break",
    "label": "Features"
@@ -89,8 +142,10 @@
    "fieldtype": "Column Break"
   },
   {
+   "description": "Deprecated — use Default Theme Mode instead",
    "fieldname": "dark_mode_default",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Start in Dark Mode"
   },
   {

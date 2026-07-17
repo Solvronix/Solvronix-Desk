@@ -22,6 +22,19 @@
   100% { background-position: 100% 50%; }
 }
 
+/* Slow-drifting blurred color field layered over the base gradient.
+   Animates transform only (GPU-cheap); colors derive from brand/accent. */
+@keyframes st-mesh-drift {
+  from { transform: rotate(0deg) scale(1); }
+  to   { transform: rotate(8deg) scale(1.18); }
+}
+
+/* Card entrance */
+@keyframes st-card-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* ── FULL-PAGE GRADIENT — html+body both need min-height so gradient fills ── */
 /* Requires :has() (Chrome 105+, Safari 15.4+, Firefox 121+).
    @supports selector(:has(*)) gates the rules; a @supports not fallback below
@@ -57,6 +70,30 @@
     animation: st-login-gradient 10s ease infinite alternate !important;
     display: flex !important;
     flex-direction: column !important;
+    position: relative !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Drifting color field behind the card */
+  body:has(.for-login)::before,
+  body:has(.for-forgot)::before,
+  body:has(.for-signup)::before,
+  body:has(.for-email-login)::before,
+  body:has(.for-login-with-email-link)::before {
+    content: "";
+    position: fixed;
+    inset: -20%;
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(80px) saturate(140%);
+    background:
+      radial-gradient(40% 45% at 20% 25%,
+        color-mix(in srgb, var(--st-accent) 35%, transparent), transparent 70%),
+      radial-gradient(35% 40% at 80% 20%,
+        color-mix(in srgb, var(--st-brand) 55%, white 20%), transparent 70%),
+      radial-gradient(50% 50% at 60% 85%,
+        color-mix(in srgb, var(--st-accent) 22%, transparent), transparent 70%);
+    animation: st-mesh-drift 24s ease-in-out infinite alternate;
   }
 }
 
@@ -133,6 +170,28 @@ body:has(.for-forgot) .page-header-wrapper {
 .for-forgot::before,
 .for-signup::before {
   display: none !important;
+}
+
+/* Keep the card halves above the drifting color field and fade them up
+   together on load. Radius on the head gets a soft top-edge highlight. */
+.for-login .page-card-head,
+.for-login .login-content.page-card,
+.for-login .page-card,
+.for-forgot .page-card-head,
+.for-forgot .page-card,
+.for-signup .page-card-head,
+.for-signup .page-card {
+  position: relative;
+  z-index: 1;
+  animation: st-card-in 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none !important; }
+  .for-login .page-card-head,
+  .for-login .page-card,
+  .for-forgot .page-card-head,
+  .for-forgot .page-card { animation: none !important; }
 }
 
 /* ── CARD HEAD (logo + title) ── top half of the unified card ───────────── */

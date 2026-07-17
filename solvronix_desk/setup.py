@@ -12,6 +12,9 @@ def after_install():
             "accent_color":           "#F57C00",
             "enable_command_palette": 1,
             "enable_smart_home":      1,
+            "default_theme_mode":     "Light",
+            "base_font_size":         "Default",
+            "default_density":        "Comfortable",
         }
         for field, val in defaults.items():
             existing = frappe.db.get_single_value("Theme Settings", field)

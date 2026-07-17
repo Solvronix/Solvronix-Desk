@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html data-theme-mode="{{ desk_theme.lower() }}" data-theme="{{ desk_theme.lower() }}"
+      data-density="{{ boot.st_density_default or 'comfortable' }}"
       style="background-color:{% if desk_theme.lower() == 'dark' %}#0F1117{% else %}color-mix(in srgb, {{ boot.st_brand or '#1B1D26' }} 4%, white){% endif %};"
       dir={{ layout_direction }} lang="{{ lang }}">
 	<head>
@@ -37,6 +38,8 @@
   --st-brand:   {{ boot.st_brand  or '#1B1D26' }};
   --st-primary: {{ boot.st_brand  or '#1B1D26' }};
   --st-accent:  {{ boot.st_accent or '#6B3E66' }};
+  --st-font-size: {{ boot.st_font_size_default or '100%' }};
+  font-size: {{ boot.st_font_size_default or '100%' }};
 }
 {% if desk_theme.lower() == 'dark' %}
 /* Flash-prevention: sidebar/navbar = brand; content area = fixed neutral dark. */

@@ -337,6 +337,7 @@ html[data-theme="dark"] .sidebar .user-menu {
 html[data-theme="dark"] .widget.links-widget-box,
 html[data-theme="dark"] .widget.shortcut-widget-box,
 html[data-theme="dark"] .widget.onboarding-widget-box,
+html[data-theme="dark"] .widget.number-widget-box,
 html[data-theme="dark"] .widget.number-card-widget-box {
   background-color: var(--st-card-bg) !important;
   border-color: rgba(255,255,255,0.08) !important;
@@ -690,6 +691,47 @@ html[data-theme="dark"] .chart-label {
 html[data-theme="dark"] .frappe-chart .chart-draw line,
 html[data-theme="dark"] .frappe-chart line {
   stroke: rgba(255,255,255,0.07) !important;
+}
+
+/* ── Chart tooltips ──────────────────────────────────────────────
+   Frappe's compiled desk CSS re-declares the tooltip vars at
+   [data-theme=dark] .chart-container (specificity 0,2,0), which beats
+   our :root-level overrides — and its --charts-tooltip-bg resolves to
+   var(--gray-900), which our inverted dark gray scale turns near-WHITE
+   while the value/title text stays white → white box, invisible text.
+   Re-declare the vars at the same .chart-container scope so ours win. */
+html[data-theme="dark"] .chart-container {
+  --charts-tooltip-bg:        var(--st-input-bg);
+  --charts-tooltip-title:     var(--st-text-muted);
+  --charts-tooltip-label:     var(--st-text-muted);
+  --charts-tooltip-value:     var(--st-text);
+  --charts-legend-label:      var(--st-text-muted);
+  --charts-legend-value:      var(--st-text);
+  --charts-axis-line-color:   rgba(255,255,255,0.07);
+  --charts-stroke-width:      2px;
+}
+
+/* Belt and braces: style the tooltip element directly, so it stays
+   correct even if Frappe changes how the vars are scoped. */
+html[data-theme="dark"] .graph-svg-tip {
+  background: var(--st-input-bg) !important;
+  color: var(--st-text) !important;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 16px 48px rgba(0,0,0,0.65);
+}
+html[data-theme="dark"] .graph-svg-tip .title {
+  color: var(--st-text-muted) !important;
+}
+html[data-theme="dark"] .graph-svg-tip .title strong,
+html[data-theme="dark"] .graph-svg-tip li .tooltip-value {
+  color: var(--st-text) !important;
+}
+html[data-theme="dark"] .graph-svg-tip li .tooltip-label {
+  color: var(--st-text-muted) !important;
+}
+html[data-theme="dark"] .graph-svg-tip .svg-pointer {
+  background: var(--st-input-bg) !important;
 }
 
 /* Dashboard number cards */

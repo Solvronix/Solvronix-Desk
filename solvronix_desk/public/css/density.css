@@ -1,0 +1,102 @@
+/* ================================================================
+   Solvronix Desk — Density (v1.2.0)
+   Display density control. Default = comfortable (Frappe's
+   native spacing, untouched). html[data-density="compact"] tightens
+   vertical rhythm so more rows fit on screen. Spacing only — colors
+   always come from theme variables elsewhere.
+   ================================================================ */
+
+/* ── Compact: list views ───────────────────────────────────────── */
+html[data-density="compact"] .list-row,
+html[data-density="compact"] .list-row-head {
+  height: 30px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+html[data-density="compact"] .list-row-container {
+  min-height: 0;
+}
+
+html[data-density="compact"] .result .list-row-col {
+  font-size: 0.95em;
+}
+
+/* Report / data-table rows */
+html[data-density="compact"] .dt-cell__content {
+  padding: 2px 8px;
+}
+
+/* ── Compact: forms ────────────────────────────────────────────── */
+html[data-density="compact"] .frappe-control {
+  margin-bottom: 6px;
+}
+
+html[data-density="compact"] .form-control,
+html[data-density="compact"] .input-with-feedback {
+  padding-top: 3px;
+  padding-bottom: 3px;
+  min-height: 26px;
+}
+
+html[data-density="compact"] .form-section .section-body,
+html[data-density="compact"] .form-section.card-section {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+html[data-density="compact"] .control-label {
+  margin-bottom: 2px;
+}
+
+/* Child table grid rows */
+html[data-density="compact"] .grid-row .data-row,
+html[data-density="compact"] .grid-heading-row .data-row {
+  min-height: 26px;
+}
+
+html[data-density="compact"] .grid-body .grid-static-col {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+/* ── Compact: page chrome ──────────────────────────────────────── */
+html[data-density="compact"] .page-head {
+  min-height: 48px;
+}
+
+html[data-density="compact"] .page-head .page-head-content {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+html[data-density="compact"] .layout-main-section {
+  padding-top: 8px;
+}
+
+/* ── Compact: sidebar ──────────────────────────────────────────── */
+html[data-density="compact"] .body-sidebar .standard-sidebar-item {
+  padding-top: 3px;
+  padding-bottom: 3px;
+  min-height: 28px;
+}
+
+/* ── Compact: theme toolbar ────────────────────────────────────── */
+html[data-density="compact"] #st-top-toolbar {
+  min-height: 32px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+/* ── Compact: buttons & menus ──────────────────────────────────── */
+html[data-density="compact"] .btn-sm,
+html[data-density="compact"] .btn-xs,
+html[data-density="compact"] .page-actions .btn {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+html[data-density="compact"] .dropdown-menu .dropdown-item {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}

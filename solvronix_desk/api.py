@@ -1,21 +1,32 @@
 import frappe
 
+# Site-default font size name → root font-size. Rem-based sizing scales with it.
+FONT_SIZE_CSS = {
+    "Small":   "87.5%",
+    "Default": "100%",
+    "Large":   "112.5%",
+}
+
 
 @frappe.whitelist(allow_guest=True)
 def get_theme_css():
     """Return :root CSS variable overrides from Theme Settings.
-    Only the two base brand colors are emitted — all derived shades
-    (navbar darker, login darker, page tint, etc.) are auto-computed
-    by color-mix() rules in the static CSS files.
+    Only the base brand colors + site-default font size are emitted — all
+    derived shades (navbar darker, login darker, page tint, etc.) are
+    auto-computed by color-mix() rules in the static CSS files.
+    Per-user font/density overrides are applied client-side on top of this.
     """
     try:
         s = frappe.get_single("Theme Settings")
         brand  = s.brand_color  or "#1B3F7E"
         accent = s.accent_color or "#F57C00"
+        font   = FONT_SIZE_CSS.get(getattr(s, "base_font_size", None) or "Default", "100%")
         css = f""":root {{
   --st-brand:   {brand};
   --st-accent:  {accent};
   --st-primary: var(--st-brand);
+  --st-font-size: {font};
+  font-size: {font};
 }}"""
         return css
     except Exception:

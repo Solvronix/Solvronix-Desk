@@ -1,6 +1,6 @@
 /* ================================================================
    Solvronix Desk — Module Card Grid
-   Replaces the /app/home workspace with an Odoo-style app grid.
+   Replaces the /app/home workspace with an clean app launcher grid.
    Workspace data fetched once and cached in memory per session.
    ================================================================ */
 

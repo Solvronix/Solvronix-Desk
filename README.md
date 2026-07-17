@@ -33,13 +33,25 @@ Four one-click color presets appear above the color pickers in Theme Settings. P
 You set one brand color. The system automatically generates your complete color palette — backgrounds, hover states, borders, shadows — using CSS `color-mix()`. Change your brand color and everything updates instantly. No developer needed.
 
 ### Slim Icon Sidebar
-A 64px icon rail (like Slack) instead of the default wide sidebar. Expands to 240px on click. Saves screen space, reduces visual clutter. State is saved per user.
+A 64px icon rail instead of the default wide sidebar. Expands to 240px on click. Saves screen space, reduces visual clutter. State is saved per user.
 
-### Dark Mode
-One click toggles between light and dark. Both modes respect your brand colors. Works on every page.
+### Dark Mode — Light / Dark / Auto
+One click cycles between light, dark, and auto. Auto follows your operating system theme and switches live when the OS does. Both modes respect your brand colors. Works on every page.
+
+### Display Density — Comfortable / Compact
+A display density toggle. Compact mode tightens list rows, forms, and menus so power users see more data per screen. Per-user, with a site-wide default in Theme Settings.
+
+### Font Size Control
+Set a site-wide base font size (Small / Default / Large) in Theme Settings, and let each user fine-tune with A− / A / A+ from the All Options panel.
 
 ### Modern Login Page
-A full-screen branded login experience with your company logo and colors. First impression that sets the right tone for your team.
+A full-screen branded login experience with your company logo and colors, a slow-drifting ambient color backdrop generated from your brand palette, and a soft card entrance animation. First impression that sets the right tone for your team.
+
+### Premium Motion & Depth
+A polish layer across the whole desk: smooth, consistent transitions on every interactive element, layered card shadows with a subtle hover lift, gradient primary buttons with press feedback, and brand-colored keyboard focus rings. All animations respect your operating system's reduced-motion setting.
+
+### Frosted-Glass Overlays
+Dropdowns, modals, the command palette, and the notification and options panels render as translucent frosted surfaces with smooth pop-in entrances — while content cards stay solid and readable.
 
 ---
 
@@ -55,7 +67,7 @@ A persistent top bar adds a live clock, a **Today's View** shortcut, the global 
 A searchable dropdown lists all enabled system languages. Selecting one applies it instantly — no page reload required. Respects Frappe's translation layer.
 
 ### All Options Panel
-A slide-in panel (triggered from the toolbar) shows every workspace grouped by category. Lets users explore the full system without navigating away from their current page.
+A slide-in panel (triggered from the toolbar) shows every workspace grouped by category, plus an **Appearance** section with theme mode, density, and font-size controls. Lets users explore and personalize without navigating away from their current page.
 
 ### User Avatar Dropdown
 Clicking the user avatar opens a dropdown with an installed apps grid, edit profile, reset workspace layout, and logout — all in one place.
@@ -63,8 +75,17 @@ Clicking the user avatar opens a dropdown with an installed apps grid, edit prof
 ### Module Switcher — `Ctrl+M`
 Press `Ctrl+M` from anywhere to open a searchable workspace switcher. Type a module name and press Enter to jump to it instantly.
 
+### Named Theme Presets
+Save your current brand colors as a named preset from Theme Settings. Custom presets appear as swatches next to the built-in ones (Solvronix, Forest, Midnight, Plum) — switch your whole site's look in two clicks.
+
 ### Real-Time Theme Sync
-When a System Manager saves Theme Settings, the color and branding changes propagate instantly to all connected users via Frappe's realtime layer — no reload required.
+When a System Manager saves Theme Settings, the color, branding, and font-size changes propagate instantly to all connected users via Frappe's realtime layer — no reload required.
+
+### Refined Data & Charts
+Tabular numerals keep columns of figures perfectly aligned in list views, report grids, and dashboard number cards. Charts get softer gridlines, hover focus on bars, and elevated tooltips that stay fully readable in dark mode.
+
+### Details Everywhere
+Keycap-styled keyboard hints, thin floating scrollbars, brand-tinted text selection, shimmer on loading placeholders, and a brand accent on the selected command-palette row.
 
 ### Setup Guide Banner
 On first launch, a checklist banner guides System Manager users through the initial configuration steps: set company name, upload logo, choose brand colors. Dismisses permanently once complete.
