@@ -51,6 +51,31 @@ def get_branding():
 
 
 @frappe.whitelist()
+def get_workspaces():
+    """Version-proof workspace list for the module switcher, All Options
+    panel, and app launcher grid.
+
+    Frappe renamed desk.desktop.get_workspace_sidebar_items to
+    get_workspaces between v16.20 and v16.22 (same body, pure rename).
+    Try the new name first, fall back to the old one, and fail soft with
+    empty data if neither exists so the desk never crashes.
+    """
+    try:
+        from frappe.desk import desktop
+
+        fn = getattr(desktop, "get_workspaces", None) or getattr(
+            desktop, "get_workspace_sidebar_items", None
+        )
+        if fn is None:
+            frappe.log_error("solvronix_desk: no workspace list method found in frappe.desk.desktop")
+            return {"pages": [], "private_pages": []}
+        return fn()
+    except Exception:
+        frappe.log_error("solvronix_desk.api.get_workspaces failed")
+        return {"pages": [], "private_pages": []}
+
+
+@frappe.whitelist()
 def get_available_languages():
     """Return enabled languages for the language switcher in the top toolbar."""
     try:

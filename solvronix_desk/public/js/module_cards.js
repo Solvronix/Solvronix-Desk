@@ -92,7 +92,7 @@
   function fetchWorkspaces(cb) {
     if (_wsCache) { cb(_wsCache); return; }
     frappe.call({
-      method: "frappe.desk.desktop.get_workspace_sidebar_items",
+      method: "solvronix_desk.api.get_workspaces",
       callback: function (r) {
         if (!r || !r.message) { cb([]); return; }
         var pages = (r.message.pages || []).concat(r.message.private_pages || []);

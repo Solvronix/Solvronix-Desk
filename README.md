@@ -180,9 +180,11 @@ This means any company — whether their brand is navy, green, red, or black —
 
 | Frappe Version | Status |
 |---|---|
-| v16 | ✅ Fully supported |
+| v16 (all releases, v16.0 – v16.27+) | ✅ Fully supported |
 | v15 | ⚠️ Not tested |
 | v14 | ❌ Not supported |
+
+Solvronix Desk tracks Frappe v16 API changes across minor releases — internal shims resolve renamed core methods automatically, so the app works on older production benches and the latest releases alike.
 
 Works with ERPNext and any other Frappe-based application.
 
