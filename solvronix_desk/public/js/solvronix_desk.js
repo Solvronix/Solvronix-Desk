@@ -155,7 +155,7 @@
     if (!$sidebar.length || $sidebar.find("#st-module-switch-btn").length) return;
 
     frappe.call({
-      method: "frappe.desk.desktop.get_workspace_sidebar_items",
+      method: "frappe.desk.desktop.get_workspaces",
       callback: function (r) {
         if (!r.message) return;
         var pages = (r.message.pages || []).concat(r.message.private_pages || []);
@@ -839,7 +839,7 @@
 
     /* Load workspace data */
     frappe.call({
-      method: "frappe.desk.desktop.get_workspace_sidebar_items",
+      method: "frappe.desk.desktop.get_workspaces",
       callback: function (r) {
         if (!r.message) return;
         var pages = (r.message.pages || []).concat(r.message.private_pages || []);
