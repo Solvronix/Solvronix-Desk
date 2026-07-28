@@ -2162,10 +2162,7 @@ html[data-theme="dark"] .st-ud-app-ver {
 [data-page-route="Workspaces"] #editorjs .ce-popover {
   z-index: 1201 !important;
 }
-[data-page-route="Workspaces"] #editorjs .codex-editor:has(.ce-popover--opened),
-[data-page-route="Workspaces"] #editorjs .codex-editor:has(.ce-popover),
-[data-page-route="Workspaces"] #editorjs .ce-block:has(.ce-popover--opened),
-[data-page-route="Workspaces"] #editorjs .ce-block:has(.ce-popover) {
+[data-page-route="Workspaces"] #editorjs .st-editorjs-popover-host {
   position: relative;
   z-index: 1195 !important;
 }

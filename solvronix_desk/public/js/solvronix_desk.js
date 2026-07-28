@@ -1054,6 +1054,126 @@
     });
   }
 
+  function installWorkspaceBlockPickerLayerFix() {
+    if (ST._workspaceBlockPickerLayerFix) return;
+    ST._workspaceBlockPickerLayerFix = true;
+
+    var activeBlock = null;
+    var refreshQueued = false;
+    var clearTimer = null;
+
+    function isWorkspaceEditor() {
+      return document.body.getAttribute("data-page-route") === "Workspaces" &&
+             !!document.querySelector("#editorjs");
+    }
+
+    function clearActiveBlock() {
+      if (activeBlock) {
+        activeBlock.classList.remove("st-editorjs-popover-host");
+        activeBlock = null;
+      }
+    }
+
+    function promoteBlock(block) {
+      if (!block) return;
+      if (activeBlock && activeBlock !== block) {
+        activeBlock.classList.remove("st-editorjs-popover-host");
+      }
+      activeBlock = block;
+      activeBlock.classList.add("st-editorjs-popover-host");
+    }
+
+    function closestBlockFromY(y) {
+      var blocks = Array.prototype.slice.call(document.querySelectorAll("#editorjs .ce-block"));
+      var nearest = null;
+      var nearestDistance = Infinity;
+
+      blocks.forEach(function (block) {
+        var rect = block.getBoundingClientRect();
+        if (rect.top <= y && y <= rect.bottom) {
+          nearest = block;
+          nearestDistance = 0;
+          return;
+        }
+        var distance = Math.min(Math.abs(rect.top - y), Math.abs(rect.bottom - y));
+        if (distance < nearestDistance) {
+          nearest = block;
+          nearestDistance = distance;
+        }
+      });
+
+      return nearest;
+    }
+
+    function eventBlock(e) {
+      var target = e.target && e.target.closest ? e.target : null;
+      var block = target && target.closest("#editorjs .ce-block");
+      return block || closestBlockFromY(e.clientY || 0);
+    }
+
+    function hasVisiblePopover() {
+      var popovers = Array.prototype.slice.call(document.querySelectorAll("#editorjs .ce-popover, #editorjs .ce-popover--opened"));
+      return popovers.some(function (popover) {
+        var style = window.getComputedStyle(popover);
+        var rect = popover.getBoundingClientRect();
+        return style.display !== "none" &&
+               style.visibility !== "hidden" &&
+               rect.width > 0 &&
+               rect.height > 0;
+      });
+    }
+
+    function scheduleClearIfClosed() {
+      if (clearTimer) clearTimeout(clearTimer);
+      clearTimer = setTimeout(function () {
+        if (!hasVisiblePopover()) clearActiveBlock();
+      }, 160);
+    }
+
+    function refresh() {
+      refreshQueued = false;
+      if (!isWorkspaceEditor()) {
+        clearActiveBlock();
+        return;
+      }
+      if (!hasVisiblePopover()) scheduleClearIfClosed();
+    }
+
+    function queueRefresh() {
+      if (refreshQueued) return;
+      refreshQueued = true;
+      requestAnimationFrame(refresh);
+    }
+
+    document.addEventListener("pointerdown", function (e) {
+      if (!isWorkspaceEditor()) return;
+      var target = e.target && e.target.closest ? e.target : null;
+      if (!target || !target.closest(".ce-toolbar__plus, .ce-toolbar__settings-btn")) return;
+      if (clearTimer) clearTimeout(clearTimer);
+      promoteBlock(eventBlock(e));
+      queueRefresh();
+    }, true);
+
+    document.addEventListener("focusin", function (e) {
+      if (!isWorkspaceEditor()) return;
+      var target = e.target && e.target.closest ? e.target : null;
+      var block = target && target.closest("#editorjs .ce-block");
+      if (block && hasVisiblePopover()) promoteBlock(block);
+    }, true);
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") scheduleClearIfClosed();
+    }, true);
+
+    var observer = new MutationObserver(queueRefresh);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class", "style"]
+    });
+  }
+
   /* Capture-phase interceptor — fires before Frappe's bubbling click on Search item */
   document.addEventListener("click", function (e) {
     var anchor = e.target.closest(".body-sidebar .item-anchor, .body-sidebar .sidebar-item");
@@ -1091,6 +1211,7 @@
     injectBranding();
     setupTitleUpdate();
     injectTopToolbar();
+    installWorkspaceBlockPickerLayerFix();
 
     sidebarReady(function () {
       injectSidebarCollapseToggle();
