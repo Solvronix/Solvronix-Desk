@@ -367,7 +367,7 @@
     if (localStorage.getItem(storageKey) === "done") return;
 
     var step1done = !!branding.company_name;
-    var step2done = !!brand && brand !== "#1b3f7e";
+    var step2done = !!brand;
     var step3done = !!branding.logo;
 
     /* Auto-dismiss once everything is configured */
