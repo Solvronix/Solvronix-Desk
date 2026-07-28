@@ -207,7 +207,19 @@ textarea.form-control:focus,
   }
 }
 
-.dropdown-menu.show,
+@keyframes st-dropdown-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.dropdown-menu.show {
+  animation: st-dropdown-fade-in var(--st-dur-fast) var(--st-ease-out);
+}
+
 #st-user-dropdown.open,
 .modal.show .modal-dialog {
   animation: st-pop-in var(--st-dur-base) var(--st-ease-out);
