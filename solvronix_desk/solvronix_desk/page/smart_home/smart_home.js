@@ -253,7 +253,7 @@ solvronix_desk.SmartHome = class SmartHome {
 			{ dt: "Sales Invoice",     filters: { status: "Overdue", docstatus: 1 },             label: __("{0} overdue sales invoices"),               route: "/desk/sales-invoice?status=Overdue" },
 			{ dt: "Purchase Order",    filters: { status: "To Receive and Bill", docstatus: 1 },  label: __("{0} pending purchase orders"),              route: "/desk/purchase-order" },
 			{ dt: "Leave Application", filters: { status: "Open", docstatus: 0 },                 label: __("{0} leave applications awaiting approval"),  route: "/desk/leave-application?status=Open" },
-			{ dt: "Expense Claim",     filters: { approval_status: "Draft", docstatus: 0 },       label: __("{0} expense claims pending"),               route: "/desk/expense-claim" },
+			{ dt: "Expense Claim",     filters: { status: "Draft", docstatus: 0 },       label: __("{0} expense claims pending"),               route: "/desk/expense-claim" },
 		].filter(function (c) { return can_read.indexOf(c.dt) !== -1; });
 
 		if (!checks.length) {
