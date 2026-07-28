@@ -44,8 +44,9 @@ solvronix_desk.SmartHome = class SmartHome {
 			hour < 17 ? __("Good afternoon") :
 			            __("Good evening");
 
-		var user_info = (frappe.boot.user_info || {})[frappe.session.user] || {};
-		var fname = (user_info.full_name || frappe.session.user || "").split(" ")[0];
+		var user_email = (frappe.session && frappe.session.user) || "";
+		var user_info = (frappe.boot.user_info || {})[user_email] || {};
+		var full_name = user_info.full_name || (frappe.session && frappe.session.user_fullname) || user_email || "";
 
 		var today = new Date();
 		var date_label = today.toLocaleDateString(undefined, {
@@ -57,7 +58,7 @@ solvronix_desk.SmartHome = class SmartHome {
 
 			  '<div class="st-sh-header">' +
 			    '<div>' +
-			      '<h2 class="st-sh-greeting">' + greeting + ', <span class="st-sh-name">' + this._esc(fname) + '</span></h2>' +
+			      '<h2 class="st-sh-greeting">' + greeting + ', <span class="st-sh-name">' + this._esc(full_name) + '</span></h2>' +
 			      '<div class="st-sh-date">' + date_label + '</div>' +
 			    '</div>' +
 			    '<a href="/desk/home" class="st-sh-all-ws">' + __("All Workspaces") + ' &rarr;</a>' +
