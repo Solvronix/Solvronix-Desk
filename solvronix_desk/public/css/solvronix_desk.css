@@ -2162,6 +2162,13 @@ html[data-theme="dark"] .st-ud-app-ver {
 [data-page-route="Workspaces"] #editorjs .ce-popover {
   z-index: 1201 !important;
 }
+[data-page-route="Workspaces"] #editorjs .codex-editor:has(.ce-popover--opened),
+[data-page-route="Workspaces"] #editorjs .codex-editor:has(.ce-popover),
+[data-page-route="Workspaces"] #editorjs .ce-block:has(.ce-popover--opened),
+[data-page-route="Workspaces"] #editorjs .ce-block:has(.ce-popover) {
+  position: relative;
+  z-index: 1195 !important;
+}
 [data-page-route="Workspaces"] #editorjs .ce-block--focused,
 [data-page-route="Workspaces"] #editorjs .ce-block--selected {
   position: relative;

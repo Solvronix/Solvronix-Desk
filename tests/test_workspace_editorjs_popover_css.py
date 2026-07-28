@@ -21,6 +21,18 @@ class WorkspaceEditorJSPopoverCSSTest(unittest.TestCase):
         self.assertIn('[data-page-route="Workspaces"] #editorjs .desk-card:hover', css)
         self.assertIn("transform: none !important", css)
 
+    def test_block_with_open_editorjs_popover_is_promoted_before_focus(self):
+        css = CSS.read_text(encoding="utf-8")
+
+        self.assertIn(".ce-block:has(.ce-popover)", css)
+        self.assertIn(".codex-editor:has(.ce-popover--opened)", css)
+        self.assertIn("z-index: 1195 !important", css)
+
+    def test_workspace_css_cache_is_bumped(self):
+        hooks = (ROOT / "solvronix_desk" / "hooks.py").read_text(encoding="utf-8")
+
+        self.assertIn("/assets/solvronix_desk/css/solvronix_desk.css?v=45", hooks)
+
 
 if __name__ == "__main__":
     unittest.main()
