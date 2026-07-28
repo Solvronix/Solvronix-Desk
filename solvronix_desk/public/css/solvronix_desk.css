@@ -2151,6 +2151,34 @@ html[data-theme="dark"] .st-ud-app-ver {
   min-width: 0 !important;
 }
 
+/* EditorJS block picker/toolbars must float above workspace blocks while editing. */
+[data-page-route="Workspaces"] #editorjs .ce-toolbar,
+[data-page-route="Workspaces"] #editorjs .ce-inline-toolbar,
+[data-page-route="Workspaces"] #editorjs .ce-conversion-toolbar,
+[data-page-route="Workspaces"] #editorjs .ce-settings,
+[data-page-route="Workspaces"] #editorjs .ce-settings__default-zone {
+  z-index: 1200 !important;
+}
+[data-page-route="Workspaces"] #editorjs .ce-popover {
+  z-index: 1201 !important;
+}
+[data-page-route="Workspaces"] #editorjs .st-editorjs-popover-host {
+  position: relative;
+  z-index: 1195 !important;
+}
+[data-page-route="Workspaces"] #editorjs .ce-block--focused,
+[data-page-route="Workspaces"] #editorjs .ce-block--selected {
+  position: relative;
+  z-index: 1190 !important;
+}
+
+/* Hover lifts create stacking contexts that can flicker against the open block menu. */
+[data-page-route="Workspaces"] #editorjs .widget:hover,
+[data-page-route="Workspaces"] #editorjs .desk-card:hover,
+[data-page-route="Workspaces"] #editorjs .frappe-card:hover {
+  transform: none !important;
+}
+
 /* ── RTL (right-to-left languages: fa, ar, he, ur …) ──────────────────────── */
 /* Only fix dropdown internal direction — toolbar/sidebar layout is left to Frappe */
 html[dir="rtl"] #st-user-dropdown {
