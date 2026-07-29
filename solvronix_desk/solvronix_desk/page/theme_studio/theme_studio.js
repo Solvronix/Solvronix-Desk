@@ -280,6 +280,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.$preview = this.$root.find("#st-theme-studio-preview");
 		this.$canvas = this.$root.find("#sts-canvas");
 		this.bind();
+		this._sync_profile_actions();
 		this.render_blocks();
 		this.apply();
 		this.$root.toggleClass("is-dirty", this.dirty);
@@ -293,7 +294,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				return '<option value="' + self._esc(profile.id) + '"' +
 					(profile.id === self.active_profile ? " selected" : "") + ">" +
 					self._esc(profile.name) + (profile.builtin ? " · " + __("Built-in") : "") + "</option>";
-			}).join("") + '</select><button type="button" data-profile-action="apply" title="' + __("Load profile") + '">↳</button></div>' +
+			}).join("") + '</select><button type="button" data-profile-action="apply" title="' + __("Load selected profile") + '">' + __("Load") + "</button></div>" +
 			'<div class="sts-profile-actions">' +
 				'<button type="button" data-profile-action="create">' + __("Save as new") + "</button>" +
 				'<button type="button" data-profile-action="update">' + __("Update") + "</button>" +
@@ -619,6 +620,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.$root.on("click", '[data-action="apply-raw-json"]', function () { self._apply_raw_json(); });
 		this.$root.on("click", "[data-reset-section]", function () { self._reset_section($(this).data("reset-section")); });
 		this.$root.on("click", "[data-profile-action]", function () { self._profile_action($(this).data("profile-action")); });
+		this.$root.on("change", "#sts-profile-select", function () { self._sync_profile_actions(); });
 		this.$root.on("click", '[data-action="save-draft"]', function () { self.save_draft(); });
 		this.$root.on("click", '[data-action="compare"]', function () { self.toggle_compare(); });
 		this.$root.on("click", '[data-action="import"]', function () { self.$root.find("#sts-import-file").trigger("click"); });
@@ -720,10 +722,36 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		return ((this.state && this.state.profiles) || []).find(function (item) { return item.id === id; });
 	}
 
+	_sync_profile_actions() {
+		var profile = this._selected_profile();
+		var editable = !!profile && !profile.builtin;
+		var $apply = this.$root.find('[data-profile-action="apply"]');
+		var $update = this.$root.find('[data-profile-action="update"]');
+		var $rename = this.$root.find('[data-profile-action="rename"]');
+		var $delete = this.$root.find('[data-profile-action="delete"]');
+		$apply.prop("disabled", !profile).attr(
+			"title",
+			profile ? __("Load selected profile") : __("Choose a profile to load")
+		);
+		[$update, $rename, $delete].forEach(function ($button) {
+			$button.prop("disabled", !editable);
+		});
+		$update.attr("title", editable ? __("Update selected custom profile") : __("Select a custom profile to update"));
+		$rename.attr("title", editable ? __("Rename selected custom profile") : __("Only custom profiles can be renamed"));
+		$delete.attr("title", editable ? __("Delete selected custom profile") : __("Only custom profiles can be deleted"));
+		this.$root.find('[data-profile-action="duplicate"]').attr(
+			"title",
+			profile ? __("Duplicate selected profile") : __("Save a copy of the current theme")
+		);
+	}
+
 	_profile_action(action) {
 		var self = this, profile = this._selected_profile();
 		if (action === "apply") {
-			if (!profile) return;
+			if (!profile) {
+				frappe.show_alert({ message: __("Choose a theme profile first"), indicator: "orange" });
+				return;
+			}
 			this._checkpoint();
 			this.config = this._clone(profile.config);
 			this.active_profile = profile.id;
@@ -745,13 +773,23 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			);
 			return;
 		}
-		if (!profile) return;
 		if (action === "duplicate") {
+			var duplicateName = profile ? profile.name + " Copy" : __("Current Theme Copy");
 			frappe.prompt(
-				{ fieldname: "name", fieldtype: "Data", label: __("Copy name"), default: profile.name + " Copy", reqd: 1 },
-				function (values) { self._call_profile("duplicate", { profile_id: profile.id, name: values.name }); },
+				{ fieldname: "name", fieldtype: "Data", label: __("Copy name"), default: duplicateName, reqd: 1 },
+				function (values) {
+					if (profile) {
+						self._call_profile("duplicate", { profile_id: profile.id, name: values.name });
+					} else {
+						self._call_profile("create", { name: values.name, config: self.config });
+					}
+				},
 				__("Duplicate theme")
 			);
+			return;
+		}
+		if (!profile) {
+			frappe.show_alert({ message: __("Select a custom profile for this action"), indicator: "orange" }, 4);
 			return;
 		}
 		if (profile.builtin) {

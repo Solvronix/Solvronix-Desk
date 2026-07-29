@@ -57,20 +57,22 @@
 .sts-segments button.active { background: #fff; color: #202631; box-shadow: 0 1px 4px rgba(36,31,25,.12); }
 
 .sts-profile-bar { margin: 0 0 15px; padding: 12px; border: 1px solid #dfdbd2; border-radius: 10px; background: #f4f1ea; }
-.sts-profile-select-row { display: grid; grid-template-columns: 1fr 32px; gap: 5px; margin-top: 7px; }
+.sts-profile-select-row { display: grid; grid-template-columns: 1fr 46px; gap: 5px; margin-top: 7px; }
 .sts-profile-select-row select,
 .sts-field select,
 .sts-field input[type="text"] {
 	width: 100%; min-width: 0; height: 32px; padding: 0 9px; border: 1px solid #dcd8cf;
 	border-radius: 7px; background: #fff; color: #303744; font-size: 10px; box-shadow: none;
 }
-.sts-profile-select-row button { border: 0; border-radius: 7px; background: #202b3a; color: #fff; font-size: 15px; }
+.sts-profile-select-row button { border: 0; border-radius: 7px; background: #202b3a; color: #fff; font-size: 9px; font-weight: 750; }
 .sts-profile-actions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
 .sts-profile-actions button {
 	height: 24px; padding: 0 7px; border: 1px solid #d9d4ca; border-radius: 5px;
 	background: #fff; color: #626873; font-size: 8px; font-weight: 650;
 }
-.sts-profile-actions button:hover { border-color: #b6512d; color: #9e4425; }
+.sts-profile-actions button:not(:disabled):hover { border-color: #b6512d; color: #9e4425; }
+.sts-profile-select-row button:disabled,
+.sts-profile-actions button:disabled { cursor: not-allowed; opacity: .42; filter: grayscale(.35); }
 .sts-control-search { position: relative; margin: 0 0 12px; }
 .sts-control-search span { position: absolute; top: 7px; left: 10px; color: #8c9198; font-size: 14px; }
 .sts-control-search input {

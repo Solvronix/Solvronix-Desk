@@ -24,7 +24,7 @@ app_include_css = [
     "/assets/solvronix_desk/css/dark_mode.css?v=13",
     "/assets/solvronix_desk/css/module_cards.css?v=2",
     "/assets/solvronix_desk/css/density.css?v=2",
-    "/assets/solvronix_desk/css/theme_studio.css?v=3",
+    "/assets/solvronix_desk/css/theme_studio.css?v=4",
 ]
 app_include_js = [
     "/assets/solvronix_desk/js/dark_mode.js?v=8",

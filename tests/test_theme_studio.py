@@ -84,7 +84,7 @@ class ThemeStudioTest(unittest.TestCase):
 
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=3", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=4", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=6", hooks)
         self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=2", hooks)
         self.assertIn('"on_update": "solvronix_desk.events.theme_settings_on_update"', hooks)
@@ -112,6 +112,9 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("scoped_rules", engine)
         self.assertIn("def resolve_profile_id(", engine)
         self.assertIn('"preferred_mode", "Theme mode"', js)
+        self.assertIn("_sync_profile_actions()", js)
+        self.assertIn('__("Current Theme Copy")', js)
+        self.assertIn('data-profile-action="apply"', js)
 
 
 if __name__ == "__main__":
