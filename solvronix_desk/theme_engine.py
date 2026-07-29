@@ -684,6 +684,65 @@ def render_css(config, enabled=True):
     if not enabled:
         return "/* Solvronix custom theme disabled */"
     config = sanitize_config(config, validate_contrast=False)
+    is_dark_profile = config["preferred_mode"] == "Dark"
+    dark_surface = (
+        config
+        if is_dark_profile
+        else {
+            **config,
+            "navbar_background": f'color-mix(in srgb, {config["brand_color"]} 38%, #090D16)',
+            "sidebar_background": f'color-mix(in srgb, {config["brand_color"]} 32%, #121826)',
+            "page_background": "#0F1117",
+            "card_background": "#1A1D27",
+            "text_color": "#E8EDF5",
+            "muted_text_color": "#9AA7BA",
+            "link_color": "#6DB4F2",
+            "border_color": "#303746",
+            "secondary_button_color": "#242A37",
+            "secondary_button_text": "#E8EDF5",
+            "input_background": "#222734",
+            "input_border_color": "#3B4354",
+            "dropdown_background": "#202531",
+            "readonly_background": "#252A36",
+            "alternate_row_color": "#181C25",
+            "table_header_color": "#222734",
+            "selected_row_color": "#3B2D21",
+            "row_hover_color": "#242A37",
+            "report_grid_color": "#303746",
+            "workspace_card_color": "#1A1D27",
+            "number_card_color": "#1A1D27",
+            "chart_background": "#1A1D27",
+        }
+    )
+    light_surface = (
+        {
+            **config,
+            "navbar_background": DEFAULT_CONFIG["navbar_background"],
+            "sidebar_background": "#FFFFFF",
+            "page_background": "#F5F6F8",
+            "card_background": "#FFFFFF",
+            "text_color": "#19202D",
+            "muted_text_color": "#697386",
+            "link_color": "#1B5EA7",
+            "border_color": "#E1E5EA",
+            "secondary_button_color": "#FFFFFF",
+            "secondary_button_text": "#273142",
+            "input_background": "#FFFFFF",
+            "input_border_color": "#C9CDD4",
+            "dropdown_background": "#FFFFFF",
+            "readonly_background": "#F3F5F7",
+            "alternate_row_color": "#FAFBFC",
+            "table_header_color": "#F1F3F6",
+            "selected_row_color": "#FFF1E4",
+            "row_hover_color": "#F7F8FA",
+            "report_grid_color": "#E4E7EB",
+            "workspace_card_color": "#FFFFFF",
+            "number_card_color": "#FFFFFF",
+            "chart_background": "#FFFFFF",
+        }
+        if is_dark_profile
+        else config
+    )
     sidebar_text = config["sidebar_text_color"] or contrast_text(config["sidebar_background"])
     sidebar_icon = config["sidebar_icon_color"] or sidebar_text
     sidebar_active_text = config["sidebar_active_text_color"] or contrast_text(config["sidebar_active_color"])
@@ -803,6 +862,48 @@ def render_css(config, enabled=True):
     )
     large_text = "html{font-size:max(var(--st-base-font),16px)!important}" if config["large_text"] else ""
     hide_powered = ".for-login .powered-by,.page-card .powered-by{display:none!important}" if config["hide_powered"] else ""
+    light_mode_override = ""
+    if is_dark_profile:
+        light_mode_override = f"""
+html:not([data-theme="dark"]) {{
+  --st-navbar-bg: {light_surface["navbar_background"]};
+  --st-toolbar-bg: {light_surface["navbar_background"]};
+  --st-toolbar-text: {contrast_text(light_surface["navbar_background"])};
+  --st-sidebar-bg: {light_surface["sidebar_background"]};
+  --st-sidebar-text: #19202D;
+  --st-sidebar-text-muted: #697386;
+  --st-page-bg: {light_surface["page_background"]};
+  --st-card-bg: {light_surface["card_background"]};
+  --st-text: {light_surface["text_color"]};
+  --st-text-primary: {light_surface["text_color"]};
+  --st-text-muted: {light_surface["muted_text_color"]};
+  --st-link: {light_surface["link_color"]};
+  --st-border: {light_surface["border_color"]};
+  --st-card-border: {light_surface["border_color"]};
+  --st-btn-secondary: {light_surface["secondary_button_color"]};
+  --st-btn-secondary-text: {light_surface["secondary_button_text"]};
+  --st-input-bg: {light_surface["input_background"]};
+  --st-input-border: {light_surface["input_border_color"]};
+  --st-dropdown-bg: {light_surface["dropdown_background"]};
+  --st-readonly-bg: {light_surface["readonly_background"]};
+  --st-row-alt: {light_surface["alternate_row_color"]};
+  --st-table-header: {light_surface["table_header_color"]};
+  --st-row-selected: {light_surface["selected_row_color"]};
+  --st-row-hover: {light_surface["row_hover_color"]};
+  --st-report-grid: {light_surface["report_grid_color"]};
+  --st-workspace-card: {light_surface["workspace_card_color"]};
+  --st-number-card: {light_surface["number_card_color"]};
+  --st-chart-bg: {light_surface["chart_background"]};
+  --bg-color: {light_surface["page_background"]};
+  --fg-color: {light_surface["card_background"]};
+  --card-bg: {light_surface["card_background"]};
+  --control-bg: {light_surface["input_background"]};
+  --input-bg: {light_surface["input_background"]};
+  --text-color: {light_surface["text_color"]};
+  --text-muted: {light_surface["muted_text_color"]};
+  --border-color: {light_surface["border_color"]};
+}}
+"""
 
     scoped = []
     for rule in config["scoped_rules"]:
@@ -815,25 +916,44 @@ def render_css(config, enabled=True):
 {declarations}
   font-size: var(--st-base-font);
 }}
+{light_mode_override}
 html[data-theme="dark"] {{
-  --st-sidebar-bg: {config["sidebar_background"]};
-  --st-navbar-bg: {config["navbar_background"]};
-  --st-toolbar-bg: {config["navbar_background"]};
-  --st-page-bg: {config["page_background"]};
-  --st-card-bg: {config["card_background"]};
-  --st-text: {config["text_color"]};
-  --st-text-primary: {config["text_color"]};
-  --st-text-muted: {config["muted_text_color"]};
-  --st-input-bg: {config["input_background"]};
-  --st-input-border: {config["input_border_color"]};
-  --bg-color: {config["page_background"]};
-  --fg-color: {config["card_background"]};
-  --card-bg: {config["card_background"]};
-  --control-bg: {config["input_background"]};
-  --input-bg: {config["input_background"]};
-  --text-color: {config["text_color"]};
-  --text-muted: {config["muted_text_color"]};
-  --border-color: {config["border_color"]};
+  --st-sidebar-bg: {dark_surface["sidebar_background"]};
+  --st-sidebar-text: #FFFFFF;
+  --st-sidebar-text-muted: rgba(255,255,255,.62);
+  --st-navbar-bg: {dark_surface["navbar_background"]};
+  --st-toolbar-bg: {dark_surface["navbar_background"]};
+  --st-toolbar-text: #FFFFFF;
+  --st-page-bg: {dark_surface["page_background"]};
+  --st-card-bg: {dark_surface["card_background"]};
+  --st-text: {dark_surface["text_color"]};
+  --st-text-primary: {dark_surface["text_color"]};
+  --st-text-muted: {dark_surface["muted_text_color"]};
+  --st-link: {dark_surface["link_color"]};
+  --st-border: {dark_surface["border_color"]};
+  --st-card-border: {dark_surface["border_color"]};
+  --st-btn-secondary: {dark_surface["secondary_button_color"]};
+  --st-btn-secondary-text: {dark_surface["secondary_button_text"]};
+  --st-input-bg: {dark_surface["input_background"]};
+  --st-input-border: {dark_surface["input_border_color"]};
+  --st-dropdown-bg: {dark_surface["dropdown_background"]};
+  --st-readonly-bg: {dark_surface["readonly_background"]};
+  --st-row-alt: {dark_surface["alternate_row_color"]};
+  --st-table-header: {dark_surface["table_header_color"]};
+  --st-row-selected: {dark_surface["selected_row_color"]};
+  --st-row-hover: {dark_surface["row_hover_color"]};
+  --st-report-grid: {dark_surface["report_grid_color"]};
+  --st-workspace-card: {dark_surface["workspace_card_color"]};
+  --st-number-card: {dark_surface["number_card_color"]};
+  --st-chart-bg: {dark_surface["chart_background"]};
+  --bg-color: {dark_surface["page_background"]};
+  --fg-color: {dark_surface["card_background"]};
+  --card-bg: {dark_surface["card_background"]};
+  --control-bg: {dark_surface["input_background"]};
+  --input-bg: {dark_surface["input_background"]};
+  --text-color: {dark_surface["text_color"]};
+  --text-muted: {dark_surface["muted_text_color"]};
+  --border-color: {dark_surface["border_color"]};
 }}
 html, body, button, input, select, textarea, .form-control {{
   font-family: var(--st-font-family) !important;

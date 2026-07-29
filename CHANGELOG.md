@@ -23,6 +23,8 @@
 - Profile action buttons now reflect the selected profile, explain unavailable actions, and can duplicate the current unsaved theme instead of failing silently
 - Theme CSS now uses one authoritative runtime style element, removes stale cached duplicates, and applies profile/layout changes without requiring a reload
 - Publishing from Theme Studio automatically enables the published theme and preserves the newly selected colour mode
+- Theme runtime initialization now handles an empty initial Frappe route, allowing Light, Dark, High Contrast, density, and profile state to initialize reliably
+- Light and Dark modes now receive complete independent surface palettes, while High Contrast emits its dedicated colour and focus treatment consistently
 - Bundled profiles pass the Studio's WCAG contrast checks
 - Scheduled activation refreshes runtime CSS, preferred colour mode, layout settings, and advanced mappings without a manual reload
 

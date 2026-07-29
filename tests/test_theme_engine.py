@@ -87,6 +87,36 @@ class ThemeEngineTest(unittest.TestCase):
             css,
         )
 
+    def test_light_profile_has_a_complete_derived_dark_palette(self):
+        css = ENGINE.render_css(ENGINE.DEFAULT_CONFIG)
+        dark_rule = css.split('html[data-theme="dark"] {', 1)[1].split("}", 1)[0]
+        self.assertIn("--st-page-bg: #0F1117", dark_rule)
+        self.assertIn("--st-card-bg: #1A1D27", dark_rule)
+        self.assertIn("--st-text: #E8EDF5", dark_rule)
+        self.assertIn("--st-sidebar-text: #FFFFFF", dark_rule)
+
+    def test_dark_profile_has_a_complete_light_mode_override(self):
+        dark_profile = next(
+            profile["config"]
+            for profile in ENGINE.builtin_profiles()
+            if profile["id"] == "builtin-dark"
+        )
+        css = ENGINE.render_css(dark_profile)
+        light_rule = css.split('html:not([data-theme="dark"]) {', 1)[1].split("}", 1)[0]
+        self.assertIn("--st-page-bg: #F5F6F8", light_rule)
+        self.assertIn("--st-card-bg: #FFFFFF", light_rule)
+        self.assertIn("--st-text: #19202D", light_rule)
+
+    def test_high_contrast_profile_emits_accessibility_rules(self):
+        high_contrast = next(
+            profile["config"]
+            for profile in ENGINE.builtin_profiles()
+            if profile["id"] == "builtin-high-contrast"
+        )
+        css = ENGINE.render_css(high_contrast)
+        self.assertIn("border-width:2px!important", css)
+        self.assertIn("--st-focus-width: 3px", css)
+
     def test_wcag_checker_flags_low_contrast(self):
         config = dict(ENGINE.DEFAULT_CONFIG)
         config.update({"text_color": "#777777", "page_background": "#777777"})

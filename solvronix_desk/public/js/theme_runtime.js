@@ -11,6 +11,7 @@
   function setRouteContext() {
     var route = [];
     try { route = frappe.get_route ? frappe.get_route() : []; } catch (e) {}
+    if (!Array.isArray(route)) route = [];
     var html = document.documentElement;
     ["data-st-page", "data-st-doctype", "data-st-workspace"].forEach(function (name) {
       html.removeAttribute(name);

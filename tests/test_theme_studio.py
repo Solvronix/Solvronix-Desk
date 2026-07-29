@@ -87,7 +87,8 @@ class ThemeStudioTest(unittest.TestCase):
         hooks = HOOKS.read_text(encoding="utf-8")
         self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=4", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=6", hooks)
-        self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=3", hooks)
+        self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
+        self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=4", hooks)
         self.assertIn('"on_update": "solvronix_desk.events.theme_settings_on_update"', hooks)
 
     def test_complete_studio_feature_surfaces_exist(self):
@@ -123,6 +124,7 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("duplicate.remove()", desk_js)
         self.assertIn("if (config && Object.keys(config).length)", runtime)
         self.assertIn("runtime.preview", runtime)
+        self.assertIn("if (!Array.isArray(route)) route = [];", runtime)
 
 
 if __name__ == "__main__":
