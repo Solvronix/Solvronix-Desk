@@ -464,6 +464,36 @@ button.btn-primary:active {
   color: var(--st-accent) !important;
 }
 
+/* Icon-only Desk buttons must keep a real content box. Theme Studio's
+   configurable horizontal button padding applies only to labelled buttons. */
+.btn.icon-btn {
+  width: var(--st-button-height, 32px) !important;
+  min-width: var(--st-button-height, 32px) !important;
+  padding: 6px !important;
+  flex: 0 0 var(--st-button-height, 32px);
+}
+
+.btn.icon-btn .icon,
+.btn.icon-btn .es-icon,
+.page-head .breadcrumb a .icon,
+.page-head .breadcrumb a .es-icon,
+.page-head .breadcrumb-area a .icon,
+.page-head .breadcrumb-area a .es-icon {
+  width: 16px !important;
+  min-width: 16px !important;
+  height: 16px !important;
+  color: inherit !important;
+  stroke: currentColor !important;
+}
+
+.btn.icon-btn .icon use,
+.btn.icon-btn .es-icon use,
+.page-head .breadcrumb a svg use,
+.page-head .breadcrumb-area a svg use {
+  color: inherit !important;
+  stroke: currentColor !important;
+}
+
 /* ── FORMS (left-bar sections) ───────────────────────────────────── */
 
 /* Section heads — left colored bar instead of bottom border */
@@ -1403,6 +1433,14 @@ html[data-theme="dark"] #st-powered-by {
   gap: 10px;
   font-size: 12px;
   color: var(--st-toolbar-text, rgba(255,255,255,0.65));
+}
+
+/* EditorJS wraps workspace section titles in its own .h4 span, whose Frappe
+   gray token can become nearly transparent after a colour-mode switch. */
+.editor-js-container .ce-header,
+.editor-js-container .ce-header .h4,
+.editor-js-container .ce-header b {
+  color: var(--st-text) !important;
 }
 
 #st-top-toolbar a,

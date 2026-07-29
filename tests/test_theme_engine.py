@@ -139,6 +139,13 @@ class ThemeEngineTest(unittest.TestCase):
         self.assertIn("color: var(--st-btn-primary-text) !important", css)
         self.assertIn("color: var(--st-sidebar-hover-text) !important", css)
 
+    def test_icon_buttons_and_workspace_headings_remain_visible(self):
+        css = ENGINE.render_css(ENGINE.DEFAULT_CONFIG)
+        self.assertIn(".btn-default:not(.icon-btn)", css)
+        self.assertIn("min-width: var(--st-button-height) !important", css)
+        self.assertIn(".btn.icon-btn .icon use", css)
+        self.assertIn(".editor-js-container .ce-header .h4", css)
+
     def test_custom_css_cannot_escape_dynamic_style_element(self):
         config = ENGINE.sanitize_config(
             {

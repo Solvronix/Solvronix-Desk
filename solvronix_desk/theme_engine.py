@@ -994,7 +994,24 @@ h3 {{ font-size: calc(1.25rem * var(--st-heading-scale)); }}
 .btn-default,.btn-secondary,button.btn-default {{
   background: var(--st-btn-secondary) !important; color: var(--st-btn-secondary-text) !important;
   border-color: var(--st-input-border) !important; border-radius: var(--st-button-radius) !important;
-  min-height: var(--st-button-height) !important; padding: var(--st-button-padding) !important;
+  min-height: var(--st-button-height) !important;
+}}
+.btn-default:not(.icon-btn),.btn-secondary:not(.icon-btn),button.btn-default:not(.icon-btn) {{
+  padding: var(--st-button-padding) !important;
+}}
+.btn.icon-btn {{
+  width: var(--st-button-height) !important; min-width: var(--st-button-height) !important;
+  padding: 6px !important; flex: 0 0 var(--st-button-height);
+}}
+.btn.icon-btn .icon,.btn.icon-btn .es-icon,
+.page-head .breadcrumb a .icon,.page-head .breadcrumb a .es-icon,
+.page-head .breadcrumb-area a .icon,.page-head .breadcrumb-area a .es-icon {{
+  width: 16px !important; min-width: 16px !important; height: 16px !important;
+  color: inherit !important; stroke: currentColor !important;
+}}
+.btn.icon-btn .icon use,.btn.icon-btn .es-icon use,
+.page-head .breadcrumb a svg use,.page-head .breadcrumb-area a svg use {{
+  color: inherit !important; stroke: currentColor !important;
 }}
 .form-control,input:not([type="checkbox"]):not([type="radio"]),textarea,select,.control-input {{
   background-color: var(--st-input-bg) !important; border-color: var(--st-input-border) !important;
@@ -1022,6 +1039,11 @@ input[type="checkbox"],input[type="radio"],.switch input {{ accent-color: var(--
 }}
 .dt-cell,.grid-row .data-row .row,.report-view .datatable {{ border-color: var(--st-report-grid) !important; }}
 .workspace .widget,.shortcut-widget-box,.links-widget-box {{ background: var(--st-workspace-card) !important; }}
+.editor-js-container .ce-header,
+.editor-js-container .ce-header .h4,
+.editor-js-container .ce-header b {{
+  color: var(--st-text) !important;
+}}
 .number-card,.widget.number-widget-box {{ background: var(--st-number-card) !important; }}
 .chart-container,.frappe-chart,.graph-svg-tip {{ background-color: var(--st-chart-bg) !important; }}
 .chart-container .dataset-0 {{ color: var(--st-chart-1) !important; }}

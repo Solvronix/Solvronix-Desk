@@ -14,7 +14,7 @@ web_include_css = ["/assets/solvronix_desk/css/login.css?v=7"]
 web_include_js = ["/assets/solvronix_desk/js/login_theme.js?v=3"]
 
 app_include_css = [
-    "/assets/solvronix_desk/css/solvronix_desk.css?v=48",
+    "/assets/solvronix_desk/css/solvronix_desk.css?v=49",
     "/assets/solvronix_desk/css/sidebar.css?v=20",
     "/assets/solvronix_desk/css/command_palette.css?v=4",
     "/assets/solvronix_desk/css/smart_home.css?v=2",

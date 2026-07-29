@@ -83,6 +83,8 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("var(--st-sidebar-width, var(--sidebar-width))", sidebar_css)
         self.assertIn("var(--st-sidebar-hover-text", sidebar_css)
         self.assertIn("var(--st-sidebar-icon", sidebar_css)
+        self.assertIn(".btn.icon-btn .es-icon", desk_css)
+        self.assertIn(".editor-js-container .ce-header .h4", desk_css)
         self.assertIn("var(--st-sidebar-bg, var(--fg-color, #fff))", dark_css)
 
     def test_assets_are_versioned(self):
