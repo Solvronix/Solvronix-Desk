@@ -116,6 +116,7 @@ def publish_theme_config(config, label=None, profile_id=None):
     settings.theme_versions = frappe.as_json(versions[:theme_engine.MAX_VERSIONS])
     settings.theme_studio_config = frappe.as_json(clean)
     settings.theme_studio_draft = ""
+    settings.theme_enabled = 1
     settings.active_profile = str(profile_id or "")[:80]
     sync_legacy_fields(settings, clean)
     settings.save()
@@ -299,9 +300,17 @@ def set_user_theme_profile(profile_id):
         doc.flags.ignore_permissions = True
         doc.insert()
     frappe.clear_cache(user=user)
-    from solvronix_desk.api import get_theme_css
     selected = theme_engine.resolve_config(settings, user)
-    return {"ok": True, "css": get_theme_css(), "preferred_mode": selected["preferred_mode"]}
+    return {
+        "ok": True,
+        "css": theme_engine.render_css(
+            selected, bool(getattr(settings, "theme_enabled", 1))
+        ),
+        "config": selected,
+        "preferred_mode": selected["preferred_mode"],
+        "active_profile": theme_engine.resolve_profile_id(settings, user),
+        "schedule": theme_engine.schedule(settings),
+    }
 
 
 @frappe.whitelist()
@@ -310,6 +319,10 @@ def get_resolved_theme_runtime():
     settings = frappe.get_single("Theme Settings")
     user = getattr(frappe.session, "user", None)
     config = theme_engine.resolve_config(settings, user)
+    profile_list = [
+        {"id": profile["id"], "name": profile["name"], "builtin": profile["builtin"]}
+        for profile in theme_engine.profiles(settings)
+    ]
     return {
         "css": theme_engine.render_css(
             config, bool(getattr(settings, "theme_enabled", 1))
@@ -318,6 +331,12 @@ def get_resolved_theme_runtime():
         "preferred_mode": config["preferred_mode"],
         "active_profile": theme_engine.resolve_profile_id(settings, user),
         "schedule": theme_engine.schedule(settings),
+        "profiles": profile_list,
+        "flags": {
+            "enabled": int(getattr(settings, "theme_enabled", 1)),
+            "allow_user_theme": int(getattr(settings, "allow_user_theme", 1)),
+            "locked": int(getattr(settings, "theme_lock", 0)),
+        },
     }
 
 

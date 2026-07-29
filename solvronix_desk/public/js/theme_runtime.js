@@ -6,6 +6,7 @@
   var flags = (window.frappe && frappe.boot && frappe.boot.st_theme_flags) || {};
   var profiles = (window.frappe && frappe.boot && frappe.boot.st_theme_profiles) || [];
   var scheduleTimer = null;
+  var appliedClassMappings = [];
 
   function setRouteContext() {
     var route = [];
@@ -28,11 +29,20 @@
   }
 
   function applyClassMappings() {
+    appliedClassMappings.forEach(function (mapping) {
+      try {
+        document.querySelectorAll(mapping.selector).forEach(function (element) {
+          element.classList.remove(mapping.class_name);
+        });
+      } catch (e) {}
+    });
+    appliedClassMappings = [];
     (config.class_mappings || []).forEach(function (mapping) {
       try {
         document.querySelectorAll(mapping.selector).forEach(function (element) {
           element.classList.add(mapping.class_name);
         });
+        appliedClassMappings.push(mapping);
       } catch (e) {
         /* Invalid custom selectors fail soft. */
       }
@@ -58,12 +68,20 @@
     );
 
     var sidebar = document.querySelector(".body-sidebar-container");
-    if (sidebar && config.sidebar_mode === "Expanded") sidebar.classList.add("expanded");
-    if (sidebar && config.sidebar_auto_collapse && !sidebar.dataset.stAutoCollapse) {
-      sidebar.dataset.stAutoCollapse = "1";
-      sidebar.addEventListener("mouseleave", function () {
+    if (sidebar && sidebar.dataset.stThemeMode !== config.sidebar_mode) {
+      sidebar.classList.toggle("expanded", config.sidebar_mode === "Expanded");
+      sidebar.dataset.stThemeMode = config.sidebar_mode || "Compact";
+    }
+    if (sidebar && config.sidebar_auto_collapse && !sidebar.__stAutoCollapseHandler) {
+      sidebar.__stAutoCollapseHandler = function () {
         sidebar.classList.remove("expanded");
-      });
+      };
+      sidebar.dataset.stAutoCollapse = "1";
+      sidebar.addEventListener("mouseleave", sidebar.__stAutoCollapseHandler);
+    } else if (sidebar && !config.sidebar_auto_collapse && sidebar.__stAutoCollapseHandler) {
+      sidebar.removeEventListener("mouseleave", sidebar.__stAutoCollapseHandler);
+      delete sidebar.__stAutoCollapseHandler;
+      delete sidebar.dataset.stAutoCollapse;
     }
   }
 
@@ -89,17 +107,8 @@
         args: { profile_id: select.value },
         freeze: true,
         callback: function (response) {
-          var css = response && response.message && response.message.css;
-          if (css) {
-            var element = document.getElementById("st-dynamic-theme") || document.createElement("style");
-            element.id = "st-dynamic-theme";
-            element.textContent = css;
-            if (!element.parentNode) document.head.appendChild(element);
-          }
-          var preferred = response && response.message && response.message.preferred_mode;
-          if (preferred && window.stSetThemeMode) {
-            stSetThemeMode(String(preferred).toLowerCase());
-          }
+          var runtime = response && response.message;
+          applyRuntime(runtime);
           frappe.show_alert({ message: __("Theme profile applied"), indicator: "green" });
         }
       });
@@ -120,17 +129,33 @@
 
   function applyRuntime(runtime) {
     if (!runtime) return;
-    var element = document.getElementById("st-dynamic-theme") || document.createElement("style");
-    element.id = "st-dynamic-theme";
-    element.textContent = runtime.css || "";
-    if (!element.parentNode) document.head.appendChild(element);
+    if (Object.prototype.hasOwnProperty.call(runtime, "css")) {
+      if (window.stApplyThemeCss) window.stApplyThemeCss(runtime.css || "");
+    }
     config = runtime.config || config;
-    if (runtime.preferred_mode && window.stSetThemeMode) {
-      stSetThemeMode(String(runtime.preferred_mode).toLowerCase());
+    flags = runtime.flags || flags;
+    profiles = runtime.profiles || profiles;
+    var preferredMode = String(runtime.preferred_mode || "").toLowerCase();
+    if (runtime.preview && preferredMode && window.stApplyDark) {
+      stApplyDark(
+        preferredMode === "dark" ||
+        (preferredMode === "auto" && window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      );
+    } else if (preferredMode && window.stSetThemeMode) {
+      stSetThemeMode(preferredMode);
     }
     applyLayoutPreferences();
     applyClassMappings();
-    ensureScheduleTimer(runtime.schedule);
+    installUserThemeSelector();
+    if (!runtime.preview) executeCustomJavaScript();
+    var selector = document.getElementById("st-user-theme-profile");
+    if (selector && Object.prototype.hasOwnProperty.call(runtime, "active_profile")) {
+      selector.value = runtime.active_profile || "";
+    }
+    if (Object.prototype.hasOwnProperty.call(runtime, "schedule")) {
+      ensureScheduleTimer(runtime.schedule);
+    }
   }
 
   function ensureScheduleTimer(schedule) {
@@ -154,10 +179,6 @@
 
   function ready() {
     setRouteContext();
-    applyLayoutPreferences();
-    applyClassMappings();
-    installUserThemeSelector();
-    executeCustomJavaScript();
     window.addEventListener("st-theme-runtime-refresh", function (event) {
       applyRuntime(event.detail || {});
     });
@@ -168,7 +189,15 @@
       installUserThemeSelector();
     });
     observer.observe(document.body, { childList: true, subtree: true });
-    ensureScheduleTimer((frappe.boot && frappe.boot.st_theme_schedule) || {});
+    if (config && Object.keys(config).length) {
+      applyLayoutPreferences();
+      applyClassMappings();
+      installUserThemeSelector();
+      executeCustomJavaScript();
+      ensureScheduleTimer((frappe.boot && frappe.boot.st_theme_schedule) || {});
+    } else {
+      refreshScheduledTheme();
+    }
   }
 
   if (document.readyState === "loading") {

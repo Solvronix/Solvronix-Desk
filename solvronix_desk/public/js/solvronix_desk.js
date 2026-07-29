@@ -10,13 +10,29 @@
    The cache is populated/updated by injectDynamicTheme() after the API call.
    ─────────────────────────────────────────────────────────────────────────── */
 (function () {
+  window.stApplyThemeCss = function (css) {
+    if (typeof css !== "string") return null;
+    var elements = Array.prototype.slice.call(
+      document.querySelectorAll('style[id="st-dynamic-theme"]')
+    );
+    var element = elements.shift() || document.createElement("style");
+    element.id = "st-dynamic-theme";
+    element.textContent = css;
+    if (!element.parentNode) document.head.appendChild(element);
+    elements.forEach(function (duplicate) { duplicate.remove(); });
+    try { localStorage.setItem("st_theme_css", css); } catch (e) {}
+    return element;
+  };
+
   try {
     var cached = localStorage.getItem("st_theme_css");
-    if (cached) {
-      var s = document.createElement("style");
-      s.id = "st-dynamic-theme";
-      s.textContent = cached;
-      document.head.appendChild(s);
+    var serverTheme = document.getElementById("st-dynamic-theme");
+    if (!serverTheme && cached) {
+      window.stApplyThemeCss(cached);
+    } else if (serverTheme) {
+      /* Server-rendered CSS is newer and authoritative. Never append a
+         duplicate cached style after it, because the stale copy wins. */
+      window.stApplyThemeCss(serverTheme.textContent || "");
     }
   } catch (e) {}
 }());
@@ -36,20 +52,7 @@
       callback: function (r) {
         if (!r.message) return;
         var css = r.message;
-        /* Persist so the synchronous early-inject block (top of file) can
-           apply it instantly on the next page load with zero flash. */
-        try { localStorage.setItem("st_theme_css", css); } catch (e) {}
-        /* Update in-place — never remove the element, which would cause a
-           brief flash as the browser re-renders without the style tag. */
-        var el = document.getElementById("st-dynamic-theme");
-        if (el) {
-          el.textContent = css;
-        } else {
-          var s = document.createElement("style");
-          s.id = "st-dynamic-theme";
-          s.textContent = css;
-          document.head.appendChild(s);
-        }
+        window.stApplyThemeCss(css);
       },
     });
   }
@@ -1262,14 +1265,7 @@
             var runtime = response && response.message;
             var refreshedCss = runtime && runtime.css;
             if (!runtime) return;
-            var refreshedEl =
-              document.getElementById("st-dynamic-theme") ||
-              document.getElementById("st-inline-theme") ||
-              document.createElement("style");
-            refreshedEl.id = "st-dynamic-theme";
-            refreshedEl.textContent = refreshedCss;
-            if (!refreshedEl.parentNode) document.head.appendChild(refreshedEl);
-            try { localStorage.setItem("st_theme_css", refreshedCss); } catch (e) {}
+            window.stApplyThemeCss(refreshedCss);
             if (runtime.preferred_mode && window.stSetThemeMode) {
               stSetThemeMode(String(runtime.preferred_mode).toLowerCase());
             }
@@ -1280,17 +1276,7 @@
       /* 1. Apply new CSS variables immediately — update in-place, no flash */
       var css = data && data.css;
       if (css) {
-        var dynEl = document.getElementById("st-dynamic-theme");
-        var inlineEl = document.getElementById("st-inline-theme");
-        if (dynEl)         { dynEl.textContent = css; }
-        else if (inlineEl) { inlineEl.textContent = css; }
-        else {
-          var s = document.createElement("style");
-          s.id = "st-dynamic-theme";
-          s.textContent = css;
-          document.head.appendChild(s);
-        }
-        try { localStorage.setItem("st_theme_css", css); } catch (e) {}
+        window.stApplyThemeCss(css);
       }
 
       /* 2. Refresh branding header if company/logo changed */
@@ -1322,17 +1308,7 @@
         callback: function (r) {
           var css = r && r.message;
           if (!css) return;
-          var dynEl    = document.getElementById("st-dynamic-theme");
-          var inlineEl = document.getElementById("st-inline-theme");
-          if (dynEl)         dynEl.textContent = css;
-          else if (inlineEl) inlineEl.textContent = css;
-          else {
-            var s = document.createElement("style");
-            s.id = "st-dynamic-theme";
-            s.textContent = css;
-            document.head.appendChild(s);
-          }
-          try { localStorage.setItem("st_theme_css", css); } catch (e) {}
+          window.stApplyThemeCss(css);
 
           /* Refresh sidebar branding header with latest doc values */
           ST._branding = {

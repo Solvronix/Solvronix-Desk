@@ -1201,6 +1201,13 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 					element.id = "st-studio-draft";
 					element.textContent = response.message.css;
 					if (!element.parentNode) document.head.appendChild(element);
+					window.dispatchEvent(new CustomEvent("st-theme-runtime-refresh", {
+						detail: {
+							config: response.message.config,
+							preferred_mode: response.message.config.preferred_mode,
+							preview: true,
+						},
+					}));
 					self._update_wcag(response.message.wcag_failures);
 				},
 			});
@@ -1270,7 +1277,18 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				self.dirty = false;
 				self.changed(false);
 				self._inject_global_css(r.message.css);
-				self.remove_draft();
+				window.dispatchEvent(new CustomEvent("st-theme-runtime-refresh", {
+					detail: {
+						css: r.message.css,
+						config: r.message.config,
+						preferred_mode: r.message.config.preferred_mode,
+						schedule: self.state && self.state.schedule,
+					},
+				}));
+				self.original_dark = r.message.config.preferred_mode === "Dark" ||
+					(r.message.config.preferred_mode === "Auto" && window.matchMedia &&
+						window.matchMedia("(prefers-color-scheme: dark)").matches);
+				self.remove_draft(false);
 				frappe.show_alert({ message: __("Theme published for everyone"), indicator: "green" }, 4);
 			},
 			always: function () { self.page.btn_primary.prop("disabled", false); },
@@ -1286,6 +1304,10 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 
 	_inject_global_css(css) {
 		if (!css) return;
+		if (window.stApplyThemeCss) {
+			window.stApplyThemeCss(css);
+			return;
+		}
 		var el = document.getElementById("st-dynamic-theme") || document.getElementById("st-inline-theme");
 		if (!el) {
 			el = document.createElement("style");
@@ -1358,10 +1380,17 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			(dark.length ? '[data-theme="dark"]{' + dark.join(";") + "}" : "");
 	}
 
-	remove_draft() {
+	remove_draft(restoreMode) {
 		var el = document.getElementById("st-studio-draft");
 		if (el) el.remove();
-		if (window.stApplyDark) stApplyDark(this.original_dark);
+		if (restoreMode !== false) {
+			if (this.saved) {
+				window.dispatchEvent(new CustomEvent("st-theme-runtime-refresh", {
+					detail: { config: this.saved, preview: true },
+				}));
+			}
+			if (window.stApplyDark) stApplyDark(this.original_dark);
+		}
 	}
 
 	_clone(value) { return JSON.parse(JSON.stringify(value)); }

@@ -57,6 +57,7 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("def manage_theme_profile(", api)
         self.assertIn("HEX_COLOR.fullmatch", engine)
         self.assertIn("settings.theme_studio_config", api)
+        self.assertIn("settings.theme_enabled = 1", api)
 
     def test_editor_has_drag_history_and_responsive_preview(self):
         js = PAGE.read_text(encoding="utf-8")
@@ -86,7 +87,7 @@ class ThemeStudioTest(unittest.TestCase):
         hooks = HOOKS.read_text(encoding="utf-8")
         self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=4", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=6", hooks)
-        self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=2", hooks)
+        self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=3", hooks)
         self.assertIn('"on_update": "solvronix_desk.events.theme_settings_on_update"', hooks)
 
     def test_complete_studio_feature_surfaces_exist(self):
@@ -115,6 +116,13 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("_sync_profile_actions()", js)
         self.assertIn('__("Current Theme Copy")', js)
         self.assertIn('data-profile-action="apply"', js)
+        runtime = (ROOT / "solvronix_desk" / "public" / "js" / "theme_runtime.js").read_text(encoding="utf-8")
+        desk_js = (ROOT / "solvronix_desk" / "public" / "js" / "solvronix_desk.js").read_text(encoding="utf-8")
+        self.assertIn("st-theme-runtime-refresh", runtime)
+        self.assertIn("window.stApplyThemeCss", desk_js)
+        self.assertIn("duplicate.remove()", desk_js)
+        self.assertIn("if (config && Object.keys(config).length)", runtime)
+        self.assertIn("runtime.preview", runtime)
 
 
 if __name__ == "__main__":
