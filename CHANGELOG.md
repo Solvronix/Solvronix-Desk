@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.0] — 2026-07-29 — Theme Studio
+
+### Added
+- A System Manager-only visual Theme Studio with a responsive live desk preview, desktop/tablet/mobile views, presets, undo/redo, and publish workflow
+- Drag-and-drop preview blocks for quickly testing visual hierarchy and composition
+- Fine-grained theme tokens for sidebar, navbar, page, card, and text colors, plus corner radius, shadow depth, and expanded sidebar width
+- Validated server APIs for loading and publishing theme configurations
+
+### Changed
+- Theme Studio is available from `Ctrl+K` and the Theme Settings Actions menu
+- Advanced theme tokens are included in boot-time CSS to keep the first paint flash-free
+- Theme changes continue to publish through the existing realtime sync for all connected desk users
+
 ## [1.3.1] — 2026-07-18
 
 ### Fixed

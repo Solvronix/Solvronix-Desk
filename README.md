@@ -26,6 +26,9 @@ Press `Ctrl+K` from anywhere. Type what you're looking for — a document, a lis
 ### White-Label Branding
 Go to Theme Settings, enter your company name, upload your logo, pick your two brand colors. Save. The entire system — sidebar, navbar, login page, buttons — instantly becomes your brand.
 
+### Theme Studio — Visual Drag & Drop Editor
+Open **Theme Studio** from `Ctrl+K` or the Theme Settings Actions menu. Tune brand, navigation, surface, and text colors plus corner radius, card depth, and sidebar width against a live responsive preview. Drag preview blocks into a new order, compare desktop/tablet/mobile views, undo changes, then publish the theme for every connected user.
+
 ### Quick Color Presets
 Four one-click color presets appear above the color pickers in Theme Settings. Pick a preset — Brand Color and Accent Color update instantly. Includes Solvronix (Navy + Orange), Forest (Green + Gold), Midnight (Slate + Violet), and Plum (Purple + Amber). Use as-is or as a starting point before tweaking.
 

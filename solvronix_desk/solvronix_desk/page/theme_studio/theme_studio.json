@@ -1,0 +1,14 @@
+{
+ "doctype": "Page",
+ "name": "theme-studio",
+ "page_name": "theme-studio",
+ "title": "Theme Studio",
+ "standard": "Yes",
+ "system_page": 0,
+ "module": "Solvronix Desk",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ]
+}

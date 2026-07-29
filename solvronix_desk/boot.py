@@ -33,6 +33,8 @@ def add_boot_data(bootinfo):
             "favicon":      s.favicon      or "",
             "tagline":      s.tagline      or "",
         }
+        from solvronix_desk.api import _theme_config
+        bootinfo.st_theme_config = _theme_config(s)
         # Install key: first 10 chars of creation timestamp.
         # Changes on every fresh install, so the localStorage dismiss key
         # becomes invalid after reinstall and the setup guide shows again.

@@ -124,6 +124,10 @@ function st_render_presets(frm) {
 
 frappe.ui.form.on("Theme Settings", {
 	refresh(frm) {
+		frm.add_custom_button(__("Open Theme Studio"), function () {
+			frappe.set_route("theme-studio");
+		}, __("Actions"));
+
 		frm.add_custom_button(__("Preview Theme"), function () {
 			frappe.call({
 				method: "solvronix_desk.api.get_theme_css",

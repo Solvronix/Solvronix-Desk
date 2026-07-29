@@ -158,9 +158,11 @@
         { label: __("New Sales Invoice"),  sub: __("Create document"), type: "create", action: function () { frappe.new_doc("Sales Invoice"); } },
         { label: __("New Purchase Order"), sub: __("Create document"), type: "create", action: function () { frappe.new_doc("Purchase Order"); } },
         { label: __("New Customer"),       sub: __("Create document"), type: "create", action: function () { frappe.new_doc("Customer"); } },
+        { label: __("Theme Studio"),       sub: __("Visual theme editor"), type: "action", action: function () { frappe.set_route("theme-studio"); } },
         { label: __("Theme Settings"),     sub: "Solvronix Desk",      type: "action", action: function () { frappe.set_route("Form", "Theme Settings"); } },
         { label: __("Home"),               sub: __("Workspace"),        type: "workspace", action: function () { frappe.set_route(""); } },
       ] : [
+        { label: __("Theme Studio"),       sub: __("Visual theme editor"), type: "action", action: function () { frappe.set_route("theme-studio"); } },
         { label: __("Theme Settings"),     sub: "Solvronix Desk",      type: "action", action: function () { frappe.set_route("Form", "Theme Settings"); } },
         { label: __("Home"),               sub: __("Workspace"),        type: "workspace", action: function () { frappe.set_route(""); } },
       ];

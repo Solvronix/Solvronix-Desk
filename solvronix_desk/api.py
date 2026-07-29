@@ -1,3 +1,6 @@
+import json
+import re
+
 import frappe
 
 # Site-default font size name → root font-size. Rem-based sizing scales with it.
@@ -6,6 +9,66 @@ FONT_SIZE_CSS = {
     "Default": "100%",
     "Large":   "112.5%",
 }
+
+HEX_COLOR = re.compile(r"^#[0-9a-fA-F]{6}$")
+STUDIO_BLOCKS = ("metrics", "chart", "activity", "quick_actions")
+SHADOW_CSS = {
+    "None": ("none", "none", "none"),
+    "Soft": (
+        "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)",
+        "0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06)",
+        "0 10px 25px rgba(0,0,0,0.12), 0 4px 10px rgba(0,0,0,0.08)",
+    ),
+    "Elevated": (
+        "0 2px 8px rgba(15,23,42,0.10)",
+        "0 10px 24px rgba(15,23,42,0.14)",
+        "0 20px 48px rgba(15,23,42,0.18)",
+    ),
+}
+
+
+def _color(value, fallback=""):
+    value = str(value or "").strip()
+    return value if HEX_COLOR.fullmatch(value) else fallback
+
+
+def _clamp(value, low, high, fallback):
+    try:
+        return max(low, min(high, int(value)))
+    except (TypeError, ValueError):
+        return fallback
+
+
+def _layout(value):
+    try:
+        items = json.loads(value or "[]") if isinstance(value, str) else value
+    except (TypeError, ValueError):
+        items = []
+    clean = []
+    for item in items:
+        if item in STUDIO_BLOCKS and item not in clean:
+            clean.append(item)
+    return clean + [item for item in STUDIO_BLOCKS if item not in clean]
+
+
+def _theme_config(settings):
+    return {
+        "brand_color": _color(settings.brand_color, "#1B3F7E"),
+        "accent_color": _color(settings.accent_color, "#F57C00"),
+        "sidebar_background": _color(getattr(settings, "sidebar_background", "")),
+        "navbar_background": _color(getattr(settings, "navbar_background", "")),
+        "page_background": _color(getattr(settings, "page_background", "")),
+        "card_background": _color(getattr(settings, "card_background", "")),
+        "text_color": _color(getattr(settings, "text_color", "")),
+        "corner_radius": _clamp(getattr(settings, "corner_radius", 8), 0, 24, 8),
+        "shadow_style": (
+            getattr(settings, "shadow_style", "Soft")
+            if getattr(settings, "shadow_style", "Soft") in SHADOW_CSS
+            else "Soft"
+        ),
+        "sidebar_width": _clamp(getattr(settings, "sidebar_width", 240), 200, 320, 240),
+        "layout": _layout(getattr(settings, "studio_layout", "")),
+    }
 
 
 @frappe.whitelist(allow_guest=True)
@@ -18,20 +81,92 @@ def get_theme_css():
     """
     try:
         s = frappe.get_single("Theme Settings")
-        brand  = s.brand_color  or "#1B3F7E"
-        accent = s.accent_color or "#F57C00"
+        config = _theme_config(s)
+        brand = config["brand_color"]
+        accent = config["accent_color"]
         font   = FONT_SIZE_CSS.get(getattr(s, "base_font_size", None) or "Default", "100%")
+        overrides = []
+        for field, token in (
+            ("sidebar_background", "--st-sidebar-bg"),
+            ("navbar_background", "--st-navbar-bg"),
+            ("page_background", "--st-page-bg"),
+            ("card_background", "--st-card-bg"),
+            ("text_color", "--st-text"),
+            ("text_color", "--st-text-primary"),
+        ):
+            if config[field]:
+                overrides.append(f"  {token}: {config[field]};")
+        radius = config["corner_radius"]
+        shadows = SHADOW_CSS[config["shadow_style"]]
+        dark_overrides = []
+        for field, token in (
+            ("sidebar_background", "--st-sidebar-bg"),
+            ("navbar_background", "--st-navbar-bg"),
+        ):
+            if config[field]:
+                dark_overrides.append(f"  {token}: {config[field]};")
         css = f""":root {{
   --st-brand:   {brand};
   --st-accent:  {accent};
   --st-primary: var(--st-brand);
   --st-font-size: {font};
+  --st-radius: {radius}px;
+  --st-radius-sm: {max(0, radius - 2)}px;
+  --st-radius-lg: {radius + 4}px;
+  --st-sidebar-width: {config["sidebar_width"]}px;
+  --st-shadow-sm: {shadows[0]};
+  --st-shadow-md: {shadows[1]};
+  --st-shadow-lg: {shadows[2]};
+{chr(10).join(overrides)}
   font-size: {font};
-}}"""
+}}
+{f'''[data-theme="dark"] {{
+{chr(10).join(dark_overrides)}
+}}''' if dark_overrides else ''}"""
         return css
     except Exception:
         frappe.log_error("solvronix_desk.api.get_theme_css failed")
         return ""
+
+
+@frappe.whitelist()
+def get_theme_config():
+    """Return the editable Theme Studio configuration."""
+    frappe.only_for("System Manager")
+    return _theme_config(frappe.get_single("Theme Settings"))
+
+
+@frappe.whitelist()
+def save_theme_config(config):
+    """Validate and save values coming from the visual Theme Studio."""
+    frappe.only_for("System Manager")
+    if isinstance(config, str):
+        try:
+            config = json.loads(config)
+        except (TypeError, ValueError):
+            frappe.throw("Invalid theme configuration")
+    if not isinstance(config, dict):
+        frappe.throw("Invalid theme configuration")
+
+    settings = frappe.get_single("Theme Settings")
+    settings.brand_color = _color(config.get("brand_color"), "#1B3F7E")
+    settings.accent_color = _color(config.get("accent_color"), "#F57C00")
+    for field in (
+        "sidebar_background",
+        "navbar_background",
+        "page_background",
+        "card_background",
+        "text_color",
+    ):
+        settings.set(field, _color(config.get(field)))
+    settings.corner_radius = _clamp(config.get("corner_radius"), 0, 24, 8)
+    settings.sidebar_width = _clamp(config.get("sidebar_width"), 200, 320, 240)
+    settings.shadow_style = (
+        config.get("shadow_style") if config.get("shadow_style") in SHADOW_CSS else "Soft"
+    )
+    settings.studio_layout = json.dumps(_layout(config.get("layout")))
+    settings.save()
+    return {"config": _theme_config(settings), "css": get_theme_css()}
 
 
 @frappe.whitelist(allow_guest=True)

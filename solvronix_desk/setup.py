@@ -15,6 +15,10 @@ def after_install():
             "default_theme_mode":     "Light",
             "base_font_size":         "Default",
             "default_density":        "Comfortable",
+            "corner_radius":          8,
+            "shadow_style":           "Soft",
+            "sidebar_width":          240,
+            "studio_layout":          '["metrics","chart","activity","quick_actions"]',
         }
         for field, val in defaults.items():
             existing = frappe.db.get_single_value("Theme Settings", field)
