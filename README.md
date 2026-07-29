@@ -27,7 +27,31 @@ Press `Ctrl+K` from anywhere. Type what you're looking for — a document, a lis
 Go to Theme Settings, enter your company name, upload your logo, pick your two brand colors. Save. The entire system — sidebar, navbar, login page, buttons — instantly becomes your brand.
 
 ### Theme Studio — Visual Drag & Drop Editor
-Open **Theme Studio** from `Ctrl+K` or the Theme Settings Actions menu. Tune brand, navigation, surface, and text colors plus corner radius, card depth, and sidebar width against a live responsive preview. Drag preview blocks into a new order, compare desktop/tablet/mobile views, undo changes, then publish the theme for every connected user.
+Open **Theme Studio** from `Ctrl+K` or the Theme Settings Actions menu. Its searchable visual editor covers colours, navigation, controls, typography, tables, dashboards, login branding, layout, accessibility, and developer overrides. Preview the result on dashboard, form, table, and login scenes; drag dashboard blocks into a new order; compare desktop/tablet/mobile and Frappe Default views; undo or reset changes; save a draft; then publish.
+
+Theme Studio includes Light, Dark, High Contrast, Frappe Default, Solvronix, and Forest profiles. System Managers can create, duplicate, rename, update, delete, import, export, schedule, and restore profiles. Themes can be assigned site-wide or by user, role, and company, while optional per-user profile selection and administrator locking control who can personalize the Desk.
+
+Every Studio token is rendered into the real Desk and login page, including the top toolbar and actual Frappe sidebar. Publishing creates a restorable backup and refreshes connected sessions without requiring an asset rebuild.
+
+#### Theme Studio capability map
+
+| Area | Included controls |
+|---|---|
+| Presets and profiles | Bundled presets, custom profiles, duplicate, rename, delete, import/export |
+| Main colours | Brand, accent, page/card/text/link/border, and semantic status colours |
+| Navbar and sidebar | Background/text/icon/active/hover colours, width, mode, auto-collapse, logo placement |
+| Buttons and forms | Button sizing/shape, inputs, focus, checkbox/toggle, dropdown, read-only/disabled |
+| Typography | Font family or web font, base/heading/label/table sizes, weight, line height |
+| Cards, lists, and tables | Surface, shadow, radius, row height/states, density, report grid |
+| Workspace and dashboard | Cards, shortcuts, number cards, charts/palette, icons, width, empty states |
+| Login branding | Logo, image/gradient, card opacity, title, copy, favicon, footer, optional platform credit |
+| Layout | Full/boxed width, margins, gaps, spacing, global radius, header height, sticky regions |
+| Assignment and activation | Site/user/role/company profiles, user permission, admin lock, scheduled activation |
+| Preview and recovery | Live Desk preview, four scenes, devices, draft, undo/redo, versions, reset, cache reload |
+| Accessibility | WCAG AA warning/enforcement, high contrast, large text, focus outlines, colour-blind palettes |
+| Developer tools | Custom CSS/JS, CSS variables, DocType/page/workspace rules, class mappings, raw JSON |
+
+Custom JavaScript is disabled by default and should only be enabled for trusted administrator-authored code. Hiding platform branding should only be used where your licensing and implementation permit it.
 
 ### Quick Color Presets
 Four one-click color presets appear above the color pickers in Theme Settings. Pick a preset — Brand Color and Accent Color update instantly. Includes Solvronix (Navy + Orange), Forest (Green + Gold), Midnight (Slate + Violet), and Plum (Purple + Amber). Use as-is or as a starting point before tweaking.

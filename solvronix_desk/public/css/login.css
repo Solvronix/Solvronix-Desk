@@ -16,6 +16,25 @@
   --st-card-bg:      #FFFFFF;
 }
 
+.st-login-company-logo {
+  display: block;
+  max-width: min(190px, 72%);
+  max-height: 72px;
+  margin: 0 auto 18px;
+  object-fit: contain;
+}
+
+.st-login-custom-footer {
+  position: fixed;
+  z-index: 5;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: color-mix(in srgb, white 72%, transparent);
+  font-size: 12px;
+  text-align: center;
+}
+
 /* ── GRADIENT ANIMATION ─────────────────────────────────────────────────── */
 @keyframes st-login-gradient {
   0%   { background-position: 0% 50%; }

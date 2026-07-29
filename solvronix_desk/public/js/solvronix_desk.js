@@ -1255,6 +1255,28 @@
   ──────────────────────────────────────────────────────────────────────────── */
   $(document).ready(function () {
     frappe.realtime.on("st_theme_changed", function (data) {
+      if (data && data.refresh && !data.css) {
+        frappe.call({
+          method: "solvronix_desk.theme_api.get_resolved_theme_runtime",
+          callback: function (response) {
+            var runtime = response && response.message;
+            var refreshedCss = runtime && runtime.css;
+            if (!runtime) return;
+            var refreshedEl =
+              document.getElementById("st-dynamic-theme") ||
+              document.getElementById("st-inline-theme") ||
+              document.createElement("style");
+            refreshedEl.id = "st-dynamic-theme";
+            refreshedEl.textContent = refreshedCss;
+            if (!refreshedEl.parentNode) document.head.appendChild(refreshedEl);
+            try { localStorage.setItem("st_theme_css", refreshedCss); } catch (e) {}
+            if (runtime.preferred_mode && window.stSetThemeMode) {
+              stSetThemeMode(String(runtime.preferred_mode).toLowerCase());
+            }
+            window.dispatchEvent(new CustomEvent("st-theme-runtime-refresh", { detail: runtime }));
+          },
+        });
+      }
       /* 1. Apply new CSS variables immediately — update in-place, no flash */
       var css = data && data.css;
       if (css) {

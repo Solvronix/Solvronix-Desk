@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.0.0] — 2026-07-29 — Complete Theme Studio
+
+### Added
+- A complete searchable visual editor spanning colours, navigation, form controls, typography, cards, tables, dashboards, login branding, layout, accessibility, and advanced overrides
+- Frappe Default, Light, Dark, High Contrast, Solvronix, and Forest profiles, plus custom profile create, update, duplicate, rename, delete, import, and export workflows
+- Live Dashboard, Form, Table, and Login preview scenes with desktop/tablet/mobile modes, Frappe comparison, drag-and-drop layout, undo/redo, draft saving, and section reset
+- Site, user, role, and company theme assignment; optional user profile selection; administrator locking; and scheduled profile activation
+- WCAG AA contrast feedback and optional publish enforcement, high-contrast and large-text modes, stronger focus outlines, and colour-blind-friendly status palettes
+- Theme version backups and restore-as-draft, JSON transfer, cache/reload controls, and enable/disable controls
+- Opt-in custom CSS and JavaScript, custom CSS variables, DocType/page/workspace-scoped rules, class mappings, and raw theme JSON editing
+- A `Theme Preference` DocType for persistent per-user profile choice
+
+### Changed
+- The full theme is resolved per request, so scheduled, user, role, and company profiles can produce different Desk CSS on the same site
+- Theme settings now drive the real Frappe navbar, sidebar, controls, data views, workspaces, login page, branding, typography, and layout
+- Theme publishing preserves legacy Theme Settings fields, broadcasts a refresh to connected users, and generates flash-free first-paint CSS
+
+### Fixed
+- Actual sidebar and top-toolbar colours now match Theme Studio preview tokens, including readable automatic foreground colours for active items
+- Bundled profiles pass the Studio's WCAG contrast checks
+- Scheduled activation refreshes runtime CSS, preferred colour mode, layout settings, and advanced mappings without a manual reload
+
 ## [1.4.0] — 2026-07-29 — Theme Studio
 
 ### Added

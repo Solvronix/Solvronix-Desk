@@ -10,7 +10,46 @@
       var s = document.createElement('style');
       s.id = 'st-login-vars';
       s.textContent = data.message;
-      document.head.insertBefore(s, document.head.firstChild);
+      document.head.appendChild(s);
+    })
+    .catch(function () {});
+
+  fetch('/api/method/solvronix_desk.api.get_branding')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var branding = data && data.message;
+      if (!branding) return;
+      if (branding.company_name) document.title = branding.company_name;
+      if (branding.favicon) {
+        document.querySelectorAll('link[rel="icon"],link[rel="shortcut icon"]').forEach(function (link) {
+          link.href = branding.favicon;
+        });
+      }
+      var head = document.querySelector('.for-login .page-card-head, .for-login .page-card .page-card-head');
+      if (head) {
+        if (branding.logo && !head.querySelector('.st-login-company-logo')) {
+          var image = document.createElement('img');
+          image.className = 'st-login-company-logo';
+          image.src = branding.logo;
+          image.alt = branding.company_name || '';
+          head.insertBefore(image, head.firstChild);
+        }
+        var title = head.querySelector('h4, h3, h2');
+        if (title && branding.login_heading) title.textContent = branding.login_heading;
+        var description = head.querySelector('p, .text-muted');
+        if (description && branding.login_description) description.textContent = branding.login_description;
+      }
+      if (branding.footer_text) {
+        var footer = document.createElement('div');
+        footer.className = 'st-login-custom-footer';
+        footer.textContent = branding.footer_text;
+        document.body.appendChild(footer);
+      }
+      if (branding.hide_powered) {
+        document.querySelectorAll('.powered-by, .page-card .powered-by').forEach(function (element) {
+          element.remove();
+        });
+      }
     })
     .catch(function () {});
 

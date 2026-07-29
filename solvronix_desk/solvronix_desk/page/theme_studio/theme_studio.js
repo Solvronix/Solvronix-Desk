@@ -1,6 +1,139 @@
 /* Solvronix Desk — visual theme editor */
 frappe.provide("solvronix_desk");
 
+solvronix_desk.theme_studio_sections = [
+	{
+		id: "colors", title: "Main colours", index: "01",
+		description: "Core surfaces, content, links, borders, and semantic status colours.",
+		controls: [
+			["preferred_mode", "Theme mode", "select", ["Light", "Dark", "Auto"]],
+			["brand_color", "Brand / primary", "color"], ["accent_color", "Accent", "color"],
+			["page_background", "Page background", "color"], ["card_background", "Card background", "color"],
+			["text_color", "Text", "color"], ["muted_text_color", "Muted text", "color"],
+			["link_color", "Links", "color"], ["border_color", "Borders", "color"],
+			["success_color", "Success", "color"], ["warning_color", "Warning", "color"],
+			["error_color", "Error", "color"], ["info_color", "Info", "color"],
+		],
+	},
+	{
+		id: "navigation", title: "Navbar & sidebar", index: "02",
+		description: "Navigation colours, behaviour, width, icons, active states, and logo placement.",
+		controls: [
+			["navbar_background", "Top toolbar", "color"], ["toolbar_text_color", "Toolbar text (auto if empty)", "optional-color"],
+			["sidebar_background", "Sidebar background", "color"], ["sidebar_text_color", "Sidebar text (auto if empty)", "optional-color"],
+			["sidebar_icon_color", "Sidebar icons (auto if empty)", "optional-color"], ["sidebar_active_color", "Active menu", "color"],
+			["sidebar_active_text_color", "Active menu text (auto if empty)", "optional-color"],
+			["sidebar_hover_color", "Menu hover", "color"], ["sidebar_width", "Expanded width", "range", 200, 360, "px"],
+			["sidebar_mode", "Initial sidebar", "select", ["Compact", "Expanded"]],
+			["sidebar_auto_collapse", "Auto-collapse on mouse leave", "check"],
+			["logo_size", "Logo size", "range", 16, 64, "px"], ["logo_position", "Logo position", "select", ["Left", "Center"]],
+		],
+	},
+	{
+		id: "controls", title: "Buttons & fields", index: "03",
+		description: "Buttons, inputs, focus treatment, dropdowns, toggles, and disabled states.",
+		controls: [
+			["primary_button_color", "Primary button", "color"], ["secondary_button_color", "Secondary button", "color"],
+			["secondary_button_text", "Secondary button text", "color"], ["button_radius", "Button radius", "range", 0, 24, "px"],
+			["button_height", "Button height", "range", 26, 52, "px"], ["button_padding", "Horizontal padding", "range", 6, 30, "px"],
+			["input_background", "Input background", "color"], ["input_border_color", "Input border", "color"],
+			["focus_color", "Focus colour", "color"], ["checkbox_color", "Checkbox & toggle", "color"],
+			["dropdown_background", "Dropdown background", "color"], ["readonly_background", "Read-only background", "color"],
+			["disabled_opacity", "Disabled opacity", "range", 20, 80, "%"],
+		],
+	},
+	{
+		id: "typography", title: "Typography", index: "04",
+		description: "Font family, scale, weights, line-height, labels, tables, and web fonts.",
+		controls: [
+			["font_family", "Font family", "text"],
+			["custom_font_url", "Google / local font stylesheet URL", "text"],
+			["base_font_px", "Base font size", "range", 11, 20, "px"],
+			["heading_scale", "Heading scale", "range", 100, 180, "%"],
+			["font_weight", "Body weight", "select", [300, 400, 500, 600, 700]],
+			["line_height", "Line height", "range", 120, 200, "%"],
+			["label_font_size", "Form label size", "range", 10, 16, "px"],
+			["table_font_size", "Table / report size", "range", 10, 18, "px"],
+		],
+	},
+	{
+		id: "data", title: "Cards, lists & tables", index: "05",
+		description: "Card depth, table rhythm, row states, report grids, and display density.",
+		controls: [
+			["shadow_style", "Card shadow", "select", ["None", "Soft", "Elevated"]],
+			["card_radius", "Card radius", "range", 0, 30, "px"],
+			["list_row_height", "List row height", "range", 28, 64, "px"],
+			["alternate_row_color", "Alternate row", "color"], ["table_header_color", "Table header", "color"],
+			["selected_row_color", "Selected row", "color"], ["row_hover_color", "Row hover", "color"],
+			["density", "Display density", "select", ["Comfortable", "Compact"]],
+			["report_grid_color", "Report grid lines", "color"],
+		],
+	},
+	{
+		id: "workspace", title: "Workspace & dashboard", index: "06",
+		description: "Workspace cards, shortcuts, number cards, charts, icons, width, and empty states.",
+		controls: [
+			["workspace_card_color", "Workspace cards", "color"], ["shortcut_style", "Shortcut design", "select", ["Solid", "Outline", "Soft"]],
+			["number_card_color", "Number cards", "color"], ["chart_background", "Chart background", "color"],
+			["chart_palette", "Chart palette", "palette"], ["module_icon_style", "Module icons", "select", ["Plain", "Tinted", "Solid"]],
+			["workspace_width", "Workspace width", "range", 900, 1920, "px"],
+			["empty_state_style", "Empty states", "select", ["Minimal", "Illustrated"]],
+		],
+	},
+	{
+		id: "branding", title: "Login & branding", index: "07",
+		description: "Company identity, login artwork, messages, favicon, footer, and platform credit.",
+		controls: [
+			["company_logo", "Company logo URL", "text"], ["favicon", "Favicon URL", "text"],
+			["app_title", "App title", "text"], ["login_bg_image", "Login background image URL", "text"],
+			["login_background", "Login background", "color"], ["login_gradient_to", "Gradient end", "color"],
+			["login_gradient_angle", "Gradient angle", "range", 0, 360, "°"],
+			["login_card_opacity", "Login card opacity", "range", 55, 100, "%"],
+			["login_heading", "Welcome heading", "text"], ["login_description", "Welcome description", "textarea"],
+			["footer_text", "Footer text", "text"], ["hide_powered", "Hide “Powered by Frappe”", "check"],
+		],
+	},
+	{
+		id: "layout", title: "Layout", index: "08",
+		description: "Page width, spacing, global shape, sticky regions, and compact forms.",
+		controls: [
+			["layout_mode", "Page layout", "select", ["Full Width", "Boxed"]],
+			["page_margin", "Page margins", "range", 0, 64, "px"],
+			["form_column_gap", "Form column gap", "range", 8, 48, "px"],
+			["section_spacing", "Section spacing", "range", 8, 64, "px"],
+			["corner_radius", "Global radius", "range", 0, 24, "px"],
+			["header_height", "Toolbar height", "range", 32, 64, "px"],
+			["sticky_navbar", "Sticky top toolbar", "check"], ["sticky_form_toolbar", "Sticky form toolbar", "check"],
+			["compact_forms", "Compact forms", "check"],
+		],
+	},
+	{
+		id: "accessibility", title: "Accessibility", index: "09",
+		description: "WCAG checks, high contrast, large text, focus visibility, and colour-blind palettes.",
+		controls: [
+			["high_contrast", "High-contrast mode", "check"], ["large_text", "Large text mode", "check"],
+			["focus_outline_width", "Focus outline", "range", 1, 5, "px"],
+			["colorblind_palette", "Status palette", "select", ["Default", "Deuteranopia", "Protanopia", "Tritanopia"]],
+			["enforce_wcag", "Block publish when WCAG AA fails", "check"],
+		],
+	},
+	{
+		id: "advanced", title: "Developer options", index: "10",
+		description: "Power tools for trusted administrators. Invalid rules can affect Desk functionality.",
+		controls: [
+			["custom_css", "Custom CSS", "code-css"], ["enable_custom_js", "Enable custom JavaScript", "check"],
+			["custom_js", "Custom JavaScript", "code-js"], ["custom_variables", "Custom CSS variables (JSON)", "json"],
+			["scoped_rules", "Scoped rules (JSON)", "json"],
+			["class_mappings", "Class mappings (JSON)", "json"], ["raw_theme_json", "Raw theme JSON", "raw-json"],
+		],
+	},
+	{
+		id: "operations", title: "Profiles & deployment", index: "11",
+		description: "Presets, drafts, assignments, versions, import/export, scheduling, and cache controls.",
+		controls: [["operations", "Operations", "operations"]],
+	},
+];
+
 frappe.pages["theme-studio"].on_page_load = function (wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
@@ -35,6 +168,12 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.future = [];
 		this.dirty = false;
 		this.dragged = null;
+		this.state = null;
+		this.active_section = "colors";
+		this.active_profile = "";
+		this.published_profile = "";
+		this.preview_timer = null;
+		this.original_dark = document.documentElement.getAttribute("data-theme") === "dark";
 	}
 
 	load() {
@@ -48,11 +187,15 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			__("Preparing your studio…") + "</span></div>").appendTo(this.wrapper.find(".page-content"));
 
 		frappe.call({
-			method: "solvronix_desk.api.get_theme_config",
+			method: "solvronix_desk.theme_api.get_theme_studio_state",
 			callback: function (r) {
 				if (!r.message) return;
-				self.config = self._clone(r.message);
-				self.saved = self._clone(r.message);
+				self.state = r.message;
+				self.config = self._clone(r.message.config);
+				self.saved = self._clone(r.message.published);
+				self.active_profile = (r.message.flags && r.message.flags.active_profile) || "";
+				self.published_profile = self.active_profile;
+				self.dirty = JSON.stringify(self.config) !== JSON.stringify(self.saved);
 				self.render();
 			},
 			error: function () {
@@ -65,44 +208,30 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		if (!this.config || this.dirty) return;
 		var self = this;
 		frappe.call({
-			method: "solvronix_desk.api.get_theme_config",
+			method: "solvronix_desk.theme_api.get_theme_studio_state",
 			callback: function (r) {
 				if (!r.message) return;
-				self.config = self._clone(r.message);
-				self.saved = self._clone(r.message);
+				self.state = r.message;
+				self.config = self._clone(r.message.config);
+				self.saved = self._clone(r.message.published);
+				self.active_profile = (r.message.flags && r.message.flags.active_profile) || "";
+				self.published_profile = self.active_profile;
 				self.apply();
 			},
 		});
 	}
 
 	render() {
+		this.$root.off();
 		this.$root.removeClass("sts-loading").addClass("st-theme-studio").html(
 			'<aside class="sts-controls">' +
 				'<div class="sts-eyebrow">' + __("DESIGN SYSTEM") + "</div>" +
 				'<h2>' + __("Make it unmistakably yours.") + "</h2>" +
-				'<p class="sts-intro">' + __("Tune every visual token and arrange the preview by dragging its blocks.") + "</p>" +
-				this._preset_html() +
-				'<div class="sts-section">' +
-					'<div class="sts-section-title"><span>01</span>' + __("Color language") + "</div>" +
-					this._color_control("brand_color", __("Brand"), false) +
-					this._color_control("accent_color", __("Accent"), false) +
-					this._color_control("sidebar_background", __("Sidebar"), true) +
-					this._color_control("navbar_background", __("Top bar"), true) +
-					this._color_control("page_background", __("Canvas"), true) +
-					this._color_control("card_background", __("Cards"), true) +
-					this._color_control("text_color", __("Text"), true) +
-				"</div>" +
-				'<div class="sts-section">' +
-					'<div class="sts-section-title"><span>02</span>' + __("Shape & depth") + "</div>" +
-					this._range_control("corner_radius", __("Corner radius"), 0, 24, "px") +
-					this._range_control("sidebar_width", __("Sidebar width"), 200, 320, "px") +
-					'<label class="sts-label">' + __("Card shadow") + "</label>" +
-					'<div class="sts-segments" data-setting="shadow_style">' +
-						["None", "Soft", "Elevated"].map(function (name) {
-							return '<button type="button" data-value="' + name + '">' + __(name) + "</button>";
-						}).join("") +
-					"</div>" +
-				"</div>" +
+				'<p class="sts-intro">' + __("Every theme token, assignment, and deployment control in one place.") + "</p>" +
+				this._profile_bar_html() +
+				'<div class="sts-control-search"><span>⌕</span><input type="search" id="sts-control-search" placeholder="' + __("Search theme controls…") + '"></div>' +
+				this._tabs_html() +
+				'<div class="sts-control-panels">' + this._sections_html() + "</div>" +
 			"</aside>" +
 			'<main class="sts-workbench">' +
 				'<div class="sts-toolbar">' +
@@ -111,7 +240,15 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 						'<button data-device="tablet" title="' + __("Tablet") + '">' + this._icon("tablet") + "</button>" +
 						'<button data-device="mobile" title="' + __("Mobile") + '">' + this._icon("mobile") + "</button>" +
 					"</div>" +
+					'<div class="sts-scene-switch" role="group">' +
+						'<button class="active" data-preview-scene="dashboard">' + __("Dashboard") + "</button>" +
+						'<button data-preview-scene="form">' + __("Form") + "</button>" +
+						'<button data-preview-scene="table">' + __("Table") + "</button>" +
+						'<button data-preview-scene="login">' + __("Login") + "</button>" +
+					"</div>" +
 					'<div class="sts-toolbar-note"><i></i>' + __("Live preview") + "</div>" +
+					'<button class="sts-compare-btn" data-action="compare">' + __("Compare with default") + "</button>" +
+					'<button class="sts-draft-btn" data-action="save-draft">' + __("Save draft") + "</button>" +
 					'<div class="sts-history">' +
 						'<button data-action="undo" title="' + __("Undo") + '">' + this._icon("undo") + "</button>" +
 						'<button data-action="redo" title="' + __("Redo") + '">' + this._icon("redo") + "</button>" +
@@ -125,9 +262,14 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 							this._sidebar_html() +
 							'<div class="sts-preview-main">' +
 								'<div class="sts-preview-page">' +
-									'<div class="sts-preview-heading"><div><small>' + __("WORKSPACE") + '</small><h3>' + __("Good morning, Ayesha") + '</h3></div><button>' + __("Create new") + "</button></div>" +
-									'<div class="sts-drop-hint">' + this._icon("move") + __("Drag cards to rearrange your layout") + "</div>" +
-									'<div class="sts-canvas" id="sts-canvas"></div>' +
+									'<div class="sts-scene active" data-scene="dashboard">' +
+										'<div class="sts-preview-heading"><div><small>' + __("WORKSPACE") + '</small><h3>' + __("Good morning, Ayesha") + '</h3></div><button>' + __("Create new") + "</button></div>" +
+										'<div class="sts-drop-hint">' + this._icon("move") + __("Drag cards to rearrange your layout") + "</div>" +
+										'<div class="sts-canvas" id="sts-canvas"></div>' +
+									"</div>" +
+									this._form_scene_html() +
+									this._table_scene_html() +
+									this._login_scene_html() +
 								"</div>" +
 							"</div>" +
 						"</div>" +
@@ -140,6 +282,111 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.bind();
 		this.render_blocks();
 		this.apply();
+		this.$root.toggleClass("is-dirty", this.dirty);
+	}
+
+	_profile_bar_html() {
+		var self = this;
+		var profiles = (this.state && this.state.profiles) || [];
+		return '<div class="sts-profile-bar"><label class="sts-label">' + __("Theme profile") + '</label><div class="sts-profile-select-row">' +
+			'<select id="sts-profile-select"><option value=""' + (!self.active_profile ? " selected" : "") + ">" + __("Current custom theme") + "</option>" + profiles.map(function (profile) {
+				return '<option value="' + self._esc(profile.id) + '"' +
+					(profile.id === self.active_profile ? " selected" : "") + ">" +
+					self._esc(profile.name) + (profile.builtin ? " · " + __("Built-in") : "") + "</option>";
+			}).join("") + '</select><button type="button" data-profile-action="apply" title="' + __("Load profile") + '">↳</button></div>' +
+			'<div class="sts-profile-actions">' +
+				'<button type="button" data-profile-action="create">' + __("Save as new") + "</button>" +
+				'<button type="button" data-profile-action="update">' + __("Update") + "</button>" +
+				'<button type="button" data-profile-action="duplicate">' + __("Duplicate") + "</button>" +
+				'<button type="button" data-profile-action="rename">' + __("Rename") + "</button>" +
+				'<button type="button" data-profile-action="delete">' + __("Delete") + "</button>" +
+			"</div></div>";
+	}
+
+	_tabs_html() {
+		var self = this;
+		return '<nav class="sts-tabs" aria-label="' + __("Theme categories") + '">' +
+			solvronix_desk.theme_studio_sections.map(function (section) {
+				return '<button type="button" data-section-tab="' + section.id + '" class="' +
+					(section.id === self.active_section ? "active" : "") + '"><b>' + section.index +
+					"</b><span>" + __(section.title) + "</span></button>";
+			}).join("") + "</nav>";
+	}
+
+	_sections_html() {
+		var self = this;
+		return solvronix_desk.theme_studio_sections.map(function (section) {
+			return '<section class="sts-section sts-control-panel' +
+				(section.id === self.active_section ? " active" : "") + '" data-section="' + section.id + '">' +
+				'<div class="sts-section-title"><span>' + section.index + "</span>" + __(section.title) +
+					'<button type="button" data-reset-section="' + section.id + '">' + __("Reset section") + "</button></div>" +
+				'<p class="sts-section-copy">' + __(section.description) + "</p>" +
+				section.controls.map(function (definition) { return self._render_control(definition); }).join("") +
+			"</section>";
+		}).join("");
+	}
+
+	_render_control(definition) {
+		var key = definition[0], label = __(definition[1]), type = definition[2];
+		if (type === "color" || type === "optional-color") {
+			return this._color_control(key, label, type === "optional-color");
+		}
+		if (type === "range") return this._range_control(key, label, definition[3], definition[4], definition[5]);
+		if (type === "select") {
+			var current = this.config[key];
+			return '<div class="sts-field"><label for="sts-' + key + '">' + label + '</label><select id="sts-' + key +
+				'" data-setting="' + key + '">' + definition[3].map(function (option) {
+					return '<option value="' + option + '"' + (String(option) === String(current) ? " selected" : "") + ">" + __(String(option)) + "</option>";
+				}).join("") + "</select></div>";
+		}
+		if (type === "check") {
+			return '<label class="sts-check"><span>' + label + '</span><input type="checkbox" data-setting="' + key + '"' +
+				(this.config[key] ? " checked" : "") + '><i></i></label>';
+		}
+		if (type === "text") {
+			return '<div class="sts-field"><label for="sts-' + key + '">' + label + '</label><input id="sts-' + key +
+				'" type="text" data-setting="' + key + '" value="' + this._esc(this.config[key] || "") + '"></div>';
+		}
+		if (type === "textarea") {
+			return '<div class="sts-field"><label for="sts-' + key + '">' + label + '</label><textarea id="sts-' + key +
+				'" rows="3" data-setting="' + key + '">' + this._esc(this.config[key] || "") + "</textarea></div>";
+		}
+		if (type === "palette") {
+			return '<div class="sts-field"><label>' + label + '</label><input type="text" data-setting="' + key +
+				'" data-palette="1" value="' + this._esc((this.config[key] || []).join(", ")) + '"><div class="sts-palette-preview"></div></div>';
+		}
+		if (type === "code-css" || type === "code-js") {
+			return '<div class="sts-field sts-code-field"><label>' + label + '</label><textarea rows="8" spellcheck="false" data-setting="' +
+				key + '">' + this._esc(this.config[key] || "") + "</textarea></div>";
+		}
+		if (type === "json") {
+			return '<div class="sts-field sts-code-field"><label>' + label + '</label><textarea rows="7" spellcheck="false" data-json-setting="' +
+				key + '">' + this._esc(JSON.stringify(this.config[key] || [], null, 2)) + "</textarea><button type=\"button\" data-apply-json=\"" +
+				key + '">' + __("Apply JSON") + "</button></div>";
+		}
+		if (type === "raw-json") {
+			return '<div class="sts-field sts-code-field"><label>' + label + '</label><textarea rows="12" id="sts-raw-theme-json" spellcheck="false">' +
+				this._esc(JSON.stringify(this.config, null, 2)) + '</textarea><button type="button" data-action="apply-raw-json">' + __("Apply raw theme JSON") + "</button></div>";
+		}
+		if (type === "operations") return this._operations_html();
+		return "";
+	}
+
+	_operations_html() {
+		var flags = (this.state && this.state.flags) || {};
+		return '<div class="sts-operation-grid">' +
+			'<button type="button" data-action="import">⇧<span>' + __("Import theme") + "</span></button>" +
+			'<button type="button" data-action="export">⇩<span>' + __("Export JSON") + "</span></button>" +
+			'<button type="button" data-action="versions">↶<span>' + __("Version history") + "</span></button>" +
+			'<button type="button" data-action="assignments">◎<span>' + __("User / role themes") + "</span></button>" +
+			'<button type="button" data-action="schedule">◷<span>' + __("Schedule activation") + "</span></button>" +
+			'<button type="button" data-action="clear-cache">↻<span>' + __("Clear cache & reload") + "</span></button>" +
+			'<button type="button" data-action="reset-all">×<span>' + __("Reset to Frappe default") + "</span></button>" +
+			'<button type="button" data-action="toggle-theme">' + (flags.enabled ? "◉" : "○") + "<span>" +
+				(flags.enabled ? __("Disable custom theme") : __("Enable custom theme")) + "</span></button>" +
+			"</div>" +
+			'<div class="sts-wcag-card" id="sts-wcag-card"></div>' +
+			'<input type="file" id="sts-import-file" accept=".json,application/json" hidden>';
 	}
 
 	_preset_html() {
@@ -156,10 +403,10 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			}).join("") + "</div></div>";
 	}
 
-	_color_control(key, optional) {
+	_color_control(key, label, optional) {
 		var value = this.config[key] || (key === "brand_color" ? "#1B3F7E" : key === "accent_color" ? "#F57C00" : "#FFFFFF");
 		return '<div class="sts-color-row" data-control="' + key + '">' +
-			'<label for="sts-' + key + '">' + this._label_for(key) + "</label>" +
+			'<label for="sts-' + key + '">' + label + "</label>" +
 			'<div><input id="sts-' + key + '" type="color" value="' + value + '" data-setting="' + key + '">' +
 			'<input class="sts-hex" type="text" value="' + (this.config[key] || "") + '" placeholder="' +
 				(optional ? __("Auto") : value) + '" data-hex="' + key + '" maxlength="7" spellcheck="false">' +
@@ -178,7 +425,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 
 	_range_control(key, label, min, max, unit) {
 		return '<div class="sts-range-row"><div><label for="sts-' + key + '">' + label +
-			'</label><output data-output="' + key + '">' + this.config[key] + unit + "</output></div>" +
+			'</label><output data-output="' + key + '" data-unit="' + unit + '">' + this.config[key] + unit + "</output></div>" +
 			'<input id="sts-' + key + '" type="range" min="' + min + '" max="' + max +
 			'" value="' + this.config[key] + '" data-setting="' + key + '"></div>';
 	}
@@ -199,6 +446,39 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			'<time>10:42:18</time><i></i><a>☼ ' + __("Today’s View") + '</a></div>' +
 			'<div class="sts-nav-actions"><button>◎ EN⌄</button><button>•••</button>' +
 			'<span class="sts-avatar">AK</span></div></header>';
+	}
+
+	_form_scene_html() {
+		return '<div class="sts-scene" data-scene="form"><div class="sts-preview-heading"><div><small>' + __("DOCUMENT") +
+			'</small><h3>' + __("Customer profile") + '</h3></div><button>' + __("Save") + '</button></div>' +
+			'<div class="sts-form-card"><div class="sts-form-section-title">' + __("General information") + '</div><div class="sts-form-grid">' +
+			'<label><span>' + __("Customer name") + '</span><input value="Northstar Trading"></label>' +
+			'<label><span>' + __("Customer group") + '</span><select><option>Commercial</option></select></label>' +
+			'<label><span>' + __("Email address") + '</span><input value="hello@northstar.example"></label>' +
+			'<label><span>' + __("Read-only field") + '</span><input readonly value="CUST-00084"></label>' +
+			'<label class="sts-form-wide"><span>' + __("Notes") + '</span><textarea>Priority account with quarterly review.</textarea></label>' +
+			'</div><div class="sts-form-actions"><button class="secondary">' + __("Cancel") + '</button><button>' + __("Save changes") +
+			'</button></div></div></div>';
+	}
+
+	_table_scene_html() {
+		return '<div class="sts-scene" data-scene="table"><div class="sts-preview-heading"><div><small>' + __("REPORT") +
+			'</small><h3>' + __("Sales invoices") + '</h3></div><button>' + __("New invoice") + '</button></div>' +
+			'<div class="sts-table-card"><div class="sts-table-head"><span>ID</span><span>' + __("Customer") + '</span><span>' +
+			__("Status") + '</span><span>' + __("Amount") + '</span></div>' +
+			[['INV-0841','Northstar','Paid','$2,480'],['INV-0840','Acme Retail','Overdue','$1,920'],['INV-0839','Orbit Foods','Draft','$760'],['INV-0838','Harbor Labs','Paid','$4,210']].map(function (row, index) {
+				return '<div class="sts-table-row' + (index === 1 ? " selected" : "") + '"><span>' + row[0] + '</span><span>' + row[1] +
+					'</span><span><i class="status-' + row[2].toLowerCase() + '">' + row[2] + '</i></span><strong>' + row[3] + '</strong></div>';
+			}).join("") + "</div></div>";
+	}
+
+	_login_scene_html() {
+		return '<div class="sts-scene sts-login-scene" data-scene="login"><div class="sts-login-card">' +
+			'<div class="sts-login-logo">S</div><h3 data-login-heading>' + this._esc(this.config.login_heading || __("Welcome back")) +
+			'</h3><p data-login-description>' + this._esc(this.config.login_description || "") + '</p><label>' + __("Email") +
+			'<input value="ayesha@company.com"></label><label>' + __("Password") + '<input type="password" value="password"></label>' +
+			'<button>' + __("Sign in") + '</button><small data-login-footer>' + this._esc(this.config.footer_text || "Solvronix Desk") +
+			"</small></div></div>";
 	}
 
 	render_blocks() {
@@ -257,7 +537,16 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				self.$root.find('[data-hex="' + key + '"]').val(self.config[key]);
 			} else if (this.type === "range") {
 				self.config[key] = parseInt(this.value, 10);
-				self.$root.find('[data-output="' + key + '"]').text(this.value + "px");
+				var $output = self.$root.find('[data-output="' + key + '"]');
+				$output.text(this.value + ($output.data("unit") || ""));
+			} else if (this.type === "checkbox") {
+				self.config[key] = !!this.checked;
+			} else if ($(this).data("palette")) {
+				self.config[key] = String(this.value || "").split(",").map(function (item) {
+					return item.trim().toUpperCase();
+				}).filter(function (item) { return /^#[0-9A-F]{6}$/.test(item); });
+			} else {
+				self.config[key] = this.value;
 			}
 			self.changed();
 		});
@@ -301,11 +590,428 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			$(this).addClass("active");
 			self.$preview.attr("data-device", $(this).data("device"));
 		});
+		this.$root.on("click", "[data-preview-scene]", function () {
+			var scene = $(this).data("preview-scene");
+			self.$root.find("[data-preview-scene]").removeClass("active");
+			$(this).addClass("active");
+			self.$preview.attr("data-scene", scene);
+			self.$preview.find(".sts-scene").removeClass("active")
+				.filter('[data-scene="' + scene + '"]').addClass("active");
+		});
 		this.$root.on("click", ".sts-sidebar-toggle", function () {
 			self.$preview.find(".sts-preview-sidebar").toggleClass("is-expanded");
 		});
+		this.$root.on("click", "[data-section-tab]", function () {
+			self.active_section = $(this).data("section-tab");
+			self.$root.find("[data-section-tab]").removeClass("active");
+			$(this).addClass("active");
+			self.$root.find(".sts-control-panel").removeClass("active")
+				.filter('[data-section="' + self.active_section + '"]').addClass("active");
+			self.$root.find("#sts-control-search").val("");
+			self.$root.find(".sts-control-panel .sts-field,.sts-control-panel .sts-color-row,.sts-control-panel .sts-range-row,.sts-control-panel .sts-check").show();
+		});
+		this.$root.on("input", "#sts-control-search", function () {
+			self._search_controls(this.value);
+		});
+		this.$root.on("click", "[data-apply-json]", function () {
+			self._apply_json_setting($(this).data("apply-json"));
+		});
+		this.$root.on("click", '[data-action="apply-raw-json"]', function () { self._apply_raw_json(); });
+		this.$root.on("click", "[data-reset-section]", function () { self._reset_section($(this).data("reset-section")); });
+		this.$root.on("click", "[data-profile-action]", function () { self._profile_action($(this).data("profile-action")); });
+		this.$root.on("click", '[data-action="save-draft"]', function () { self.save_draft(); });
+		this.$root.on("click", '[data-action="compare"]', function () { self.toggle_compare(); });
+		this.$root.on("click", '[data-action="import"]', function () { self.$root.find("#sts-import-file").trigger("click"); });
+		this.$root.on("change", "#sts-import-file", function () { self.import_theme(this.files && this.files[0]); });
+		this.$root.on("click", '[data-action="export"]', function () { self.export_theme(); });
+		this.$root.on("click", '[data-action="versions"]', function () { self.show_versions(); });
+		this.$root.on("click", '[data-action="assignments"]', function () { self.show_assignments(); });
+		this.$root.on("click", '[data-action="schedule"]', function () { self.show_schedule(); });
+		this.$root.on("click", '[data-action="clear-cache"]', function () { self.clear_cache(); });
+		this.$root.on("click", '[data-action="reset-all"]', function () { self._reset_all(); });
+		this.$root.on("click", '[data-action="toggle-theme"]', function () { self.toggle_theme_enabled(); });
 		this.$root.on("click", '[data-action="undo"]', function () { self.undo(); });
 		this.$root.on("click", '[data-action="redo"]', function () { self.redo(); });
+	}
+
+	_search_controls(query) {
+		query = String(query || "").trim().toLowerCase();
+		this.$root.toggleClass("is-searching", !!query);
+		var $panels = this.$root.find(".sts-control-panel");
+		if (!query) {
+			$panels.removeClass("search-match").filter('[data-section="' + this.active_section + '"]').addClass("active");
+			return;
+		}
+		$panels.each(function () {
+			var $panel = $(this), matches = 0;
+			$panel.find(".sts-field,.sts-color-row,.sts-range-row,.sts-check").each(function () {
+				var match = $(this).text().toLowerCase().indexOf(query) !== -1;
+				$(this).toggle(match);
+				if (match) matches++;
+			});
+			$panel.toggleClass("search-match", matches > 0);
+		});
+	}
+
+	_apply_json_setting(key) {
+		var raw = this.$root.find('[data-json-setting="' + key + '"]').val();
+		try {
+			var parsed = JSON.parse(raw || "[]");
+			this._checkpoint();
+			this.config[key] = parsed;
+			this.changed();
+			frappe.show_alert({ message: __("JSON applied"), indicator: "green" });
+		} catch (error) {
+			frappe.show_alert({ message: __("Invalid JSON: ") + error.message, indicator: "red" }, 5);
+		}
+	}
+
+	_apply_raw_json() {
+		try {
+			var parsed = JSON.parse(this.$root.find("#sts-raw-theme-json").val() || "{}");
+			if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") throw new Error("Theme JSON must be an object");
+			this._checkpoint();
+			this.config = $.extend(true, {}, this.config, parsed);
+			this._refresh_controls();
+			frappe.show_alert({ message: __("Raw theme JSON applied"), indicator: "green" });
+		} catch (error) {
+			frappe.show_alert({ message: __("Invalid theme JSON: ") + error.message, indicator: "red" }, 5);
+		}
+	}
+
+	_default_config() {
+		var profile = ((this.state && this.state.profiles) || []).find(function (item) {
+			return item.id === "builtin-frappe";
+		});
+		return this._clone(profile ? profile.config : this.saved);
+	}
+
+	_section_keys(sectionId) {
+		var section = solvronix_desk.theme_studio_sections.find(function (item) { return item.id === sectionId; });
+		return section ? section.controls.map(function (control) { return control[0]; })
+			.filter(function (key) { return key !== "operations" && key !== "raw_theme_json"; }) : [];
+	}
+
+	_reset_section(sectionId) {
+		var defaults = this._default_config(), keys = this._section_keys(sectionId);
+		if (!keys.length) return;
+		this._checkpoint();
+		var self = this;
+		keys.forEach(function (key) {
+			if (defaults[key] !== undefined) self.config[key] = self._clone(defaults[key]);
+		});
+		this._refresh_controls();
+		frappe.show_alert({ message: __("Section reset to default"), indicator: "blue" });
+	}
+
+	_reset_all() {
+		var self = this;
+		frappe.confirm(__("Reset every Theme Studio setting to the Frappe-friendly Light default?"), function () {
+			self._checkpoint();
+			self.config = self._default_config();
+			self.active_profile = "builtin-frappe";
+			self.render();
+			self.changed();
+		});
+	}
+
+	_selected_profile() {
+		var id = this.$root.find("#sts-profile-select").val();
+		return ((this.state && this.state.profiles) || []).find(function (item) { return item.id === id; });
+	}
+
+	_profile_action(action) {
+		var self = this, profile = this._selected_profile();
+		if (action === "apply") {
+			if (!profile) return;
+			this._checkpoint();
+			this.config = this._clone(profile.config);
+			this.active_profile = profile.id;
+			this.render();
+			this.changed();
+			if (profile.config.preferred_mode === "Dark") this.$preview.attr("data-theme", "dark");
+			return;
+		}
+		if (action === "create") {
+			frappe.prompt(
+				[
+					{ fieldname: "name", fieldtype: "Data", label: __("Theme name"), reqd: 1 },
+					{ fieldname: "description", fieldtype: "Small Text", label: __("Description") },
+				],
+				function (values) {
+					self._call_profile("create", { name: values.name, description: values.description, config: self.config });
+				},
+				__("Save as custom theme")
+			);
+			return;
+		}
+		if (!profile) return;
+		if (action === "duplicate") {
+			frappe.prompt(
+				{ fieldname: "name", fieldtype: "Data", label: __("Copy name"), default: profile.name + " Copy", reqd: 1 },
+				function (values) { self._call_profile("duplicate", { profile_id: profile.id, name: values.name }); },
+				__("Duplicate theme")
+			);
+			return;
+		}
+		if (profile.builtin) {
+			frappe.show_alert({ message: __("Built-in themes cannot be changed; duplicate it first"), indicator: "orange" }, 4);
+			return;
+		}
+		if (action === "update") {
+			this._call_profile("update", { profile_id: profile.id, name: profile.name, description: profile.description, config: this.config });
+		} else if (action === "rename") {
+			frappe.prompt(
+				{ fieldname: "name", fieldtype: "Data", label: __("New name"), default: profile.name, reqd: 1 },
+				function (values) { self._call_profile("rename", { profile_id: profile.id, name: values.name }); },
+				__("Rename theme")
+			);
+		} else if (action === "delete") {
+			frappe.confirm(__("Delete custom theme “{0}”?").replace("{0}", profile.name), function () {
+				self._call_profile("delete", { profile_id: profile.id });
+			});
+		}
+	}
+
+	_call_profile(action, args) {
+		var self = this;
+		frappe.call({
+			method: "solvronix_desk.theme_api.manage_theme_profile",
+			args: $.extend({ action: action }, args || {}),
+			freeze: true,
+			callback: function (response) {
+				if (!response.message) return;
+				self.state = response.message;
+				if (action === "create" || action === "duplicate") {
+					var custom = self.state.profiles.filter(function (item) { return !item.builtin; });
+					self.active_profile = custom.length ? custom[custom.length - 1].id : "";
+				}
+				self.render();
+				frappe.show_alert({ message: __("Theme profiles updated"), indicator: "green" });
+			},
+		});
+	}
+
+	save_draft() {
+		var self = this;
+		frappe.call({
+			method: "solvronix_desk.theme_api.save_theme_draft",
+			args: { config: this.config },
+			freeze: true,
+			freeze_message: __("Saving private draft…"),
+			callback: function (response) {
+				if (!response.message) return;
+				self.config = self._clone(response.message.config);
+				self._update_wcag(response.message.wcag_failures);
+				frappe.show_alert({ message: __("Draft saved; published theme is unchanged"), indicator: "blue" }, 4);
+			},
+		});
+	}
+
+	toggle_compare() {
+		var $stage = this.$root.find(".sts-stage");
+		var existing = $stage.find(".sts-default-frame");
+		if (existing.length) {
+			existing.remove();
+			$stage.removeClass("is-comparing");
+			this.$root.find('[data-action="compare"]').text(__("Compare with default"));
+			return;
+		}
+		var defaults = this._default_config();
+		var $clone = this.$preview.clone(false).removeAttr("id").addClass("sts-default-frame");
+		$clone.prepend('<div class="sts-compare-label">' + __("Frappe-friendly default") + "</div>");
+		this._apply_preview_vars($clone, defaults);
+		$stage.addClass("is-comparing").append($clone);
+		this.$root.find('[data-action="compare"]').text(__("Close comparison"));
+	}
+
+	export_theme() {
+		var profile = this._selected_profile();
+		var payload = {
+			schema: "solvronix-theme/v1",
+			name: profile ? profile.name : "Custom Theme",
+			description: profile ? profile.description : "",
+			exported_at: new Date().toISOString(),
+			config: this.config,
+		};
+		var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+		var url = URL.createObjectURL(blob), anchor = document.createElement("a");
+		anchor.href = url;
+		anchor.download = String(payload.name || "theme").toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".json";
+		anchor.click();
+		setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+	}
+
+	import_theme(file) {
+		if (!file) return;
+		var self = this, reader = new FileReader();
+		reader.onload = function () {
+			try {
+				var data = JSON.parse(reader.result);
+				frappe.call({
+					method: "solvronix_desk.theme_api.import_theme_profile",
+					args: { payload: data, name: data.name || file.name.replace(/\.json$/i, "") },
+					freeze: true,
+					callback: function (response) {
+						if (!response.message) return;
+						self.state = response.message;
+						var custom = self.state.profiles.filter(function (item) { return !item.builtin; });
+						var imported = custom[custom.length - 1];
+						if (imported) {
+							self.active_profile = imported.id;
+							self.config = self._clone(imported.config);
+						}
+						self.render();
+						self.changed();
+						frappe.show_alert({ message: __("Theme imported"), indicator: "green" });
+					},
+				});
+			} catch (error) {
+				frappe.show_alert({ message: __("Invalid theme file: ") + error.message, indicator: "red" }, 5);
+			}
+		};
+		reader.readAsText(file);
+	}
+
+	show_versions() {
+		var self = this, versions = (this.state && this.state.versions) || [];
+		var dialog = new frappe.ui.Dialog({ title: __("Theme version history"), fields: [{ fieldname: "versions", fieldtype: "HTML" }] });
+		dialog.fields_dict.versions.$wrapper.html(
+			'<div class="sts-version-list">' + (versions.length ? versions.map(function (version) {
+				return '<div><span><b>' + self._esc(version.label || __("Published theme")) + "</b><small>" +
+					self._esc(version.created || "") + " · " + self._esc(version.user || "") +
+					'</small></span><button class="btn btn-xs btn-default" data-version="' + self._esc(version.id) + '">' + __("Restore as draft") + "</button></div>";
+			}).join("") : '<p class="text-muted">' + __("No backups yet. A backup is created before every publish.") + "</p>") + "</div>"
+		);
+		dialog.fields_dict.versions.$wrapper.on("click", "[data-version]", function () {
+			frappe.call({
+				method: "solvronix_desk.theme_api.restore_theme_version",
+				args: { version_id: $(this).data("version") },
+				freeze: true,
+				callback: function (response) {
+					if (!response.message) return;
+					self._checkpoint();
+					self.config = self._clone(response.message.config);
+					dialog.hide();
+					self.render();
+					self.changed();
+					frappe.show_alert({ message: __("Version restored as draft"), indicator: "green" });
+				},
+			});
+		});
+		dialog.show();
+	}
+
+	_profile_options() {
+		return ((this.state && this.state.profiles) || []).map(function (item) {
+			return { label: item.name, value: item.id };
+		});
+	}
+
+	show_assignments() {
+		var self = this, data = this.state.assignments || {}, flags = this.state.flags || {};
+		var profileOptions = [""].concat(this._profile_options().map(function (item) { return item.value; })).join("\n");
+		var profileReference = '<div class="sts-assignment-reference"><b>' + __("Available profile IDs") + '</b>' +
+			this._profile_options().map(function (item) {
+				return '<code>' + self._esc(item.value) + '</code><span>' + self._esc(item.label) + '</span>';
+			}).join("") + '</div>';
+		var dialog = new frappe.ui.Dialog({
+			title: __("Theme assignments & permissions"),
+			fields: [
+				{ fieldname: "default", fieldtype: "Select", label: __("Default site profile"), options: profileOptions, default: data.default || "" },
+				{ fieldname: "theme_enabled", fieldtype: "Check", label: __("Enable published theme"), default: flags.enabled ? 1 : 0 },
+				{ fieldname: "allow_user_theme", fieldtype: "Check", label: __("Allow users to choose"), default: flags.allow_user_theme ? 1 : 0 },
+				{ fieldname: "theme_lock", fieldtype: "Check", label: __("Administrator theme lock"), default: flags.theme_lock ? 1 : 0 },
+				{ fieldname: "preview_admin_only", fieldtype: "Check", label: __("Administrator-only draft preview"), default: flags.preview_admin_only ? 1 : 0 },
+				{ fieldname: "reference", fieldtype: "HTML", options: profileReference },
+				{ fieldname: "users", fieldtype: "Code", label: __("User assignments (email → profile id JSON)"), options: "JSON", default: JSON.stringify(data.users || {}, null, 2) },
+				{ fieldname: "roles", fieldtype: "Code", label: __("Role assignments (role → profile id JSON)"), options: "JSON", default: JSON.stringify(data.roles || {}, null, 2) },
+				{ fieldname: "companies", fieldtype: "Code", label: __("Company assignments (company → profile id JSON)"), options: "JSON", default: JSON.stringify(data.companies || {}, null, 2) },
+			],
+			primary_action_label: __("Save assignments"),
+			primary_action: function (values) {
+				try {
+					var assignments = {
+						default: values.default || "",
+						users: JSON.parse(values.users || "{}"),
+						roles: JSON.parse(values.roles || "{}"),
+						companies: JSON.parse(values.companies || "{}"),
+					};
+					self._save_assignments(assignments, values, dialog);
+				} catch (error) {
+					frappe.show_alert({ message: __("Invalid assignment JSON: ") + error.message, indicator: "red" }, 5);
+				}
+			},
+		});
+		dialog.show();
+	}
+
+	_save_assignments(assignments, flags, dialog) {
+		var self = this;
+		frappe.call({
+			method: "solvronix_desk.theme_api.save_theme_assignments",
+			args: {
+				data: assignments,
+				flags: {
+					theme_enabled: !!flags.theme_enabled,
+					allow_user_theme: !!flags.allow_user_theme,
+					theme_lock: !!flags.theme_lock,
+					preview_admin_only: !!flags.preview_admin_only,
+				},
+			},
+			freeze: true,
+			callback: function (response) {
+				if (!response.message) return;
+				self.state = response.message;
+				dialog && dialog.hide();
+				self.render();
+				frappe.show_alert({ message: __("Theme assignments saved"), indicator: "green" });
+			},
+		});
+	}
+
+	show_schedule() {
+		var self = this, schedule = this.state.schedule || {};
+		var profileOptions = [""].concat(this._profile_options().map(function (item) { return item.value; })).join("\n");
+		var dialog = new frappe.ui.Dialog({
+			title: __("Schedule theme activation"),
+			fields: [
+				{ fieldname: "enabled", fieldtype: "Check", label: __("Enable schedule"), default: schedule.enabled ? 1 : 0 },
+				{ fieldname: "profile_id", fieldtype: "Select", label: __("Theme profile"), options: profileOptions, default: schedule.profile_id || "" },
+				{ fieldname: "activate_at", fieldtype: "Datetime", label: __("Activate at"), default: schedule.activate_at || "" },
+				{ fieldname: "deactivate_at", fieldtype: "Datetime", label: __("Deactivate at"), default: schedule.deactivate_at || "" },
+			],
+			primary_action_label: __("Save schedule"),
+			primary_action: function (values) {
+				frappe.call({
+					method: "solvronix_desk.theme_api.save_theme_schedule",
+					args: { data: values },
+					freeze: true,
+					callback: function (response) {
+						if (!response.message) return;
+						self.state = response.message;
+						dialog.hide();
+						frappe.show_alert({ message: __("Theme schedule saved"), indicator: "green" });
+					},
+				});
+			},
+		});
+		dialog.show();
+	}
+
+	clear_cache() {
+		frappe.call({
+			method: "solvronix_desk.theme_api.clear_theme_cache",
+			args: { reload_desk: 1 },
+			freeze: true,
+			callback: function () { window.location.reload(); },
+		});
+	}
+
+	toggle_theme_enabled() {
+		var flags = $.extend({}, this.state.flags || {});
+		flags.theme_enabled = !flags.enabled;
+		this._save_assignments(this.state.assignments || {}, flags);
 	}
 
 	_sync_layout() {
@@ -341,17 +1047,27 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	_refresh_controls() {
 		var self = this;
 		Object.keys(this.config).forEach(function (key) {
-			self.$root.find('[data-setting="' + key + '"]').val(self.config[key]);
+			var $control = self.$root.find('[data-setting="' + key + '"]');
+			if ($control.is(':checkbox')) $control.prop("checked", !!self.config[key]);
+			else if ($control.data("palette")) $control.val((self.config[key] || []).join(", "));
+			else $control.val(self.config[key]);
 			self.$root.find('[data-hex="' + key + '"]').val(self.config[key]);
-			self.$root.find('[data-output="' + key + '"]').text(self.config[key] + "px");
+			var $output = self.$root.find('[data-output="' + key + '"]');
+			$output.text(self.config[key] + ($output.data("unit") || ""));
+			self.$root.find('[data-json-setting="' + key + '"]').val(JSON.stringify(self.config[key] || [], null, 2));
 		});
+		this.$root.find("#sts-raw-theme-json").val(JSON.stringify(this.config, null, 2));
 		this.render_blocks();
 		this.changed(false);
 	}
 
 	changed(mark) {
 		if (mark !== false) this.dirty = true;
-		this.dirty = JSON.stringify(this.config) !== JSON.stringify(this.saved);
+		this.dirty = JSON.stringify(this.config) !== JSON.stringify(this.saved) ||
+			this.active_profile !== this.published_profile;
+		if (!document.activeElement || document.activeElement.id !== "sts-raw-theme-json") {
+			this.$root.find("#sts-raw-theme-json").val(JSON.stringify(this.config, null, 2));
+		}
 		this.apply();
 		this.$root.toggleClass("is-dirty", this.dirty);
 		this.page.btn_primary && this.page.btn_primary.toggleClass("btn-warning", this.dirty);
@@ -360,12 +1076,30 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	apply() {
 		if (!this.config || !this.$preview) return;
 		var c = this.config;
+		this._apply_preview_vars(this.$preview, c);
+		this.$preview.attr("data-theme", c.preferred_mode === "Dark" ? "dark" : "light");
+		this.$preview.attr("data-density", String(c.density || "Comfortable").toLowerCase());
+		this.$root.find(".sts-segments button").removeClass("active")
+			.filter('[data-value="' + c.shadow_style + '"]').addClass("active");
+		this.$root.find('[data-action="undo"]').prop("disabled", !this.history.length);
+		this.$root.find('[data-action="redo"]').prop("disabled", !this.future.length);
+		this._update_wcag();
+		if (window.stApplyDark) {
+			var previewDark = c.preferred_mode === "Dark" ||
+				(c.preferred_mode === "Auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+			stApplyDark(!!previewDark);
+		}
+		this._apply_draft_to_desk();
+		this._refresh_server_preview();
+	}
+
+	_apply_preview_vars($target, c) {
 		var shadow = {
 			None: "none",
 			Soft: "0 10px 28px rgba(22,28,45,.09)",
 			Elevated: "0 18px 42px rgba(22,28,45,.17)",
 		}[c.shadow_style] || "none";
-		this.$preview.css({
+		$target.css({
 			"--studio-brand": c.brand_color,
 			"--studio-accent": c.accent_color,
 			"--studio-sidebar": c.sidebar_background || "#FFFFFF",
@@ -373,17 +1107,102 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"--studio-page": c.page_background || "#F3F5F7",
 			"--studio-card": c.card_background || "#FFFFFF",
 			"--studio-text": c.text_color || "#19202D",
+			"--studio-muted": c.muted_text_color || "#697386",
+			"--studio-border": c.border_color || "#E1E5EA",
+			"--studio-link": c.link_color || c.brand_color,
+			"--studio-primary-btn": c.primary_button_color || c.accent_color,
+			"--studio-secondary-btn": c.secondary_button_color,
+			"--studio-secondary-text": c.secondary_button_text,
+			"--studio-button-radius": c.button_radius + "px",
+			"--studio-button-height": c.button_height + "px",
+			"--studio-input-bg": c.input_background,
+			"--studio-input-border": c.input_border_color,
+			"--studio-focus": c.focus_color,
+			"--studio-readonly": c.readonly_background,
+			"--studio-card-radius": c.card_radius + "px",
+			"--studio-row-height": c.list_row_height + "px",
+			"--studio-table-header": c.table_header_color,
+			"--studio-row-alt": c.alternate_row_color,
+			"--studio-row-selected": c.selected_row_color,
+			"--studio-row-hover": c.row_hover_color,
+			"--studio-success": c.success_color,
+			"--studio-warning": c.warning_color,
+			"--studio-error": c.error_color,
+			"--studio-info": c.info_color,
+			"--studio-font": '"' + (c.font_family || "Aptos").replace(/["']/g, "") + '", sans-serif',
+			"--studio-base-font": c.base_font_px + "px",
 			"--studio-radius": c.corner_radius + "px",
 			"--studio-sidebar-width": c.sidebar_width + "px",
 			"--studio-shadow": shadow,
-			"--studio-sidebar-text": this._contrast(c.sidebar_background || "#FFFFFF"),
-			"--studio-toolbar-text": this._contrast(c.navbar_background || c.brand_color),
+			"--studio-sidebar-text": c.sidebar_text_color || this._contrast(c.sidebar_background || "#FFFFFF"),
+			"--studio-sidebar-active": c.sidebar_active_color || c.accent_color,
+			"--studio-sidebar-active-text": c.sidebar_active_text_color || this._contrast(c.sidebar_active_color),
+			"--studio-toolbar-text": c.toolbar_text_color || this._contrast(c.navbar_background || c.brand_color),
+			"--studio-chart-1": (c.chart_palette || [])[0] || c.brand_color,
+			"--studio-chart-2": (c.chart_palette || [])[1] || c.accent_color,
+			"--studio-login-bg": c.login_background,
+			"--studio-login-to": c.login_gradient_to,
+			"--studio-login-angle": c.login_gradient_angle + "deg",
+			"--studio-login-opacity": c.login_card_opacity + "%",
 		});
-		this.$root.find(".sts-segments button").removeClass("active")
-			.filter('[data-value="' + c.shadow_style + '"]').addClass("active");
-		this.$root.find('[data-action="undo"]').prop("disabled", !this.history.length);
-		this.$root.find('[data-action="redo"]').prop("disabled", !this.future.length);
-		this._apply_draft_to_desk();
+		$target.find("[data-login-heading]").text(c.login_heading || __("Welcome back"));
+		$target.find("[data-login-description]").text(c.login_description || "");
+		$target.find("[data-login-footer]").text(c.footer_text || "Solvronix Desk");
+	}
+
+	_refresh_server_preview() {
+		var self = this, snapshot = JSON.stringify(this.config);
+		clearTimeout(this.preview_timer);
+		this.preview_timer = setTimeout(function () {
+			frappe.call({
+				method: "solvronix_desk.theme_api.preview_theme_css",
+				args: { config: self.config },
+				callback: function (response) {
+					if (!response.message || snapshot !== JSON.stringify(self.config)) return;
+					var element = document.getElementById("st-studio-draft") || document.createElement("style");
+					element.id = "st-studio-draft";
+					element.textContent = response.message.css;
+					if (!element.parentNode) document.head.appendChild(element);
+					self._update_wcag(response.message.wcag_failures);
+				},
+			});
+		}, 220);
+	}
+
+	_update_wcag(serverFailures) {
+		var failures = serverFailures || [];
+		if (!serverFailures) {
+			var pairs = [
+				[__("Text / page"), this.config.text_color, this.config.page_background],
+				[__("Text / card"), this.config.text_color, this.config.card_background],
+				[__("Link / page"), this.config.link_color, this.config.page_background],
+				[__("Sidebar text"), this.config.sidebar_text_color || this._contrast(this.config.sidebar_background), this.config.sidebar_background],
+				[__("Toolbar text"), this.config.toolbar_text_color || this._contrast(this.config.navbar_background), this.config.navbar_background],
+				[__("Active menu text"), this.config.sidebar_active_text_color || this._contrast(this.config.sidebar_active_color), this.config.sidebar_active_color],
+			];
+			failures = pairs.filter(function (pair) { return this._ratio(pair[1], pair[2]) < 4.5; }, this)
+				.map(function (pair) { return pair[0]; });
+		}
+		var $card = this.$root.find("#sts-wcag-card");
+		if (!$card.length) return;
+		$card.toggleClass("has-errors", failures.length > 0).html(
+			'<strong>' + (failures.length ? __("WCAG AA needs attention") : __("WCAG AA checks passed")) + "</strong>" +
+			'<p>' + (failures.length ? this._esc(failures.join(", ")) : __("All primary text/background pairs meet 4.5:1.")) + "</p>"
+		);
+	}
+
+	_ratio(foreground, background) {
+		function luminance(value) {
+			var hex = String(value || "").replace("#", "");
+			if (!/^[0-9a-f]{6}$/i.test(hex)) return 0;
+			var channels = [0, 2, 4].map(function (index) {
+				var component = parseInt(hex.slice(index, index + 2), 16) / 255;
+				return component <= 0.04045 ? component / 12.92 : Math.pow((component + 0.055) / 1.055, 2.4);
+			});
+			return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+		}
+		var values = [luminance(foreground), luminance(background)].sort(function (a, b) { return b - a; });
+		return (values[0] + 0.05) / (values[1] + 0.05);
 	}
 
 	save() {
@@ -394,14 +1213,20 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		var self = this;
 		this.page.btn_primary.prop("disabled", true);
 		frappe.call({
-			method: "solvronix_desk.api.save_theme_config",
-			args: { config: this.config },
+			method: "solvronix_desk.theme_api.publish_theme_config",
+			args: {
+				config: this.config,
+				label: __("Before publishing from Theme Studio"),
+				profile_id: this.active_profile || this.$root.find("#sts-profile-select").val() || "",
+			},
 			freeze: true,
 			freeze_message: __("Publishing your theme…"),
 			callback: function (r) {
 				if (!r.message) return;
 				self.config = self._clone(r.message.config);
 				self.saved = self._clone(r.message.config);
+				self.state = r.message.state || self.state;
+				self.published_profile = self.active_profile;
 				self.history = [];
 				self.future = [];
 				self.dirty = false;
@@ -498,9 +1323,18 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	remove_draft() {
 		var el = document.getElementById("st-studio-draft");
 		if (el) el.remove();
+		if (window.stApplyDark) stApplyDark(this.original_dark);
 	}
 
 	_clone(value) { return JSON.parse(JSON.stringify(value)); }
+
+	_esc(value) {
+		return String(value === undefined || value === null ? "" : value)
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;");
+	}
 
 	_contrast(color) {
 		var hex = String(color || "").replace("#", "");
@@ -508,7 +1342,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		var r = parseInt(hex.slice(0, 2), 16);
 		var g = parseInt(hex.slice(2, 4), 16);
 		var b = parseInt(hex.slice(4, 6), 16);
-		return ((0.299 * r + 0.587 * g + 0.114 * b) / 255) > 0.62 ? "#19202D" : "#FFFFFF";
+		return ((0.299 * r + 0.587 * g + 0.114 * b) / 255) > 0.45 ? "#19202D" : "#FFFFFF";
 	}
 
 	_icon(name) {

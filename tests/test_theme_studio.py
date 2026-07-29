@@ -5,8 +5,11 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 API = ROOT / "solvronix_desk" / "api.py"
+THEME_API = ROOT / "solvronix_desk" / "theme_api.py"
+ENGINE = ROOT / "solvronix_desk" / "theme_engine.py"
 HOOKS = ROOT / "solvronix_desk" / "hooks.py"
 SETTINGS = ROOT / "solvronix_desk" / "solvronix_desk" / "doctype" / "theme_settings" / "theme_settings.json"
+PREFERENCE = ROOT / "solvronix_desk" / "solvronix_desk" / "doctype" / "theme_preference" / "theme_preference.json"
 PAGE = ROOT / "solvronix_desk" / "solvronix_desk" / "page" / "theme_studio" / "theme_studio.js"
 PAGE_JSON = PAGE.with_name("theme_studio.json")
 CSS = ROOT / "solvronix_desk" / "public" / "css" / "theme_studio.css"
@@ -31,13 +34,29 @@ class ThemeStudioTest(unittest.TestCase):
                 "sidebar_width", "studio_layout",
             }.issubset(fields)
         )
+        self.assertTrue(
+            {
+                "theme_enabled", "allow_user_theme", "theme_lock",
+                "theme_studio_config", "theme_studio_draft", "theme_profiles",
+                "theme_versions", "theme_assignments", "theme_schedule",
+            }.issubset(fields)
+        )
+        preference = json.loads(PREFERENCE.read_text(encoding="utf-8"))
+        self.assertEqual(preference["autoname"], "field:user")
+        self.assertEqual(
+            {field["fieldname"] for field in preference["fields"]},
+            {"user", "theme_profile"},
+        )
 
     def test_api_validates_and_persists_studio_configuration(self):
-        api = API.read_text(encoding="utf-8")
+        api = THEME_API.read_text(encoding="utf-8")
+        engine = ENGINE.read_text(encoding="utf-8")
         self.assertIn('frappe.only_for("System Manager")', api)
-        self.assertIn("def save_theme_config(config):", api)
-        self.assertIn("HEX_COLOR.fullmatch", api)
-        self.assertIn("settings.studio_layout", api)
+        self.assertIn("def publish_theme_config(", api)
+        self.assertIn("def save_theme_draft(", api)
+        self.assertIn("def manage_theme_profile(", api)
+        self.assertIn("HEX_COLOR.fullmatch", engine)
+        self.assertIn("settings.theme_studio_config", api)
 
     def test_editor_has_drag_history_and_responsive_preview(self):
         js = PAGE.read_text(encoding="utf-8")
@@ -53,20 +72,46 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("on_page_hide", js)
 
     def test_published_navigation_tokens_reach_actual_desk_selectors(self):
-        api = API.read_text(encoding="utf-8")
+        engine = ENGINE.read_text(encoding="utf-8")
         desk_css = DESK_CSS.read_text(encoding="utf-8")
         sidebar_css = SIDEBAR_CSS.read_text(encoding="utf-8")
         dark_css = DARK_CSS.read_text(encoding="utf-8")
-        self.assertIn('"navbar_background", "--st-toolbar-bg"', api)
-        self.assertIn('--sidebar-width: {config["sidebar_width"]}px', api)
+        self.assertIn('"--st-toolbar-bg": config["navbar_background"]', engine)
+        self.assertIn('"--sidebar-width":', engine)
         self.assertIn("background: var(--st-toolbar-bg", desk_css)
         self.assertIn("var(--st-sidebar-width, var(--sidebar-width))", sidebar_css)
         self.assertIn("var(--st-sidebar-bg, var(--fg-color, #fff))", dark_css)
 
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=2", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=3", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=6", hooks)
+        self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=2", hooks)
+        self.assertIn('"on_update": "solvronix_desk.events.theme_settings_on_update"', hooks)
+
+    def test_complete_studio_feature_surfaces_exist(self):
+        js = PAGE.read_text(encoding="utf-8")
+        api = THEME_API.read_text(encoding="utf-8")
+        engine = ENGINE.read_text(encoding="utf-8")
+        for token in (
+            "Main colours", "Navbar & sidebar", "Buttons & fields", "Typography",
+            "Cards, lists & tables", "Workspace & dashboard", "Login & branding",
+            "Layout", "Accessibility", "Developer options", "Profiles & deployment",
+        ):
+            self.assertIn(token, js)
+        for endpoint in (
+            "save_theme_draft", "publish_theme_config", "manage_theme_profile",
+            "restore_theme_version", "import_theme_profile",
+            "save_theme_assignments", "save_theme_schedule", "clear_theme_cache",
+            "get_resolved_theme_runtime",
+        ):
+            self.assertIn(f"def {endpoint}", api)
+        self.assertIn("builtin-high-contrast", engine)
+        self.assertIn("wcag_failures", engine)
+        self.assertIn("custom_js", engine)
+        self.assertIn("scoped_rules", engine)
+        self.assertIn("def resolve_profile_id(", engine)
+        self.assertIn('"preferred_mode", "Theme mode"', js)
 
 
 if __name__ == "__main__":

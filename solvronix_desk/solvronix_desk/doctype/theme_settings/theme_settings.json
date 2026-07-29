@@ -33,6 +33,19 @@
   "shadow_style",
   "sidebar_width",
   "studio_layout",
+  "section_theme_engine",
+  "theme_enabled",
+  "allow_user_theme",
+  "column_break_theme_engine",
+  "theme_lock",
+  "preview_admin_only",
+  "active_profile",
+  "theme_studio_config",
+  "theme_studio_draft",
+  "theme_profiles",
+  "theme_versions",
+  "theme_assignments",
+  "theme_schedule",
   "section_features",
   "enable_command_palette",
   "column_break_features",
@@ -209,6 +222,92 @@
    "fieldtype": "Code",
    "hidden": 1,
    "label": "Theme Studio Preview Layout",
+   "options": "JSON"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_theme_engine",
+   "fieldtype": "Section Break",
+   "label": "Theme Studio Engine"
+  },
+  {
+   "default": "1",
+   "description": "Apply the published Theme Studio configuration.",
+   "fieldname": "theme_enabled",
+   "fieldtype": "Check",
+   "label": "Enable Published Theme"
+  },
+  {
+   "default": "1",
+   "description": "Allow users to select an assigned or available theme profile.",
+   "fieldname": "allow_user_theme",
+   "fieldtype": "Check",
+   "label": "Allow User Theme Choice"
+  },
+  {
+   "fieldname": "column_break_theme_engine",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Force the administrator-selected theme and ignore user overrides.",
+   "fieldname": "theme_lock",
+   "fieldtype": "Check",
+   "label": "Lock Theme"
+  },
+  {
+   "default": "1",
+   "description": "Unpublished live previews remain visible only to System Managers.",
+   "fieldname": "preview_admin_only",
+   "fieldtype": "Check",
+   "label": "Administrator-only Preview"
+  },
+  {
+   "fieldname": "active_profile",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Active Theme Profile"
+  },
+  {
+   "fieldname": "theme_studio_config",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Published Theme Configuration",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "theme_studio_draft",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Theme Draft",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "theme_profiles",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Theme Profiles",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "theme_versions",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Theme Version History",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "theme_assignments",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Theme Assignments",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "theme_schedule",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Theme Schedule",
    "options": "JSON"
   },
   {

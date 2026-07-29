@@ -1,0 +1,179 @@
+/* Solvronix Theme Studio — runtime context, assignments, and advanced rules */
+(function () {
+  "use strict";
+
+  var config = (window.frappe && frappe.boot && frappe.boot.st_theme_config) || {};
+  var flags = (window.frappe && frappe.boot && frappe.boot.st_theme_flags) || {};
+  var profiles = (window.frappe && frappe.boot && frappe.boot.st_theme_profiles) || [];
+  var scheduleTimer = null;
+
+  function setRouteContext() {
+    var route = [];
+    try { route = frappe.get_route ? frappe.get_route() : []; } catch (e) {}
+    var html = document.documentElement;
+    ["data-st-page", "data-st-doctype", "data-st-workspace"].forEach(function (name) {
+      html.removeAttribute(name);
+    });
+    if (!route.length) return;
+    var first = String(route[0] || "");
+    if (first === "Form" || first === "List" || first === "Tree" || first === "Report") {
+      if (route[1]) html.setAttribute("data-st-doctype", String(route[1]));
+    } else if (first === "Workspaces" || first === "workspace") {
+      if (route[1]) html.setAttribute("data-st-workspace", String(route[1]));
+    } else {
+      html.setAttribute("data-st-page", first);
+      if (first === "home" && route[1]) html.setAttribute("data-st-workspace", String(route[1]));
+    }
+    applyClassMappings();
+  }
+
+  function applyClassMappings() {
+    (config.class_mappings || []).forEach(function (mapping) {
+      try {
+        document.querySelectorAll(mapping.selector).forEach(function (element) {
+          element.classList.add(mapping.class_name);
+        });
+      } catch (e) {
+        /* Invalid custom selectors fail soft. */
+      }
+    });
+  }
+
+  function applyLayoutPreferences() {
+    document.documentElement.setAttribute(
+      "data-st-density",
+      String(config.density || "Comfortable").toLowerCase()
+    );
+    document.documentElement.setAttribute(
+      "data-st-shortcuts",
+      String(config.shortcut_style || "Soft").toLowerCase()
+    );
+    document.documentElement.setAttribute(
+      "data-st-icons",
+      String(config.module_icon_style || "Tinted").toLowerCase()
+    );
+    document.documentElement.setAttribute(
+      "data-st-empty-state",
+      String(config.empty_state_style || "Illustrated").toLowerCase()
+    );
+
+    var sidebar = document.querySelector(".body-sidebar-container");
+    if (sidebar && config.sidebar_mode === "Expanded") sidebar.classList.add("expanded");
+    if (sidebar && config.sidebar_auto_collapse && !sidebar.dataset.stAutoCollapse) {
+      sidebar.dataset.stAutoCollapse = "1";
+      sidebar.addEventListener("mouseleave", function () {
+        sidebar.classList.remove("expanded");
+      });
+    }
+  }
+
+  function installUserThemeSelector() {
+    if (!flags.allow_user_theme || flags.locked || !profiles.length) return;
+    var host = document.getElementById("st-op-appearance");
+    if (!host || document.getElementById("st-user-theme-profile")) return;
+    var row = document.createElement("div");
+    row.className = "st-op-appearance-row st-theme-profile-row";
+    row.innerHTML =
+      '<span class="st-op-app-label">' + (frappe._ ? frappe._("Theme profile") : "Theme profile") + '</span>' +
+      '<select id="st-user-theme-profile" class="form-control input-xs"></select>';
+    var select = row.querySelector("select");
+    select.innerHTML = '<option value="">' + (frappe._ ? frappe._("Site default") : "Site default") + "</option>" +
+      profiles.map(function (profile) {
+        return '<option value="' + frappe.utils.escape_html(profile.id) + '">' +
+          frappe.utils.escape_html(profile.name) + "</option>";
+      }).join("");
+    select.value = (frappe.boot && frappe.boot.st_active_theme_profile) || "";
+    select.addEventListener("change", function () {
+      frappe.call({
+        method: "solvronix_desk.theme_api.set_user_theme_profile",
+        args: { profile_id: select.value },
+        freeze: true,
+        callback: function (response) {
+          var css = response && response.message && response.message.css;
+          if (css) {
+            var element = document.getElementById("st-dynamic-theme") || document.createElement("style");
+            element.id = "st-dynamic-theme";
+            element.textContent = css;
+            if (!element.parentNode) document.head.appendChild(element);
+          }
+          var preferred = response && response.message && response.message.preferred_mode;
+          if (preferred && window.stSetThemeMode) {
+            stSetThemeMode(String(preferred).toLowerCase());
+          }
+          frappe.show_alert({ message: __("Theme profile applied"), indicator: "green" });
+        }
+      });
+    });
+    host.appendChild(row);
+  }
+
+  function executeCustomJavaScript() {
+    if (!config.enable_custom_js || !config.custom_js || window.__stCustomJsExecuted) return;
+    window.__stCustomJsExecuted = true;
+    try {
+      /* System Manager-authored code. Deliberately opt-in and disabled by default. */
+      new Function("frappe", "config", '"use strict";\n' + config.custom_js)(frappe, config);
+    } catch (error) {
+      if (window.console) console.error("Solvronix custom theme JavaScript failed", error);
+    }
+  }
+
+  function applyRuntime(runtime) {
+    if (!runtime) return;
+    var element = document.getElementById("st-dynamic-theme") || document.createElement("style");
+    element.id = "st-dynamic-theme";
+    element.textContent = runtime.css || "";
+    if (!element.parentNode) document.head.appendChild(element);
+    config = runtime.config || config;
+    if (runtime.preferred_mode && window.stSetThemeMode) {
+      stSetThemeMode(String(runtime.preferred_mode).toLowerCase());
+    }
+    applyLayoutPreferences();
+    applyClassMappings();
+    ensureScheduleTimer(runtime.schedule);
+  }
+
+  function ensureScheduleTimer(schedule) {
+    schedule = schedule || {};
+    if (schedule.enabled && !scheduleTimer) {
+      scheduleTimer = window.setInterval(refreshScheduledTheme, 60000);
+    } else if (!schedule.enabled && scheduleTimer) {
+      window.clearInterval(scheduleTimer);
+      scheduleTimer = null;
+    }
+  }
+
+  function refreshScheduledTheme() {
+    frappe.call({
+      method: "solvronix_desk.theme_api.get_resolved_theme_runtime",
+      callback: function (response) {
+        applyRuntime(response && response.message);
+      }
+    });
+  }
+
+  function ready() {
+    setRouteContext();
+    applyLayoutPreferences();
+    applyClassMappings();
+    installUserThemeSelector();
+    executeCustomJavaScript();
+    window.addEventListener("st-theme-runtime-refresh", function (event) {
+      applyRuntime(event.detail || {});
+    });
+    if (frappe.router && frappe.router.on) frappe.router.on("change", setRouteContext);
+    var observer = new MutationObserver(function () {
+      applyLayoutPreferences();
+      applyClassMappings();
+      installUserThemeSelector();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    ensureScheduleTimer((frappe.boot && frappe.boot.st_theme_schedule) || {});
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", ready);
+  } else {
+    ready();
+  }
+}());

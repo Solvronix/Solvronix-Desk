@@ -2,6 +2,7 @@ import json
 import re
 
 import frappe
+from solvronix_desk import theme_engine
 
 # Site-default font size name → root font-size. Rem-based sizing scales with it.
 FONT_SIZE_CSS = {
@@ -62,28 +63,7 @@ def _layout(value):
 
 
 def _theme_config(settings):
-    config = {
-        "brand_color": _color(settings.brand_color, "#1B3F7E"),
-        "accent_color": _color(settings.accent_color, "#F57C00"),
-        "sidebar_background": _color(getattr(settings, "sidebar_background", "")),
-        "navbar_background": _color(getattr(settings, "navbar_background", "")),
-        "page_background": _color(getattr(settings, "page_background", "")),
-        "card_background": _color(getattr(settings, "card_background", "")),
-        "text_color": _color(getattr(settings, "text_color", "")),
-        "corner_radius": _clamp(getattr(settings, "corner_radius", 8), 0, 24, 8),
-        "shadow_style": (
-            getattr(settings, "shadow_style", "Soft")
-            if getattr(settings, "shadow_style", "Soft") in SHADOW_CSS
-            else "Soft"
-        ),
-        "sidebar_width": _clamp(getattr(settings, "sidebar_width", 240), 200, 320, 240),
-        "layout": _layout(getattr(settings, "studio_layout", "")),
-    }
-    config["sidebar_text"] = _contrast_text(config["sidebar_background"] or "#FFFFFF")
-    config["toolbar_text"] = _contrast_text(
-        config["navbar_background"] or config["brand_color"]
-    )
-    return config
+    return theme_engine.resolve_config(settings)
 
 
 @frappe.whitelist(allow_guest=True)
@@ -95,65 +75,12 @@ def get_theme_css():
     Per-user font/density overrides are applied client-side on top of this.
     """
     try:
-        s = frappe.get_single("Theme Settings")
-        config = _theme_config(s)
-        brand = config["brand_color"]
-        accent = config["accent_color"]
-        font   = FONT_SIZE_CSS.get(getattr(s, "base_font_size", None) or "Default", "100%")
-        overrides = []
-        for field, token in (
-            ("sidebar_background", "--st-sidebar-bg"),
-            ("navbar_background", "--st-navbar-bg"),
-            ("navbar_background", "--st-toolbar-bg"),
-            ("page_background", "--st-page-bg"),
-            ("card_background", "--st-card-bg"),
-            ("text_color", "--st-text"),
-            ("text_color", "--st-text-primary"),
-        ):
-            if config[field]:
-                overrides.append(f"  {token}: {config[field]};")
-        radius = config["corner_radius"]
-        shadows = SHADOW_CSS[config["shadow_style"]]
-        if config["sidebar_background"]:
-            sidebar_text = _contrast_text(config["sidebar_background"])
-            overrides.extend(
-                (
-                    f"  --st-sidebar-text: {sidebar_text};",
-                    f"  --st-sidebar-text-muted: color-mix(in srgb, {sidebar_text} 62%, transparent);",
-                    f"  --st-sidebar-hover: color-mix(in srgb, {sidebar_text} 9%, transparent);",
-                    f"  --st-sidebar-border: color-mix(in srgb, {sidebar_text} 12%, transparent);",
-                )
-            )
-        if config["navbar_background"]:
-            toolbar_text = _contrast_text(config["navbar_background"])
-            overrides.append(f"  --st-toolbar-text: {toolbar_text};")
-        dark_overrides = []
-        for field, token in (
-            ("sidebar_background", "--st-sidebar-bg"),
-            ("navbar_background", "--st-navbar-bg"),
-        ):
-            if config[field]:
-                dark_overrides.append(f"  {token}: {config[field]};")
-        css = f""":root {{
-  --st-brand:   {brand};
-  --st-accent:  {accent};
-  --st-primary: var(--st-brand);
-  --st-font-size: {font};
-  --st-radius: {radius}px;
-  --st-radius-sm: {max(0, radius - 2)}px;
-  --st-radius-lg: {radius + 4}px;
-  --st-sidebar-width: {config["sidebar_width"]}px;
-  --sidebar-width: {config["sidebar_width"]}px;
-  --st-shadow-sm: {shadows[0]};
-  --st-shadow-md: {shadows[1]};
-  --st-shadow-lg: {shadows[2]};
-{chr(10).join(overrides)}
-  font-size: {font};
-}}
-{f'''[data-theme="dark"] {{
-{chr(10).join(dark_overrides)}
-}}''' if dark_overrides else ''}"""
-        return css
+        settings = frappe.get_single("Theme Settings")
+        enabled = bool(getattr(settings, "theme_enabled", 1))
+        return theme_engine.render_css(
+            theme_engine.resolve_config(settings, getattr(frappe.session, "user", None)),
+            enabled,
+        )
     except Exception:
         frappe.log_error("solvronix_desk.api.get_theme_css failed")
         return ""
@@ -163,40 +90,14 @@ def get_theme_css():
 def get_theme_config():
     """Return the editable Theme Studio configuration."""
     frappe.only_for("System Manager")
-    return _theme_config(frappe.get_single("Theme Settings"))
+    return theme_engine.published_config(frappe.get_single("Theme Settings"))
 
 
 @frappe.whitelist()
 def save_theme_config(config):
-    """Validate and save values coming from the visual Theme Studio."""
-    frappe.only_for("System Manager")
-    if isinstance(config, str):
-        try:
-            config = json.loads(config)
-        except (TypeError, ValueError):
-            frappe.throw("Invalid theme configuration")
-    if not isinstance(config, dict):
-        frappe.throw("Invalid theme configuration")
-
-    settings = frappe.get_single("Theme Settings")
-    settings.brand_color = _color(config.get("brand_color"), "#1B3F7E")
-    settings.accent_color = _color(config.get("accent_color"), "#F57C00")
-    for field in (
-        "sidebar_background",
-        "navbar_background",
-        "page_background",
-        "card_background",
-        "text_color",
-    ):
-        settings.set(field, _color(config.get(field)))
-    settings.corner_radius = _clamp(config.get("corner_radius"), 0, 24, 8)
-    settings.sidebar_width = _clamp(config.get("sidebar_width"), 200, 320, 240)
-    settings.shadow_style = (
-        config.get("shadow_style") if config.get("shadow_style") in SHADOW_CSS else "Soft"
-    )
-    settings.studio_layout = json.dumps(_layout(config.get("layout")))
-    settings.save()
-    return {"config": _theme_config(settings), "css": get_theme_css()}
+    """Compatibility alias for the complete Theme Studio publish endpoint."""
+    from solvronix_desk.theme_api import publish_theme_config
+    return publish_theme_config(config)
 
 
 @frappe.whitelist(allow_guest=True)
@@ -204,11 +105,16 @@ def get_branding():
     """Return branding config dict for JS logo/favicon/title injection."""
     try:
         s = frappe.get_single("Theme Settings")
+        config = theme_engine.resolve_config(s, getattr(frappe.session, "user", None))
         return {
-            "company_name": s.company_name,
-            "logo":         s.logo,
-            "favicon":      s.favicon,
+            "company_name": config.get("app_title") or s.company_name,
+            "logo":         config.get("company_logo") or s.logo,
+            "favicon":      config.get("favicon") or s.favicon,
             "tagline":      s.tagline,
+            "login_heading": config.get("login_heading"),
+            "login_description": config.get("login_description"),
+            "footer_text": config.get("footer_text"),
+            "hide_powered": config.get("hide_powered"),
         }
     except Exception:
         frappe.log_error("solvronix_desk.api.get_branding failed")
