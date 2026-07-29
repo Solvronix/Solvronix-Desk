@@ -71,6 +71,10 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("sts-toolbar-left", js)
         self.assertIn("st-studio-draft", js)
         self.assertIn("on_page_hide", js)
+        self.assertIn("_resolved_visual_config", js)
+        self.assertIn("_is_dark_palette", js)
+        self.assertIn("_mix_hex", js)
+        self.assertIn("this._apply_draft_to_desk(visual)", js)
 
     def test_published_navigation_tokens_reach_actual_desk_selectors(self):
         engine = ENGINE.read_text(encoding="utf-8")

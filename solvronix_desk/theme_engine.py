@@ -684,10 +684,16 @@ def render_css(config, enabled=True):
     if not enabled:
         return "/* Solvronix custom theme disabled */"
     config = sanitize_config(config, validate_contrast=False)
-    is_dark_profile = config["preferred_mode"] == "Dark"
+    # The selected colour mode is not proof that the stored palette itself is
+    # dark. A light custom theme may select Dark and should receive our derived
+    # dark surfaces instead of reusing white cards inside data-theme="dark".
+    has_dark_surfaces = (
+        relative_luminance(config["page_background"]) < 0.18
+        and relative_luminance(config["card_background"]) < 0.22
+    )
     dark_surface = (
         config
-        if is_dark_profile
+        if has_dark_surfaces
         else {
             **config,
             "navbar_background": f'color-mix(in srgb, {config["brand_color"]} 38%, #090D16)',
@@ -742,7 +748,7 @@ def render_css(config, enabled=True):
             "number_card_color": "#FFFFFF",
             "chart_background": "#FFFFFF",
         }
-        if is_dark_profile
+        if has_dark_surfaces
         else config
     )
     sidebar_text = config["sidebar_text_color"] or contrast_text(config["sidebar_background"])
@@ -868,7 +874,7 @@ def render_css(config, enabled=True):
     large_text = "html{font-size:max(var(--st-base-font),16px)!important}" if config["large_text"] else ""
     hide_powered = ".for-login .powered-by,.page-card .powered-by{display:none!important}" if config["hide_powered"] else ""
     light_mode_override = ""
-    if is_dark_profile:
+    if has_dark_surfaces:
         light_mode_override = f"""
 html:not([data-theme="dark"]) {{
   --st-navbar-bg: {light_surface["navbar_background"]};

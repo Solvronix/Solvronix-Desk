@@ -26,6 +26,7 @@
 - Theme runtime initialization now handles an empty initial Frappe route, allowing Light, Dark, High Contrast, density, and profile state to initialize reliably
 - Sidebar hover/active labels, icons, and primary buttons now use theme-aware automatic contrast colours so controls remain visible with light, dark, or custom palettes
 - List-view reload/menu controls retain their icon width and current theme colour, while EditorJS workspace section headings inherit the active text token
+- Selecting Dark or Auto in Theme Studio now derives a complete mode-appropriate surface palette instead of treating a light custom palette as already dark
 - Light and Dark modes now receive complete independent surface palettes, while High Contrast emits its dedicated colour and focus treatment consistently
 - Bundled profiles pass the Studio's WCAG contrast checks
 - Scheduled activation refreshes runtime CSS, preferred colour mode, layout settings, and advanced mappings without a manual reload

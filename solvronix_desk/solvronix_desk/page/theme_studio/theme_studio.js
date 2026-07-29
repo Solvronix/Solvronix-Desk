@@ -1114,8 +1114,12 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	apply() {
 		if (!this.config || !this.$preview) return;
 		var c = this.config;
-		this._apply_preview_vars(this.$preview, c);
-		this.$preview.attr("data-theme", c.preferred_mode === "Dark" ? "dark" : "light");
+		var previewDark = c.preferred_mode === "Dark" ||
+			(c.preferred_mode === "Auto" && window.matchMedia &&
+				window.matchMedia("(prefers-color-scheme: dark)").matches);
+		var visual = this._resolved_visual_config(c, previewDark);
+		this._apply_preview_vars(this.$preview, visual);
+		this.$preview.attr("data-theme", previewDark ? "dark" : "light");
 		this.$preview.attr("data-density", String(c.density || "Comfortable").toLowerCase());
 		this.$root.find(".sts-segments button").removeClass("active")
 			.filter('[data-value="' + c.shadow_style + '"]').addClass("active");
@@ -1123,12 +1127,112 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.$root.find('[data-action="redo"]').prop("disabled", !this.future.length);
 		this._update_wcag();
 		if (window.stApplyDark) {
-			var previewDark = c.preferred_mode === "Dark" ||
-				(c.preferred_mode === "Auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
 			stApplyDark(!!previewDark);
 		}
-		this._apply_draft_to_desk();
+		this._apply_draft_to_desk(visual);
 		this._refresh_server_preview();
+	}
+
+	_resolved_visual_config(config, forceDark) {
+		var c = this._clone(config || {});
+		var dark = forceDark;
+		if (dark === undefined) {
+			dark = c.preferred_mode === "Dark" ||
+				(c.preferred_mode === "Auto" && window.matchMedia &&
+					window.matchMedia("(prefers-color-scheme: dark)").matches);
+		}
+		var hasDarkSurfaces = this._is_dark_palette(c);
+		if (dark && !hasDarkSurfaces) {
+			Object.assign(c, {
+				navbar_background: this._mix_hex(c.brand_color, "#090D16", 0.38),
+				sidebar_background: this._mix_hex(c.brand_color, "#121826", 0.32),
+				sidebar_text_color: "",
+				sidebar_icon_color: "",
+				toolbar_text_color: "",
+				sidebar_hover_color: "#242A37",
+				page_background: "#0F1117",
+				card_background: "#1A1D27",
+				text_color: "#E8EDF5",
+				muted_text_color: "#9AA7BA",
+				link_color: "#6DB4F2",
+				border_color: "#303746",
+				secondary_button_color: "#242A37",
+				secondary_button_text: "#E8EDF5",
+				input_background: "#222734",
+				input_border_color: "#3B4354",
+				dropdown_background: "#202531",
+				readonly_background: "#252A36",
+				alternate_row_color: "#181C25",
+				table_header_color: "#222734",
+				selected_row_color: "#3B2D21",
+				row_hover_color: "#242A37",
+				report_grid_color: "#303746",
+				workspace_card_color: "#1A1D27",
+				number_card_color: "#1A1D27",
+				chart_background: "#1A1D27",
+			});
+		} else if (!dark && hasDarkSurfaces) {
+			Object.assign(c, {
+				navbar_background: "#102750",
+				sidebar_background: "#FFFFFF",
+				sidebar_text_color: "",
+				sidebar_icon_color: "",
+				toolbar_text_color: "",
+				sidebar_hover_color: "#F1F3F6",
+				page_background: "#F5F6F8",
+				card_background: "#FFFFFF",
+				text_color: "#19202D",
+				muted_text_color: "#697386",
+				link_color: "#1B5EA7",
+				border_color: "#E1E5EA",
+				secondary_button_color: "#FFFFFF",
+				secondary_button_text: "#273142",
+				input_background: "#FFFFFF",
+				input_border_color: "#C9CDD4",
+				dropdown_background: "#FFFFFF",
+				readonly_background: "#F3F5F7",
+				alternate_row_color: "#FAFBFC",
+				table_header_color: "#F1F3F6",
+				selected_row_color: "#FFF1E4",
+				row_hover_color: "#F7F8FA",
+				report_grid_color: "#E4E7EB",
+				workspace_card_color: "#FFFFFF",
+				number_card_color: "#FFFFFF",
+				chart_background: "#FFFFFF",
+			});
+		}
+		return c;
+	}
+
+	_is_dark_palette(c) {
+		return this._color_luminance(c.page_background) < 0.18 &&
+			this._color_luminance(c.card_background) < 0.22;
+	}
+
+	_color_luminance(value) {
+		var hex = String(value || "").replace("#", "");
+		if (!/^[0-9a-f]{6}$/i.test(hex)) return 1;
+		var channels = [0, 2, 4].map(function (index) {
+			var component = parseInt(hex.slice(index, index + 2), 16) / 255;
+			return component <= 0.04045 ? component / 12.92 :
+				Math.pow((component + 0.055) / 1.055, 2.4);
+		});
+		return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+	}
+
+	_mix_hex(primary, secondary, primaryWeight) {
+		var first = String(primary || "").replace("#", "");
+		var second = String(secondary || "").replace("#", "");
+		if (!/^[0-9a-f]{6}$/i.test(first) || !/^[0-9a-f]{6}$/i.test(second)) return secondary;
+		var weight = Math.max(0, Math.min(1, primaryWeight));
+		var mixed = [0, 2, 4].map(function (index) {
+			var value = Math.round(
+				parseInt(first.slice(index, index + 2), 16) * weight +
+				parseInt(second.slice(index, index + 2), 16) * (1 - weight)
+			);
+			return value.toString(16).padStart(2, "0");
+		});
+		return "#" + mixed.join("").toUpperCase();
 	}
 
 	_apply_preview_vars($target, c) {
@@ -1217,13 +1321,14 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	_update_wcag(serverFailures) {
 		var failures = serverFailures || [];
 		if (!serverFailures) {
+			var visual = this._resolved_visual_config(this.config);
 			var pairs = [
-				[__("Text / page"), this.config.text_color, this.config.page_background],
-				[__("Text / card"), this.config.text_color, this.config.card_background],
-				[__("Link / page"), this.config.link_color, this.config.page_background],
-				[__("Sidebar text"), this.config.sidebar_text_color || this._contrast(this.config.sidebar_background), this.config.sidebar_background],
-				[__("Toolbar text"), this.config.toolbar_text_color || this._contrast(this.config.navbar_background), this.config.navbar_background],
-				[__("Active menu text"), this.config.sidebar_active_text_color || this._contrast(this.config.sidebar_active_color), this.config.sidebar_active_color],
+				[__("Text / page"), visual.text_color, visual.page_background],
+				[__("Text / card"), visual.text_color, visual.card_background],
+				[__("Link / page"), visual.link_color, visual.page_background],
+				[__("Sidebar text"), visual.sidebar_text_color || this._contrast(visual.sidebar_background), visual.sidebar_background],
+				[__("Toolbar text"), visual.toolbar_text_color || this._contrast(visual.navbar_background), visual.navbar_background],
+				[__("Active menu text"), visual.sidebar_active_text_color || this._contrast(visual.sidebar_active_color), visual.sidebar_active_color],
 			];
 			failures = pairs.filter(function (pair) { return this._ratio(pair[1], pair[2]) < 4.5; }, this)
 				.map(function (pair) { return pair[0]; });
@@ -1318,9 +1423,9 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		try { localStorage.setItem("st_theme_css", css); } catch (e) {}
 	}
 
-	_apply_draft_to_desk() {
+	_apply_draft_to_desk(visualConfig) {
 		if (!this.config) return;
-		var c = this.config;
+		var c = visualConfig || this._resolved_visual_config(this.config);
 		var declarations = [
 			"--st-brand:" + c.brand_color,
 			"--st-primary:" + c.brand_color,

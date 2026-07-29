@@ -95,6 +95,15 @@ class ThemeEngineTest(unittest.TestCase):
         self.assertIn("--st-text: #E8EDF5", dark_rule)
         self.assertIn("--st-sidebar-text: #FFFFFF", dark_rule)
 
+    def test_dark_mode_on_a_light_palette_derives_dark_surfaces(self):
+        config = dict(ENGINE.DEFAULT_CONFIG)
+        config["preferred_mode"] = "Dark"
+        css = ENGINE.render_css(config)
+        dark_rule = css.split('html[data-theme="dark"] {', 1)[1].split("}", 1)[0]
+        self.assertIn("--st-page-bg: #0F1117", dark_rule)
+        self.assertIn("--st-card-bg: #1A1D27", dark_rule)
+        self.assertNotIn("--st-card-bg: #FFFFFF", dark_rule)
+
     def test_dark_profile_has_a_complete_light_mode_override(self):
         dark_profile = next(
             profile["config"]
