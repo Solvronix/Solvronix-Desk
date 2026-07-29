@@ -10,6 +10,9 @@ SETTINGS = ROOT / "solvronix_desk" / "solvronix_desk" / "doctype" / "theme_setti
 PAGE = ROOT / "solvronix_desk" / "solvronix_desk" / "page" / "theme_studio" / "theme_studio.js"
 PAGE_JSON = PAGE.with_name("theme_studio.json")
 CSS = ROOT / "solvronix_desk" / "public" / "css" / "theme_studio.css"
+DESK_CSS = ROOT / "solvronix_desk" / "public" / "css" / "solvronix_desk.css"
+SIDEBAR_CSS = ROOT / "solvronix_desk" / "public" / "css" / "sidebar.css"
+DARK_CSS = ROOT / "solvronix_desk" / "public" / "css" / "dark_mode.css"
 
 
 class ThemeStudioTest(unittest.TestCase):
@@ -44,10 +47,25 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("undo()", js)
         self.assertIn("redo()", js)
         self.assertIn('[data-device="mobile"]', css)
+        self.assertIn("sts-preview-collapse", js)
+        self.assertIn("sts-toolbar-left", js)
+        self.assertIn("st-studio-draft", js)
+        self.assertIn("on_page_hide", js)
+
+    def test_published_navigation_tokens_reach_actual_desk_selectors(self):
+        api = API.read_text(encoding="utf-8")
+        desk_css = DESK_CSS.read_text(encoding="utf-8")
+        sidebar_css = SIDEBAR_CSS.read_text(encoding="utf-8")
+        dark_css = DARK_CSS.read_text(encoding="utf-8")
+        self.assertIn('"navbar_background", "--st-toolbar-bg"', api)
+        self.assertIn('--sidebar-width: {config["sidebar_width"]}px', api)
+        self.assertIn("background: var(--st-toolbar-bg", desk_css)
+        self.assertIn("var(--st-sidebar-width, var(--sidebar-width))", sidebar_css)
+        self.assertIn("var(--st-sidebar-bg, var(--fg-color, #fff))", dark_css)
 
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=1", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=2", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=6", hooks)
 
 

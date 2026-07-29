@@ -37,7 +37,7 @@ class WorkspaceEditorJSPopoverCSSTest(unittest.TestCase):
     def test_workspace_css_cache_is_bumped(self):
         hooks = HOOKS.read_text(encoding="utf-8")
 
-        self.assertIn("/assets/solvronix_desk/css/solvronix_desk.css?v=46", hooks)
+        self.assertIn("/assets/solvronix_desk/css/solvronix_desk.css?v=47", hooks)
         self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=40", hooks)
 
 

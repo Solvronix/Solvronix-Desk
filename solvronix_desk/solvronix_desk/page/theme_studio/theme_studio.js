@@ -14,7 +14,15 @@ frappe.pages["theme-studio"].on_page_load = function (wrapper) {
 
 frappe.pages["theme-studio"].on_page_show = function () {
 	var studio = frappe.pages["theme-studio"].studio;
-	if (studio) studio.refresh_if_clean();
+	if (studio) {
+		studio.refresh_if_clean();
+		if (studio.dirty) studio.apply();
+	}
+};
+
+frappe.pages["theme-studio"].on_page_hide = function () {
+	var studio = frappe.pages["theme-studio"].studio;
+	if (studio) studio.remove_draft();
 };
 
 solvronix_desk.ThemeStudio = class ThemeStudio {
@@ -112,10 +120,10 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				'<div class="sts-stage">' +
 					'<div class="sts-preview-frame" id="st-theme-studio-preview">' +
 						'<div class="sts-browser-bar"><span></span><span></span><span></span><div>desk.solvronix.local</div></div>' +
+						this._navbar_html() +
 						'<div class="sts-app-shell">' +
 							this._sidebar_html() +
 							'<div class="sts-preview-main">' +
-								this._navbar_html() +
 								'<div class="sts-preview-page">' +
 									'<div class="sts-preview-heading"><div><small>' + __("WORKSPACE") + '</small><h3>' + __("Good morning, Ayesha") + '</h3></div><button>' + __("Create new") + "</button></div>" +
 									'<div class="sts-drop-hint">' + this._icon("move") + __("Drag cards to rearrange your layout") + "</div>" +
@@ -177,19 +185,20 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 
 	_sidebar_html() {
 		return '<aside class="sts-preview-sidebar">' +
-			'<div class="sts-preview-logo"><b>S</b><span>Solvronix</span></div>' +
-			'<nav><a class="active">' + this._icon("home") + "<span>" + __("Overview") + "</span></a>" +
+			'<button type="button" class="sts-preview-logo sts-sidebar-toggle" title="' + __("Expand or collapse sidebar") + '"><b>S</b><span>Solvronix</span></button>' +
+			'<nav><small>' + __("MAIN") + '</small><a class="active">' + this._icon("home") + "<span>" + __("Overview") + "</span></a>" +
 			'<a>' + this._icon("chart") + "<span>" + __("Analytics") + "</span></a>" +
 			'<a>' + this._icon("invoice") + "<span>" + __("Invoices") + "</span></a>" +
 			'<a>' + this._icon("users") + "<span>" + __("Customers") + "</span></a></nav>" +
-			'<div class="sts-preview-user"><i>A</i><span><b>Ayesha Khan</b><small>' + __("Administrator") + "</small></span></div>" +
+			'<button type="button" class="sts-preview-collapse sts-sidebar-toggle">' + this._icon("collapse") + '<span>' + __("Collapse") + "</span></button>" +
 		"</aside>";
 	}
 
 	_navbar_html() {
-		return '<header class="sts-preview-nav"><div class="sts-search">' + this._icon("search") +
-			"<span>" + __("Search anything…") + '</span><kbd>⌘ K</kbd></div><div class="sts-nav-actions">' +
-			this._icon("bell") + '<span class="sts-avatar">AK</span></div></header>';
+		return '<header class="sts-preview-nav"><div class="sts-toolbar-left">' +
+			'<time>10:42:18</time><i></i><a>☼ ' + __("Today’s View") + '</a></div>' +
+			'<div class="sts-nav-actions"><button>◎ EN⌄</button><button>•••</button>' +
+			'<span class="sts-avatar">AK</span></div></header>';
 	}
 
 	render_blocks() {
@@ -292,6 +301,9 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			$(this).addClass("active");
 			self.$preview.attr("data-device", $(this).data("device"));
 		});
+		this.$root.on("click", ".sts-sidebar-toggle", function () {
+			self.$preview.find(".sts-preview-sidebar").toggleClass("is-expanded");
+		});
 		this.$root.on("click", '[data-action="undo"]', function () { self.undo(); });
 		this.$root.on("click", '[data-action="redo"]', function () { self.redo(); });
 	}
@@ -357,18 +369,21 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"--studio-brand": c.brand_color,
 			"--studio-accent": c.accent_color,
 			"--studio-sidebar": c.sidebar_background || "#FFFFFF",
-			"--studio-navbar": c.navbar_background || c.brand_color,
+			"--studio-navbar": c.navbar_background || "color-mix(in srgb, " + c.brand_color + " 40%, black)",
 			"--studio-page": c.page_background || "#F3F5F7",
 			"--studio-card": c.card_background || "#FFFFFF",
 			"--studio-text": c.text_color || "#19202D",
 			"--studio-radius": c.corner_radius + "px",
 			"--studio-sidebar-width": c.sidebar_width + "px",
 			"--studio-shadow": shadow,
+			"--studio-sidebar-text": this._contrast(c.sidebar_background || "#FFFFFF"),
+			"--studio-toolbar-text": this._contrast(c.navbar_background || c.brand_color),
 		});
 		this.$root.find(".sts-segments button").removeClass("active")
 			.filter('[data-value="' + c.shadow_style + '"]').addClass("active");
 		this.$root.find('[data-action="undo"]').prop("disabled", !this.history.length);
 		this.$root.find('[data-action="redo"]').prop("disabled", !this.future.length);
+		this._apply_draft_to_desk();
 	}
 
 	save() {
@@ -392,6 +407,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				self.dirty = false;
 				self.changed(false);
 				self._inject_global_css(r.message.css);
+				self.remove_draft();
 				frappe.show_alert({ message: __("Theme published for everyone"), indicator: "green" }, 4);
 			},
 			always: function () { self.page.btn_primary.prop("disabled", false); },
@@ -417,7 +433,83 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		try { localStorage.setItem("st_theme_css", css); } catch (e) {}
 	}
 
+	_apply_draft_to_desk() {
+		if (!this.config) return;
+		var c = this.config;
+		var declarations = [
+			"--st-brand:" + c.brand_color,
+			"--st-primary:" + c.brand_color,
+			"--st-accent:" + c.accent_color,
+			"--st-radius:" + c.corner_radius + "px",
+			"--st-radius-sm:" + Math.max(0, c.corner_radius - 2) + "px",
+			"--st-radius-lg:" + (c.corner_radius + 4) + "px",
+			"--st-sidebar-width:" + c.sidebar_width + "px",
+			"--sidebar-width:" + c.sidebar_width + "px",
+		];
+		if (c.sidebar_background) {
+			var sidebarText = this._contrast(c.sidebar_background);
+			declarations.push("--st-sidebar-bg:" + c.sidebar_background);
+			declarations.push("--st-sidebar-text:" + sidebarText);
+			declarations.push("--st-sidebar-text-muted:color-mix(in srgb," + sidebarText + " 62%,transparent)");
+			declarations.push("--st-sidebar-hover:color-mix(in srgb," + sidebarText + " 9%,transparent)");
+			declarations.push("--st-sidebar-border:color-mix(in srgb," + sidebarText + " 12%,transparent)");
+		}
+		if (c.navbar_background) {
+			declarations.push("--st-navbar-bg:" + c.navbar_background);
+			declarations.push("--st-toolbar-bg:" + c.navbar_background);
+			declarations.push("--st-toolbar-text:" + this._contrast(c.navbar_background));
+		}
+		if (c.page_background) declarations.push("--st-page-bg:" + c.page_background);
+		if (c.card_background) declarations.push("--st-card-bg:" + c.card_background);
+		if (c.text_color) {
+			declarations.push("--st-text:" + c.text_color);
+			declarations.push("--st-text-primary:" + c.text_color);
+		}
+		var shadow = {
+			None: ["none", "none", "none"],
+			Soft: [
+				"0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06)",
+				"0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06)",
+				"0 10px 25px rgba(0,0,0,.12),0 4px 10px rgba(0,0,0,.08)",
+			],
+			Elevated: [
+				"0 2px 8px rgba(15,23,42,.10)",
+				"0 10px 24px rgba(15,23,42,.14)",
+				"0 20px 48px rgba(15,23,42,.18)",
+			],
+		}[c.shadow_style] || ["none", "none", "none"];
+		declarations.push("--st-shadow-sm:" + shadow[0]);
+		declarations.push("--st-shadow-md:" + shadow[1]);
+		declarations.push("--st-shadow-lg:" + shadow[2]);
+
+		var el = document.getElementById("st-studio-draft");
+		if (!el) {
+			el = document.createElement("style");
+			el.id = "st-studio-draft";
+			document.head.appendChild(el);
+		}
+		var dark = [];
+		if (c.sidebar_background) dark.push("--st-sidebar-bg:" + c.sidebar_background);
+		if (c.navbar_background) dark.push("--st-navbar-bg:" + c.navbar_background);
+		el.textContent = ":root{" + declarations.join(";") + "}" +
+			(dark.length ? '[data-theme="dark"]{' + dark.join(";") + "}" : "");
+	}
+
+	remove_draft() {
+		var el = document.getElementById("st-studio-draft");
+		if (el) el.remove();
+	}
+
 	_clone(value) { return JSON.parse(JSON.stringify(value)); }
+
+	_contrast(color) {
+		var hex = String(color || "").replace("#", "");
+		if (!/^[0-9a-f]{6}$/i.test(hex)) return "#19202D";
+		var r = parseInt(hex.slice(0, 2), 16);
+		var g = parseInt(hex.slice(2, 4), 16);
+		var b = parseInt(hex.slice(4, 6), 16);
+		return ((0.299 * r + 0.587 * g + 0.114 * b) / 255) > 0.62 ? "#19202D" : "#FFFFFF";
+	}
 
 	_icon(name) {
 		var paths = {
@@ -434,6 +526,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
 			bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
 			grip: '<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>',
+			collapse: '<path d="m15 18-6-6 6-6"/><path d="M21 19V5"/>',
 		};
 		return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (paths[name] || "") + "</svg>";
 	}

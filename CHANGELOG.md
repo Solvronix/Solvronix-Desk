@@ -13,6 +13,11 @@
 - Advanced theme tokens are included in boot-time CSS to keep the first paint flash-free
 - Theme changes continue to publish through the existing realtime sync for all connected desk users
 
+### Fixed
+- Sidebar, expanded sidebar width, and visible top-toolbar colors now use the same tokens in Theme Studio and the real Desk
+- Theme Studio now live-previews draft navigation colors on the actual Desk chrome and removes unpublished drafts when leaving the page
+- Theme Studio preview now mirrors the real 36px toolbar and collapsed/expanded Frappe v16 sidebar instead of showing a generic dashboard shell
+
 ## [1.3.1] — 2026-07-18
 
 ### Fixed

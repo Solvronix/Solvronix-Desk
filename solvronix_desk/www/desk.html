@@ -44,8 +44,15 @@
   --st-radius-sm: {{ (studio.corner_radius or 8) - 2 if (studio.corner_radius or 8) >= 2 else 0 }}px;
   --st-radius-lg: {{ (studio.corner_radius or 8) + 4 }}px;
   --st-sidebar-width: {{ studio.sidebar_width or 240 }}px;
+  --sidebar-width: {{ studio.sidebar_width or 240 }}px;
 {% if studio.sidebar_background %}  --st-sidebar-bg: {{ studio.sidebar_background }};
+  --st-sidebar-text: {{ studio.sidebar_text or '#19202D' }};
+  --st-sidebar-text-muted: color-mix(in srgb, {{ studio.sidebar_text or '#19202D' }} 62%, transparent);
+  --st-sidebar-hover: color-mix(in srgb, {{ studio.sidebar_text or '#19202D' }} 9%, transparent);
+  --st-sidebar-border: color-mix(in srgb, {{ studio.sidebar_text or '#19202D' }} 12%, transparent);
 {% endif %}{% if studio.navbar_background %}  --st-navbar-bg: {{ studio.navbar_background }};
+  --st-toolbar-bg: {{ studio.navbar_background }};
+  --st-toolbar-text: {{ studio.toolbar_text or '#FFFFFF' }};
 {% endif %}{% if studio.page_background %}  --st-page-bg: {{ studio.page_background }};
 {% endif %}{% if studio.card_background %}  --st-card-bg: {{ studio.card_background }};
 {% endif %}{% if studio.text_color %}  --st-text: {{ studio.text_color }};

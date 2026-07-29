@@ -1392,14 +1392,20 @@ html[data-theme="dark"] #st-powered-by {
   right: 0;
   z-index: 1060;
   height: 36px;
-  background: var(--st-dark-deep);
+  background: var(--st-toolbar-bg, var(--st-dark-deep));
   border-bottom: 1px solid rgba(255,255,255,0.07);
   display: flex;
   align-items: center;
   padding: 0 16px;
   gap: 10px;
   font-size: 12px;
-  color: rgba(255,255,255,0.65);
+  color: var(--st-toolbar-text, rgba(255,255,255,0.65));
+}
+
+#st-top-toolbar a,
+#st-top-toolbar button,
+#st-top-toolbar #st-tb-user {
+  color: var(--st-toolbar-text, rgba(255,255,255,0.72)) !important;
 }
 
 /* Push Frappe v16 layout below the fixed 36px toolbar.

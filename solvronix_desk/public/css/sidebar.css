@@ -8,7 +8,7 @@
 
 /* Override Frappe's sidebar width variables */
 :root {
-  --sidebar-width: 240px;           /* expanded width */
+  --sidebar-width: var(--st-sidebar-width, 240px); /* expanded width */
   --sidebar-border-color: rgba(0,0,0,0.08);
   --sidebar-hover-color:  rgba(0,0,0,0.05);
   --sidebar-active-color: var(--st-sidebar-active);
@@ -71,7 +71,7 @@
 
 /* ── EXPANDED: overlay at 240px (set by :root --sidebar-width) ── */
 .body-sidebar-container.expanded .body-sidebar {
-  width: var(--sidebar-width) !important;
+  width: var(--st-sidebar-width, var(--sidebar-width)) !important;
 }
 
 /* ── BACKGROUND: white in light mode, brand-colored in dark mode ── */
@@ -126,7 +126,7 @@
 
 /* Placeholder that reserves layout space when sidebar is expanded */
 .body-sidebar-placeholder {
-  width: var(--sidebar-width) !important;
+  width: var(--st-sidebar-width, var(--sidebar-width)) !important;
   transition: width 0.25s ease !important;
 }
 

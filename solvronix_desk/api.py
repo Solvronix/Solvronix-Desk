@@ -39,6 +39,16 @@ def _clamp(value, low, high, fallback):
         return fallback
 
 
+def _contrast_text(color, dark="#19202D", light="#FFFFFF"):
+    """Choose readable foreground text for a validated six-digit hex color."""
+    color = _color(color)
+    if not color:
+        return dark
+    red, green, blue = (int(color[index:index + 2], 16) for index in (1, 3, 5))
+    luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255
+    return dark if luminance > 0.62 else light
+
+
 def _layout(value):
     try:
         items = json.loads(value or "[]") if isinstance(value, str) else value
@@ -52,7 +62,7 @@ def _layout(value):
 
 
 def _theme_config(settings):
-    return {
+    config = {
         "brand_color": _color(settings.brand_color, "#1B3F7E"),
         "accent_color": _color(settings.accent_color, "#F57C00"),
         "sidebar_background": _color(getattr(settings, "sidebar_background", "")),
@@ -69,6 +79,11 @@ def _theme_config(settings):
         "sidebar_width": _clamp(getattr(settings, "sidebar_width", 240), 200, 320, 240),
         "layout": _layout(getattr(settings, "studio_layout", "")),
     }
+    config["sidebar_text"] = _contrast_text(config["sidebar_background"] or "#FFFFFF")
+    config["toolbar_text"] = _contrast_text(
+        config["navbar_background"] or config["brand_color"]
+    )
+    return config
 
 
 @frappe.whitelist(allow_guest=True)
@@ -89,6 +104,7 @@ def get_theme_css():
         for field, token in (
             ("sidebar_background", "--st-sidebar-bg"),
             ("navbar_background", "--st-navbar-bg"),
+            ("navbar_background", "--st-toolbar-bg"),
             ("page_background", "--st-page-bg"),
             ("card_background", "--st-card-bg"),
             ("text_color", "--st-text"),
@@ -98,6 +114,19 @@ def get_theme_css():
                 overrides.append(f"  {token}: {config[field]};")
         radius = config["corner_radius"]
         shadows = SHADOW_CSS[config["shadow_style"]]
+        if config["sidebar_background"]:
+            sidebar_text = _contrast_text(config["sidebar_background"])
+            overrides.extend(
+                (
+                    f"  --st-sidebar-text: {sidebar_text};",
+                    f"  --st-sidebar-text-muted: color-mix(in srgb, {sidebar_text} 62%, transparent);",
+                    f"  --st-sidebar-hover: color-mix(in srgb, {sidebar_text} 9%, transparent);",
+                    f"  --st-sidebar-border: color-mix(in srgb, {sidebar_text} 12%, transparent);",
+                )
+            )
+        if config["navbar_background"]:
+            toolbar_text = _contrast_text(config["navbar_background"])
+            overrides.append(f"  --st-toolbar-text: {toolbar_text};")
         dark_overrides = []
         for field, token in (
             ("sidebar_background", "--st-sidebar-bg"),
@@ -114,6 +143,7 @@ def get_theme_css():
   --st-radius-sm: {max(0, radius - 2)}px;
   --st-radius-lg: {radius + 4}px;
   --st-sidebar-width: {config["sidebar_width"]}px;
+  --sidebar-width: {config["sidebar_width"]}px;
   --st-shadow-sm: {shadows[0]};
   --st-shadow-md: {shadows[1]};
   --st-shadow-lg: {shadows[2]};
