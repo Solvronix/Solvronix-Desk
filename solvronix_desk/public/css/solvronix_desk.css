@@ -304,8 +304,8 @@ html[data-theme="dark"] .desk-page {
 
 .desk-sidebar .sidebar-item:hover,
 .desk-sidebar .standard-sidebar-item:hover {
-  background: rgba(0,0,0,0.05) !important;
-  color: #111827 !important;
+  background: var(--st-sidebar-hover, rgba(0,0,0,0.05)) !important;
+  color: var(--st-sidebar-hover-text, var(--st-sidebar-text, #111827)) !important;
   border-left: none !important;
   transform: translateX(2px);
 }
@@ -315,8 +315,8 @@ html[data-theme="dark"] .desk-page {
 .desk-sidebar .sidebar-item.active,
 .desk-sidebar .standard-sidebar-item.selected,
 .desk-sidebar .standard-sidebar-item.active {
-  background: var(--st-accent) !important;
-  color: var(--st-white) !important;
+  background: var(--st-sidebar-active, var(--st-accent)) !important;
+  color: var(--st-sidebar-active-text, var(--st-white)) !important;
   border-left: none !important;
   border-radius: var(--st-radius-sm) !important;
   font-weight: 600 !important;
@@ -324,18 +324,20 @@ html[data-theme="dark"] .desk-page {
 }
 
 .desk-sidebar .sidebar-item.selected a,
-.desk-sidebar .standard-sidebar-item.selected a,
+.desk-sidebar .standard-sidebar-item.selected a {
+  color: var(--st-sidebar-active-text, var(--st-white)) !important;
+}
 .desk-sidebar .sidebar-item:hover a,
 .desk-sidebar .standard-sidebar-item:hover a {
-  color: var(--st-white) !important;
+  color: var(--st-sidebar-hover-text, var(--st-sidebar-text)) !important;
 }
 
 /* Sidebar icons */
 .desk-sidebar .sidebar-item-icon,
 .desk-sidebar .standard-sidebar-item svg,
 .desk-sidebar .standard-sidebar-item .icon {
-  color: #6B7280 !important;
-  stroke: #6B7280 !important;
+  color: var(--st-sidebar-icon, var(--st-sidebar-text-muted, #6B7280)) !important;
+  stroke: currentColor !important;
   opacity: 1;
 }
 .desk-sidebar .sidebar-item.selected .sidebar-item-icon,
@@ -429,7 +431,7 @@ button.btn-primary,
 a.btn-primary {
   background: var(--st-primary-gradient) !important;
   border: none !important;
-  color: var(--st-button-text) !important;
+  color: var(--st-btn-primary-text, var(--st-button-text)) !important;
   border-radius: var(--st-radius-sm) !important;
   box-shadow: var(--st-shadow-sm) !important;
   font-weight: 600 !important;
@@ -438,6 +440,7 @@ a.btn-primary {
 }
 .btn-primary:hover,
 button.btn-primary:hover {
+  color: var(--st-btn-primary-text, var(--st-button-text)) !important;
   box-shadow: 0 4px 14px color-mix(in srgb, var(--st-accent) 45%, transparent) !important;
   transform: translateY(-1px);
   opacity: 0.95;
@@ -707,7 +710,7 @@ html:not([data-theme="dark"]) .layout-main-section > .page-head .st-breadcrumb {
 html:not([data-theme="dark"]) .desk-page > .page-head .btn-primary,
 html:not([data-theme="dark"]) .layout-main-section > .page-head .btn-primary {
   background: var(--st-primary-gradient) !important;
-  color: #fff !important;
+  color: var(--st-btn-primary-text, #fff) !important;
 }
 html:not([data-theme="dark"]) .desk-page > .page-head .btn-default,
 html:not([data-theme="dark"]) .layout-main-section > .page-head .btn-default {

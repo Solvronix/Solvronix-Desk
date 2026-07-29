@@ -122,6 +122,23 @@ class ThemeEngineTest(unittest.TestCase):
         config.update({"text_color": "#777777", "page_background": "#777777"})
         self.assertIn("Text / page", ENGINE.wcag_failures(config))
 
+    def test_buttons_and_sidebar_hover_emit_contrast_aware_tokens(self):
+        config = dict(ENGINE.DEFAULT_CONFIG)
+        config.update(
+            {
+                "primary_button_color": "#FFF27A",
+                "sidebar_hover_color": "#F4F7FB",
+            }
+        )
+        css = ENGINE.render_css(config)
+        self.assertIn("--st-btn-primary-text: #19202D", css)
+        self.assertIn("--st-sidebar-hover-text: #19202D", css)
+        dark_rule = css.split('html[data-theme="dark"] {', 1)[1].split("}", 1)[0]
+        self.assertIn("--st-sidebar-hover: #242A37", dark_rule)
+        self.assertIn("--st-sidebar-hover-text: #FFFFFF", dark_rule)
+        self.assertIn("color: var(--st-btn-primary-text) !important", css)
+        self.assertIn("color: var(--st-sidebar-hover-text) !important", css)
+
     def test_custom_css_cannot_escape_dynamic_style_element(self):
         config = ENGINE.sanitize_config(
             {

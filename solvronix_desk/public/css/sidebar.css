@@ -135,7 +135,7 @@
 .body-sidebar-container .body-sidebar .standard-sidebar-item .item-anchor,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item .item-anchor,
 .body-sidebar-container .body-sidebar .standard-sidebar-item.indent .item-anchor {
-  color: #374151 !important;
+  color: var(--st-sidebar-text, #374151) !important;
   border-radius: 8px !important;
   padding: 2px 4px !important;
 }
@@ -143,63 +143,63 @@
 .body-sidebar-container .body-sidebar .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover,
 .body-sidebar-container .body-sidebar .standard-sidebar-item:not(.active-sidebar):has(a:not(.section-break)):hover,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover {
-  background-color: rgba(0,0,0,0.05) !important;
-  color: #111827 !important;
+  background-color: var(--st-sidebar-hover, rgba(0,0,0,0.05)) !important;
+  color: var(--st-sidebar-hover-text, var(--st-sidebar-text, #111827)) !important;
   border-radius: 8px !important;
   text-decoration: none !important;
 }
 
-/* Active/selected item — solid accent pill with white text */
+/* Active/selected item — solid accent pill with contrast-aware text */
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .item-anchor {
-  background: var(--st-accent) !important;
-  color: #ffffff !important;
+  background: var(--st-sidebar-active, var(--st-accent)) !important;
+  color: var(--st-sidebar-active-text, #ffffff) !important;
   font-weight: 600 !important;
   border-radius: 8px !important;
   border-left: none !important;
 }
 
-/* Force white on every child of the active anchor */
+/* Keep every child readable against the configured active background */
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor .sidebar-item-label,
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor span,
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor a,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .item-anchor .sidebar-item-label,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .item-anchor span {
-  color: #ffffff !important;
+  color: var(--st-sidebar-active-text, #ffffff) !important;
 }
 
 /* ---- Icons ---- */
 .body-sidebar-container .body-sidebar .standard-sidebar-item .sidebar-item-icon,
 .body-sidebar-container .body-sidebar .standard-sidebar-item .sidebar-item-icon.text-ink-gray-7 {
-  color: #6B7280 !important;
+  color: var(--st-sidebar-icon, var(--st-sidebar-text-muted, #6B7280)) !important;
 }
 
 .body-sidebar-container .body-sidebar .standard-sidebar-item .sidebar-item-icon svg use,
 .body-sidebar-container .body-sidebar .standard-sidebar-item .sidebar-item-icon svg {
-  color: #6B7280 !important;
-  stroke: #6B7280 !important;
+  color: var(--st-sidebar-icon, var(--st-sidebar-text-muted, #6B7280)) !important;
+  stroke: currentColor !important;
 }
 
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon,
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon.text-ink-gray-7,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .sidebar-item-icon {
-  color: #ffffff !important;
+  color: var(--st-sidebar-active-text, #ffffff) !important;
 }
 
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg use,
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .sidebar-item-icon svg {
-  color: #ffffff !important;
-  stroke: #ffffff !important;
+  color: var(--st-sidebar-active-text, #ffffff) !important;
+  stroke: currentColor !important;
 }
 
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .es-icon,
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .icon,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .sidebar-item-icon .es-icon,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .sidebar-item-icon .icon {
-  color: #ffffff !important;
-  fill: #ffffff !important;
-  stroke: #ffffff !important;
+  color: var(--st-sidebar-active-text, #ffffff) !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
 }
 
 /* ---- Labels ---- */
@@ -210,7 +210,7 @@
 /* Section break / group labels */
 .body-sidebar .sidebar-item-container.section-item .item-anchor .sidebar-item-label,
 .body-sidebar .section-break .sidebar-item-label {
-  color: #9CA3AF !important;
+  color: var(--st-sidebar-text-muted, #9CA3AF) !important;
   font-size: 10px !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
@@ -338,34 +338,34 @@ html[data-theme="dark"] .st-company-name {
   color: rgba(255,255,255,0.92) !important;
 }
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item .item-anchor {
-  color: rgba(255,255,255,0.75) !important;
+  color: var(--st-sidebar-text, rgba(255,255,255,0.75)) !important;
 }
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover {
-  background-color: rgba(255,255,255,0.1) !important;
-  color: #fff !important;
+  background-color: var(--st-sidebar-hover, rgba(255,255,255,0.1)) !important;
+  color: var(--st-sidebar-hover-text, #fff) !important;
 }
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor {
-  background: color-mix(in srgb, var(--st-accent) 15%, transparent) !important;
-  color: var(--st-accent) !important;
-  border-left: 3px solid var(--st-accent) !important;
+  background: var(--st-sidebar-active, color-mix(in srgb, var(--st-accent) 15%, transparent)) !important;
+  color: var(--st-sidebar-active-text, var(--st-accent)) !important;
+  border-left: 3px solid var(--st-sidebar-active, var(--st-accent)) !important;
   padding-left: 5px !important;
 }
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item .sidebar-item-icon {
-  color: rgba(255,255,255,0.7) !important;
+  color: var(--st-sidebar-icon, rgba(255,255,255,0.7)) !important;
 }
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item .sidebar-item-icon svg use,
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item .sidebar-item-icon svg {
-  color: rgba(255,255,255,0.7) !important;
-  stroke: rgba(255,255,255,0.7) !important;
+  color: var(--st-sidebar-icon, rgba(255,255,255,0.7)) !important;
+  stroke: currentColor !important;
 }
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg use,
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg {
-  color: var(--st-accent) !important;
-  stroke: var(--st-accent) !important;
+  color: var(--st-sidebar-active-text, var(--st-accent)) !important;
+  stroke: currentColor !important;
 }
 html[data-theme="dark"] .body-sidebar .sidebar-item-container.section-item .item-anchor .sidebar-item-label,
 html[data-theme="dark"] .body-sidebar .section-break .sidebar-item-label {
-  color: rgba(255,255,255,0.35) !important;
+  color: var(--st-sidebar-text-muted, rgba(255,255,255,0.35)) !important;
 }
 html[data-theme="dark"] .body-sidebar .divider {
   border-color: rgba(255,255,255,0.08) !important;

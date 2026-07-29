@@ -24,6 +24,7 @@
 - Theme CSS now uses one authoritative runtime style element, removes stale cached duplicates, and applies profile/layout changes without requiring a reload
 - Publishing from Theme Studio automatically enables the published theme and preserves the newly selected colour mode
 - Theme runtime initialization now handles an empty initial Frappe route, allowing Light, Dark, High Contrast, density, and profile state to initialize reliably
+- Sidebar hover/active labels, icons, and primary buttons now use theme-aware automatic contrast colours so controls remain visible with light, dark, or custom palettes
 - Light and Dark modes now receive complete independent surface palettes, while High Contrast emits its dedicated colour and focus treatment consistently
 - Bundled profiles pass the Studio's WCAG contrast checks
 - Scheduled activation refreshes runtime CSS, preferred colour mode, layout settings, and advanced mappings without a manual reload

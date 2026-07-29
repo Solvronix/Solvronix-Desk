@@ -692,6 +692,7 @@ def render_css(config, enabled=True):
             **config,
             "navbar_background": f'color-mix(in srgb, {config["brand_color"]} 38%, #090D16)',
             "sidebar_background": f'color-mix(in srgb, {config["brand_color"]} 32%, #121826)',
+            "sidebar_hover_color": "#242A37",
             "page_background": "#0F1117",
             "card_background": "#1A1D27",
             "text_color": "#E8EDF5",
@@ -719,6 +720,7 @@ def render_css(config, enabled=True):
             **config,
             "navbar_background": DEFAULT_CONFIG["navbar_background"],
             "sidebar_background": "#FFFFFF",
+            "sidebar_hover_color": "#F1F3F6",
             "page_background": "#F5F6F8",
             "card_background": "#FFFFFF",
             "text_color": "#19202D",
@@ -775,15 +777,18 @@ def render_css(config, enabled=True):
         "--st-toolbar-text": toolbar_text,
         "--st-sidebar-bg": config["sidebar_background"],
         "--st-sidebar-text": sidebar_text,
+        "--st-sidebar-icon": sidebar_icon,
         "--st-sidebar-text-muted": f"color-mix(in srgb, {sidebar_icon} 66%, transparent)",
         "--st-sidebar-active": config["sidebar_active_color"],
         "--st-sidebar-active-text": sidebar_active_text,
         "--st-sidebar-hover": config["sidebar_hover_color"],
+        "--st-sidebar-hover-text": contrast_text(config["sidebar_hover_color"]),
         "--st-sidebar-border": f"color-mix(in srgb, {sidebar_text} 13%, transparent)",
         "--st-sidebar-width": f'{config["sidebar_width"]}px',
         "--sidebar-width": f'{config["sidebar_width"]}px',
         "--st-logo-size": f'{config["logo_size"]}px',
         "--st-btn-primary": config["primary_button_color"],
+        "--st-btn-primary-text": contrast_text(config["primary_button_color"]),
         "--st-btn-secondary": config["secondary_button_color"],
         "--st-btn-secondary-text": config["secondary_button_text"],
         "--st-button-radius": f'{config["button_radius"]}px',
@@ -871,7 +876,10 @@ html:not([data-theme="dark"]) {{
   --st-toolbar-text: {contrast_text(light_surface["navbar_background"])};
   --st-sidebar-bg: {light_surface["sidebar_background"]};
   --st-sidebar-text: #19202D;
+  --st-sidebar-icon: #697386;
   --st-sidebar-text-muted: #697386;
+  --st-sidebar-hover: {light_surface["sidebar_hover_color"]};
+  --st-sidebar-hover-text: {contrast_text(light_surface["sidebar_hover_color"])};
   --st-page-bg: {light_surface["page_background"]};
   --st-card-bg: {light_surface["card_background"]};
   --st-text: {light_surface["text_color"]};
@@ -920,7 +928,10 @@ html:not([data-theme="dark"]) {{
 html[data-theme="dark"] {{
   --st-sidebar-bg: {dark_surface["sidebar_background"]};
   --st-sidebar-text: #FFFFFF;
+  --st-sidebar-icon: rgba(255,255,255,.72);
   --st-sidebar-text-muted: rgba(255,255,255,.62);
+  --st-sidebar-hover: {dark_surface["sidebar_hover_color"]};
+  --st-sidebar-hover-text: {contrast_text(dark_surface["sidebar_hover_color"])};
   --st-navbar-bg: {dark_surface["navbar_background"]};
   --st-toolbar-bg: {dark_surface["navbar_background"]};
   --st-toolbar-text: #FFFFFF;
@@ -967,8 +978,18 @@ h3 {{ font-size: calc(1.25rem * var(--st-heading-scale)); }}
 .control-label,.form-group label,.label-area {{ font-size: var(--st-label-font) !important; }}
 .btn-primary,button.btn-primary,a.btn-primary {{
   background: var(--st-btn-primary) !important; border-color: var(--st-btn-primary) !important;
+  color: var(--st-btn-primary-text) !important;
   border-radius: var(--st-button-radius) !important; min-height: var(--st-button-height) !important;
   padding: var(--st-button-padding) !important;
+}}
+.btn-primary:hover,button.btn-primary:hover,a.btn-primary:hover {{
+  background: color-mix(in srgb,var(--st-btn-primary) 88%,black) !important;
+  color: var(--st-btn-primary-text) !important;
+}}
+.btn-primary > *,button.btn-primary > *,a.btn-primary > *,
+.btn-primary svg,button.btn-primary svg,a.btn-primary svg {{
+  color: var(--st-btn-primary-text) !important;
+  stroke: currentColor !important;
 }}
 .btn-default,.btn-secondary,button.btn-default {{
   background: var(--st-btn-secondary) !important; color: var(--st-btn-secondary-text) !important;
@@ -1034,6 +1055,13 @@ body.st-has-toolbar .page-container {{ padding-top: var(--st-header-height) !imp
 }}
 .body-sidebar .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover {{
   background: var(--st-sidebar-hover) !important;
+  color: var(--st-sidebar-hover-text) !important;
+}}
+.body-sidebar .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover *,
+.body-sidebar .standard-sidebar-item:not(.active-sidebar):hover .sidebar-item-icon,
+.body-sidebar .standard-sidebar-item:not(.active-sidebar):hover .sidebar-item-icon svg {{
+  color: var(--st-sidebar-hover-text) !important;
+  stroke: currentColor !important;
 }}
 .indicator.green,.alert-success {{ --indicator-color: var(--st-success); }}
 .indicator.orange,.alert-warning {{ --indicator-color: var(--st-warning); }}
