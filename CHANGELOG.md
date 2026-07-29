@@ -19,6 +19,7 @@
 
 ### Fixed
 - Actual sidebar and top-toolbar colours now match Theme Studio preview tokens, including readable automatic foreground colours for active items
+- Sticky toolbar settings no longer turn the toolbar into a body flex item or split the Desk into a large blank column
 - Bundled profiles pass the Studio's WCAG contrast checks
 - Scheduled activation refreshes runtime CSS, preferred colour mode, layout settings, and advanced mappings without a manual reload
 

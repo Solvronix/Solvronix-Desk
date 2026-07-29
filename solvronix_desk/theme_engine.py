@@ -787,7 +787,13 @@ def render_css(config, enabled=True):
         if config["layout_mode"] == "Boxed"
         else ""
     )
-    sticky_nav = "position:sticky!important;top:0;z-index:1050;" if config["sticky_navbar"] else "position:relative!important;"
+    # Frappe's body is a horizontal flex container. The toolbar must stay out of
+    # normal flow; `position: sticky` makes it a flex item and splits the Desk.
+    sticky_nav = (
+        "position:fixed!important;top:0;left:0;right:0;width:auto;z-index:1060;"
+        if config["sticky_navbar"]
+        else "position:absolute!important;top:0;left:0;right:0;width:auto;z-index:1060;"
+    )
     sticky_form = "position:sticky!important;top:var(--st-header-height);z-index:1010;" if config["sticky_form_toolbar"] else "position:relative!important;"
     logo_align = "center" if config["logo_position"] == "Center" else "flex-start"
     sidebar_initial = "240px" if config["sidebar_mode"] == "Expanded" else "64px"

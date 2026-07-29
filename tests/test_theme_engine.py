@@ -72,6 +72,20 @@ class ThemeEngineTest(unittest.TestCase):
         self.assertIn(".btn-primary", css)
         self.assertIn(".list-row", css)
         self.assertIn("body:has(.for-login)", css)
+        self.assertIn(
+            "#st-top-toolbar { height: var(--st-header-height) !important; position:fixed!important;",
+            css,
+        )
+        self.assertNotIn("#st-top-toolbar { height: var(--st-header-height) !important; position:sticky", css)
+
+    def test_non_sticky_toolbar_is_still_removed_from_flex_layout(self):
+        config = dict(ENGINE.DEFAULT_CONFIG)
+        config["sticky_navbar"] = False
+        css = ENGINE.render_css(config)
+        self.assertIn(
+            "#st-top-toolbar { height: var(--st-header-height) !important; position:absolute!important;",
+            css,
+        )
 
     def test_wcag_checker_flags_low_contrast(self):
         config = dict(ENGINE.DEFAULT_CONFIG)
