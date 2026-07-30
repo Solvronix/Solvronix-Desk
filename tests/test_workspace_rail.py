@@ -32,7 +32,7 @@ class WorkspaceRailTest(unittest.TestCase):
         hooks = HOOKS.read_text(encoding="utf-8")
 
         self.assertIn("/assets/solvronix_desk/css/sidebar.css?v=21", hooks)
-        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=45", hooks)
+        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=46", hooks)
 
 
 if __name__ == "__main__":

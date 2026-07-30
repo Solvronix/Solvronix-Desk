@@ -1114,9 +1114,7 @@
           "</a>"
         );
         $a.on("click", function (e) {
-          e.preventDefault();
           closeOptionsPanel();
-          frappe.set_route(slug);
         });
         $items.append($a);
       });
@@ -1370,19 +1368,8 @@
       setTimeout(moveNativeBell, 400);
     });
 
-    /* One-time redirect: if the page loaded at a bare /desk URL (empty route),
-       send the user to Today's View. This does NOT listen on every navigation —
-       so sidebar items, workspace links, Desktop page, etc. are never intercepted.
-       Frappe's boot.home_page = "smart-home" already handles the normal first-load
-       redirect; this is only a safety net for edge cases (direct URL visits). */
-    (function () {
-      var route = (frappe.get_route && frappe.get_route()) || [];
-      var isEmptyOrWorkspace = route.length === 0 ||
-        (route.length === 1 && (route[0] === "" || route[0] === "workspace"));
-      if (isEmptyOrWorkspace) {
-        frappe.set_route("smart-home");
-      }
-    }());
+    /* bootinfo.home_page owns the initial Smart Home redirect. Redirecting here
+       can race Frappe's asynchronous deep-link parser and replace the target page. */
   }
 
   $(document).ready(onDeskReady);

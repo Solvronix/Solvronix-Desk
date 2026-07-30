@@ -74,11 +74,13 @@
       // ── Workspaces (from sidebar boot data if available) ──────────────────
       var sidebar_pages = (boot.sidebar_items && boot.sidebar_items.pages) || [];
       sidebar_pages.forEach(function (page) {
+        var workspace_route = page.route ||
+          ((frappe.router && frappe.router.slug) ? frappe.router.slug(page.name || page.title || "") : "");
         items.push({
           label:  page.title || page.name,
           sub:    __("Workspace"),
           type:   "workspace",
-          action: function () { frappe.set_route("workspace", encodeURIComponent(page.name)); },
+          action: function () { if (workspace_route) frappe.set_route(workspace_route); },
         });
       });
 

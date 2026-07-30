@@ -88,6 +88,8 @@
 
   /* ── Workspace data cache ────────────────────────────────────── */
   var _wsCache = null;
+  var _routeGeneration = 0;
+  var _activePoller = null;
 
   function fetchWorkspaces(cb) {
     if (_wsCache) { cb(_wsCache); return; }
@@ -167,8 +169,8 @@
   }
 
   /* ── Render the full module grid into the page ───────────────── */
-  function renderGrid(container) {
-    if (!container) return;
+  function renderGrid(container, generation) {
+    if (!container || generation !== _routeGeneration || !isHomeRoute()) return;
 
     /* Grid shell with skeleton loaders */
     container.innerHTML =
@@ -191,7 +193,13 @@
 
     /* Fetch real workspace list and replace skeletons */
     fetchWorkspaces(function (pages) {
-      var grid = document.getElementById("st-module-grid");
+      if (
+        generation !== _routeGeneration ||
+        !isHomeRoute() ||
+        !container.isConnected ||
+        !(frappe.container && frappe.container.page && frappe.container.page.contains(container))
+      ) return;
+      var grid = container.querySelector("#st-module-grid");
       if (!grid) return;
 
       /* Remove skeletons */
@@ -212,16 +220,7 @@
       html += '</div>';
       grid.insertAdjacentHTML("beforeend", html);
 
-      /* Wire card clicks (SPA navigation — prevent full reload) */
-      var cards = grid.querySelectorAll(".st-ws-card[data-ws]");
-      for (var j = 0; j < cards.length; j++) {
-        cards[j].addEventListener("click", function (e) {
-          e.preventDefault();
-          var slug = this.getAttribute("data-ws");
-          if (slug) frappe.set_route(slug);
-        });
-      }
-
+      /* Native anchors are handled once by Frappe's delegated SPA router. */
       /* Re-apply any active search */
       if (searchInput && searchInput.value) filterCards(searchInput.value);
     });
@@ -229,14 +228,12 @@
 
   /* ── Find the best content container to take over ───────────── */
   function getPageContent() {
-    /* Frappe v16: active page container's layout-main-section */
+    /* Only the router-owned active page is safe. */
     if (frappe.container && frappe.container.page) {
       var c = frappe.container.page.querySelector(".layout-main-section");
       if (c) return c;
     }
-    /* Fallback: any visible layout-main-section */
-    return document.querySelector("#body .layout-main-section") ||
-           document.querySelector(".layout-main-section");
+    return null;
   }
 
   /* ── Check if we're on the Home route ───────────────────────── */
@@ -255,19 +252,26 @@
   /* ── Main injection logic ────────────────────────────────────── */
   function maybeInjectGrid() {
     if (!isHomeRoute()) return;
-    /* Don't re-inject if already rendered */
-    if (document.getElementById("st-module-grid")) return;
+    var generation = _routeGeneration;
 
     /* Wait for the page content div to appear */
     var attempts = 0;
-    var poller = setInterval(function () {
+    if (_activePoller) clearInterval(_activePoller);
+    _activePoller = setInterval(function () {
       attempts++;
+      if (generation !== _routeGeneration || !isHomeRoute()) {
+        clearInterval(_activePoller);
+        _activePoller = null;
+        return;
+      }
       var container = getPageContent();
       if (container) {
-        clearInterval(poller);
-        renderGrid(container);
+        clearInterval(_activePoller);
+        _activePoller = null;
+        if (!container.querySelector("#st-module-grid")) renderGrid(container, generation);
       } else if (attempts > 20) {
-        clearInterval(poller);
+        clearInterval(_activePoller);
+        _activePoller = null;
       }
     }, 100);
   }
@@ -276,6 +280,11 @@
   $(document).ready(function () {
     /* Hook route change event */
     frappe.router.on("change", function () {
+      _routeGeneration++;
+      if (_activePoller) {
+        clearInterval(_activePoller);
+        _activePoller = null;
+      }
       /* Small delay — let Frappe set up the new page first */
       setTimeout(function () { maybeInjectGrid(); }, 300);
     });

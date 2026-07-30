@@ -96,7 +96,7 @@ class ThemeStudioTest(unittest.TestCase):
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
         self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=5", hooks)
-        self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=7", hooks)
+        self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=8", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=5", hooks)
         self.assertIn('"on_update": "solvronix_desk.events.theme_settings_on_update"', hooks)
