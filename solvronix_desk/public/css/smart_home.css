@@ -168,8 +168,10 @@
 }
 
 .st-sh-widget[data-widget-size="quarter"] { grid-column: span 3; }
-.st-sh-widget[data-widget-size="wide"] { grid-column: span 8; }
 .st-sh-widget[data-widget-size="half"] { grid-column: span 4; }
+.st-sh-widget[data-widget-size="medium"] { grid-column: span 6; }
+.st-sh-widget[data-widget-size="wide"] { grid-column: span 8; }
+.st-sh-widget[data-widget-size="full"] { grid-column: span 12; }
 
 .st-sh-widget:focus {
   outline: 2px solid var(--st-accent, #e8610a);
@@ -234,7 +236,8 @@
 }
 
 .st-sh-drag-handle,
-.st-sh-move {
+.st-sh-move,
+.st-sh-resize {
   display: grid;
   place-items: center;
   width: 25px;
@@ -261,9 +264,18 @@
 }
 
 .st-sh-drag-handle:hover,
-.st-sh-move:hover {
+.st-sh-move:hover,
+.st-sh-resize:hover {
   background: var(--fg-hover-color, #f3f5f7);
   color: var(--st-accent, #e8610a);
+}
+
+.st-sh-size-label {
+  min-width: 31px;
+  color: var(--text-muted, #7b8490);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
 /* ── KPI WIDGETS ─────────────────────────────────────────────────────────────
@@ -650,8 +662,10 @@ html[data-theme="dark"] .st-sh-qc-item {
    Four-up KPIs become two-up, panels stack, then all widgets become full width. */
 @media (max-width: 1180px) {
   .st-sh-widget[data-widget-size="quarter"] { grid-column: span 6; }
-  .st-sh-widget[data-widget-size="wide"] { grid-column: span 7; }
-  .st-sh-widget[data-widget-size="half"] { grid-column: span 5; }
+  .st-sh-widget[data-widget-size="half"],
+  .st-sh-widget[data-widget-size="medium"] { grid-column: span 6; }
+  .st-sh-widget[data-widget-size="wide"],
+  .st-sh-widget[data-widget-size="full"] { grid-column: span 12; }
 }
 
 @media (max-width: 820px) {
@@ -669,7 +683,9 @@ html[data-theme="dark"] .st-sh-qc-item {
   }
 
   .st-sh-widget[data-widget-size="wide"],
-  .st-sh-widget[data-widget-size="half"] {
+  .st-sh-widget[data-widget-size="half"],
+  .st-sh-widget[data-widget-size="medium"],
+  .st-sh-widget[data-widget-size="full"] {
     grid-column: span 12;
   }
 }
@@ -683,7 +699,11 @@ html[data-theme="dark"] .st-sh-qc-item {
     gap: 12px;
   }
 
-  .st-sh-widget[data-widget-size="quarter"] {
+  .st-sh-widget[data-widget-size="quarter"],
+  .st-sh-widget[data-widget-size="half"],
+  .st-sh-widget[data-widget-size="medium"],
+  .st-sh-widget[data-widget-size="wide"],
+  .st-sh-widget[data-widget-size="full"] {
     grid-column: span 12;
   }
 

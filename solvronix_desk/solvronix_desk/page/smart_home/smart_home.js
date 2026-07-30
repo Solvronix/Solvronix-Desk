@@ -244,6 +244,9 @@ solvronix_desk.SmartHome = class SmartHome {
 				'data-widget-id="' + this._esc(id) + '" data-widget-size="' + size + '" draggable="false">' +
 				'<div class="st-sh-drag-tools">' +
 					'<button class="st-sh-remove-widget" type="button" title="' + __("Remove widget") + '" aria-label="' + __("Remove widget") + '">&times;</button>' +
+					'<button class="st-sh-resize st-sh-resize-smaller" type="button" title="' + __("Make narrower") + '" aria-label="' + __("Make widget narrower") + '">&minus;</button>' +
+					'<span class="st-sh-size-label" aria-hidden="true">' + this._size_label(size) + '</span>' +
+					'<button class="st-sh-resize st-sh-resize-larger" type="button" title="' + __("Make wider") + '" aria-label="' + __("Make widget wider") + '">+</button>' +
 					'<button class="st-sh-move st-sh-move-back" type="button" title="' + __("Move backward") + '" aria-label="' + __("Move backward") + '">' +
 						'&larr;' +
 					'</button>' +
@@ -257,6 +260,16 @@ solvronix_desk.SmartHome = class SmartHome {
 				inner +
 			'</section>'
 		);
+	}
+
+	_size_label(size) {
+		return {
+			quarter: "3/12",
+			half: "4/12",
+			medium: "6/12",
+			wide: "8/12",
+			full: "12/12",
+		}[size] || "4/12";
 	}
 
 	_widget_templates() {
@@ -462,7 +475,7 @@ solvronix_desk.SmartHome = class SmartHome {
 				try {
 					localStorage.removeItem(self.storage_key);
 				} catch (e) {}
-				self.state = { order: [], added: [], custom: [], hidden: [], scratch: "" };
+				self.state = { order: [], added: [], custom: [], hidden: [], scratch: "", sizes: {} };
 				self.$body.find("#st-sh-widget-grid").empty();
 				self._render_widgets();
 				self._restore_layout();
@@ -477,6 +490,14 @@ solvronix_desk.SmartHome = class SmartHome {
 			var widget = this.closest(".st-sh-widget");
 			if (!widget) return;
 			self._remove_widget(widget.dataset.widgetId);
+		});
+
+		this.$body.on("click.st_sh_layout", ".st-sh-resize", function (event) {
+			event.preventDefault();
+			event.stopPropagation();
+			var widget = this.closest(".st-sh-widget");
+			if (!widget || !self.editing) return;
+			self._resize_widget(widget, this.classList.contains("st-sh-resize-larger") ? 1 : -1);
 		});
 
 		this.$body.on("input.st_sh_layout", ".st-sh-scratch-input", function () {
@@ -607,6 +628,11 @@ solvronix_desk.SmartHome = class SmartHome {
 		if (this.state.added.indexOf(id) === -1) this.state.added.push(id);
 		this.state.hidden = (this.state.hidden || []).filter(function (hidden_id) { return hidden_id !== id; });
 		var $widget = $(this._template_widget(template));
+		var remembered_size = (this.state.sizes || {})[id];
+		if (["quarter", "half", "medium", "wide", "full"].indexOf(remembered_size) > -1) {
+			$widget.attr("data-widget-size", remembered_size);
+			$widget.find(".st-sh-size-label").text(this._size_label(remembered_size));
+		}
 		if (this.editing) $widget.attr({ draggable: "true", tabindex: "0" });
 		this.$body.find("#st-sh-widget-grid").append($widget);
 		this._start_live_widgets();
@@ -665,6 +691,20 @@ solvronix_desk.SmartHome = class SmartHome {
 		this._save_layout();
 	}
 
+	_resize_widget(widget, direction) {
+		var sizes = ["quarter", "half", "medium", "wide", "full"];
+		var current = sizes.indexOf(widget.dataset.widgetSize);
+		if (current < 0) current = 1;
+		var next = Math.max(0, Math.min(sizes.length - 1, current + direction));
+		var size = sizes[next];
+		widget.dataset.widgetSize = size;
+		var label = widget.querySelector(".st-sh-size-label");
+		if (label) label.textContent = this._size_label(size);
+		this.state.sizes = this.state.sizes || {};
+		this.state.sizes[widget.dataset.widgetId] = size;
+		this._save_layout();
+	}
+
 	/* Clear transient markers after cancel; persist only a successful drop. */
 	_finish_drag(save) {
 		this.$body.find("#st-sh-widget-grid > .st-sh-widget")
@@ -702,6 +742,16 @@ solvronix_desk.SmartHome = class SmartHome {
 		Object.keys(known).forEach(function (id) {
 			if (order.indexOf(id) === -1) $grid.append(known[id]);
 		});
+
+		var sizes = this.state.sizes || {};
+		var self = this;
+		$grid.children(".st-sh-widget").each(function () {
+			var size = sizes[this.dataset.widgetId];
+			if (["quarter", "half", "medium", "wide", "full"].indexOf(size) === -1) return;
+			this.dataset.widgetSize = size;
+			var label = this.querySelector(".st-sh-size-label");
+			if (label) label.textContent = self._size_label(size);
+		});
 	}
 
 	_load_layout() {
@@ -715,7 +765,8 @@ solvronix_desk.SmartHome = class SmartHome {
 			custom: Array.isArray(saved.custom) ? saved.custom : [],
 			hidden: Array.isArray(saved.hidden) ? saved.hidden : [],
 			scratch: typeof saved.scratch === "string" ? saved.scratch : "",
-		} : { order: [], added: [], custom: [], hidden: [], scratch: "" };
+			sizes: saved.sizes && typeof saved.sizes === "object" ? saved.sizes : {},
+		} : { order: [], added: [], custom: [], hidden: [], scratch: "", sizes: {} };
 	}
 
 	_start_live_widgets() {

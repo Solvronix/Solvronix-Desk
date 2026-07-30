@@ -43,7 +43,7 @@ class SmartHomeWidgetsTest(unittest.TestCase):
 
     def test_smart_home_asset_cache_is_bumped(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/smart_home.css?v=5", hooks)
+        self.assertIn("/assets/solvronix_desk/css/smart_home.css?v=6", hooks)
 
     def test_widget_library_and_simple_builder_are_available(self):
         js = JS.read_text(encoding="utf-8")
@@ -65,6 +65,17 @@ class SmartHomeWidgetsTest(unittest.TestCase):
         self.assertIn("state.added", js)
         self.assertIn("state.hidden", js)
         self.assertIn("JSON.stringify(this.state)", js)
+
+    def test_widget_width_can_be_changed_and_persisted(self):
+        js = JS.read_text(encoding="utf-8")
+        css = CSS.read_text(encoding="utf-8")
+
+        self.assertIn("Make widget narrower", js)
+        self.assertIn("Make widget wider", js)
+        self.assertIn("_resize_widget", js)
+        self.assertIn("this.state.sizes", js)
+        self.assertIn('[data-widget-size="medium"]', css)
+        self.assertIn('[data-widget-size="full"]', css)
 
 
 if __name__ == "__main__":
