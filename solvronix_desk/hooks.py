@@ -6,7 +6,7 @@ app_email = "sales@solvronix.com"
 app_license = "MIT"
 app_color = "#E8610A"
 app_icon = "octicon octicon-paintcan"
-app_version = "1.3.1"
+app_version = "1.3.2"
 
 required_apps = []
 

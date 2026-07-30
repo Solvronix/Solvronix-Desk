@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.2] — 2026-07-30
+
+### Fixed
+- Login page: decorative background card overflowed behind the login form. `.page-card-head` is nested inside `.login-content.page-card` on this Frappe version (not a sibling box, which the original CSS assumed) — both independently forced the same 420px width, and the parent's own horizontal padding left less room than the child demanded, so the child overflowed the parent's right edge. The child no longer sets its own width/background/shape; the parent is now the single real card box, with uniform rounded corners. Reported as #5.
+
 ## [1.3.1] — 2026-07-18
 
 ### Fixed
