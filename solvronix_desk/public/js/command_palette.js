@@ -1,13 +1,14 @@
-/* =============================================
-   Solvronix Desk — Command Palette (Ctrl+K)
-   Searches: Reports, DocTypes, Workspaces
-   ============================================= */
+/* =============================================================================
+   Solvronix Desk — Command Palette
+   Ctrl/Cmd+K navigation built from boot metadata, with no server call on open.
+   ============================================================================= */
 
 (function () {
   "use strict";
 
   var ST_CP = (window.solvronix_desk = window.solvronix_desk || {});
 
+  /* ── 1. PALETTE STATE / INITIALIZATION ──────────────────────────────────── */
   ST_CP.cp = {
     overlay:   null,
     input:     null,
@@ -33,6 +34,8 @@
       this._build_items();
     },
 
+    /* ── 2. BOOT-DERIVED SEARCH INDEX ───────────────────────────────────────
+       Permission lists filter records before they become searchable. */
     _build_items: function () {
       var boot        = (window.frappe && frappe.boot) || {};
       var user        = boot.user || {};
@@ -91,6 +94,7 @@
       }
     },
 
+    /* ── 3. OPEN / CLOSE LIFECYCLE ────────────────────────────────────────── */
     open: function () {
       if (this.overlay) return;
       this._rebuild_if_needed();
@@ -152,6 +156,7 @@
       setTimeout(function () { el && el.remove(); }, 110);
     },
 
+    /* ── 4. DEFAULT GROUPS / FUZZY SEARCH ─────────────────────────────────── */
     _render_default: function () {
       var hasERPNext = !!(frappe.boot && frappe.boot.versions && frappe.boot.versions.erpnext);
       var quick = hasERPNext ? [
@@ -230,6 +235,7 @@
       this._render(sections, null, total > 0 ? total + " " + (total !== 1 ? __("results") : __("result")) : "");
     },
 
+    /* ── 5. RESULT RENDERING / KEYBOARD NAVIGATION ────────────────────────── */
     _render: function (sections, _unused, count_hint) {
       var self = this;
       this.list.innerHTML = "";
@@ -312,6 +318,7 @@
     },
   };
 
+  /* Frappe and the DOM can become ready in either order on cached SPA loads. */
   function tryInit() {
     if (window.frappe && frappe.boot) {
       if (frappe.boot.enable_command_palette === 0) return;

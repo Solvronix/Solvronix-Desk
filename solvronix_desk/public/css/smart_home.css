@@ -7,6 +7,7 @@
   padding: 0 !important;
 }
 
+/* Frappe caps custom pages by default; this page owns a wider widget canvas. */
 [data-page-route="smart-home"] .layout-main,
 [data-page-route="smart-home"] .layout-main-section {
   max-width: none !important;
@@ -19,6 +20,7 @@
   color: var(--text-color, #20252c);
 }
 
+/* ── WELCOME HEADER ─────────────────────────────────────────────────────────── */
 .st-sh-header {
   display: flex;
   align-items: flex-end;
@@ -79,6 +81,7 @@
   display: none !important;
 }
 
+/* Reset is relevant only while a user is actively customizing the layout. */
 .st-sh-is-editing .st-sh-reset {
   display: inline-flex !important;
 }
@@ -144,7 +147,8 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Widget grid */
+/* ── 12-COLUMN WIDGET GRID ───────────────────────────────────────────────────
+   DOM order stays visual order; dense packing would make saved order confusing. */
 .st-sh-widget-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -204,6 +208,7 @@
 .st-sh-drop-before::before { top: -9px; }
 .st-sh-drop-after::after { bottom: -9px; }
 
+/* Drag controls remain out of the interaction flow until edit mode is active. */
 .st-sh-drag-tools {
   position: absolute;
   z-index: 4;
@@ -261,7 +266,8 @@
   color: var(--st-accent, #e8610a);
 }
 
-/* KPI widgets */
+/* ── KPI WIDGETS ─────────────────────────────────────────────────────────────
+   Semantic tones vary by metric while surfaces still use global theme tokens. */
 .st-sh-kpi {
   --st-sh-tone: var(--st-accent, #e8610a);
   --st-sh-tone-soft: color-mix(in srgb, var(--st-sh-tone) 11%, transparent);
@@ -276,6 +282,7 @@
 .st-sh-tone-green { --st-sh-tone: #15915e; }
 .st-sh-tone-coral { --st-sh-tone: #d64f4f; }
 
+/* Decorative bloom adds depth without requiring another markup element. */
 .st-sh-kpi::after {
   position: absolute;
   right: -28px;
@@ -304,6 +311,7 @@
   transform: translateY(-2px);
 }
 
+/* Hover movement must not compete with an active drag gesture. */
 .st-sh-is-editing .st-sh-kpi:hover {
   transform: none;
 }
@@ -352,7 +360,8 @@
   letter-spacing: 0.025em;
 }
 
-/* Panel widgets */
+/* ── PANEL WIDGETS ───────────────────────────────────────────────────────────
+   Recent, Quick Create, and Attention reuse this shared card frame. */
 .st-sh-card {
   min-height: 265px;
   overflow: hidden;
@@ -411,7 +420,7 @@
   min-height: 194px;
 }
 
-/* Recent documents */
+/* ── RECENT DOCUMENTS ───────────────────────────────────────────────────────── */
 .st-sh-doc-row {
   display: flex;
   min-height: 48px;
@@ -474,7 +483,7 @@
   transform: translateX(3px);
 }
 
-/* Quick create */
+/* ── QUICK CREATE ───────────────────────────────────────────────────────────── */
 .st-sh-qc-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -519,7 +528,7 @@
   line-height: 1;
 }
 
-/* Needs attention */
+/* ── NEEDS ATTENTION ────────────────────────────────────────────────────────── */
 .st-sh-pending-row {
   display: flex;
   min-height: 54px;
@@ -591,7 +600,7 @@
   font-size: 10px;
 }
 
-/* Shared loading and empty states */
+/* ── SHARED LOADING / EMPTY STATES ──────────────────────────────────────────── */
 .st-sh-empty {
   display: flex;
   min-height: 194px;
@@ -625,7 +634,8 @@
   to { transform: rotate(360deg); }
 }
 
-/* Dark mode refinements */
+/* ── DARK MODE REFINEMENTS ───────────────────────────────────────────────────
+   Theme tokens cover colors; hard light shadows/surfaces need explicit tuning. */
 html[data-theme="dark"] .st-sh-kpi,
 html[data-theme="dark"] .st-sh-card,
 html[data-theme="dark"] .st-sh-drag-tools {
@@ -636,7 +646,8 @@ html[data-theme="dark"] .st-sh-qc-item {
   background: rgba(255, 255, 255, 0.025);
 }
 
-/* Responsive */
+/* ── RESPONSIVE GRID ─────────────────────────────────────────────────────────
+   Four-up KPIs become two-up, panels stack, then all widgets become full width. */
 @media (max-width: 1180px) {
   .st-sh-widget[data-widget-size="quarter"] { grid-column: span 6; }
   .st-sh-widget[data-widget-size="wide"] { grid-column: span 7; }
@@ -694,6 +705,7 @@ html[data-theme="dark"] .st-sh-qc-item {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Preserve state changes while removing non-essential motion. */
   .st-sh-widget,
   .st-sh-save-state,
   .st-sh-drag-tools,

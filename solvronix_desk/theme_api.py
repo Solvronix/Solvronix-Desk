@@ -5,11 +5,14 @@ import frappe
 from solvronix_desk import theme_engine
 
 
+# ── 1. AUTHORIZATION / COMPLETE EDITOR STATE ──────────────────────────────────
+# Every mutating Studio endpoint passes through the same System Manager gate.
 def manager_only():
     frappe.only_for("System Manager")
 
 
 def studio_state(settings=None):
+    """Assemble one consistent editor snapshot from normalized stored fields."""
     settings = settings or frappe.get_single("Theme Settings")
     published = theme_engine.published_config(settings)
     stored_draft = theme_engine.json_field(settings, "theme_studio_draft", {})
@@ -57,6 +60,8 @@ def get_theme_studio_state():
     return studio_state()
 
 
+# ── 2. LIVE PREVIEW / PRIVATE DRAFTS ──────────────────────────────────────────
+# Preview never publishes. Drafts persist separately from the active site theme.
 @frappe.whitelist()
 def preview_theme_css(config):
     manager_only()
@@ -78,6 +83,7 @@ def save_theme_draft(config):
 
 
 def sync_legacy_fields(settings, config):
+    """Keep pre-Studio settings coherent for older templates and integrations."""
     for field in (
         "brand_color", "accent_color", "sidebar_background", "navbar_background",
         "page_background", "card_background", "text_color", "corner_radius",
@@ -100,6 +106,8 @@ def sync_legacy_fields(settings, config):
         settings.company_name = config["app_title"]
 
 
+# ── 3. ATOMIC PUBLISH ──────────────────────────────────────────────────────────
+# Back up the previous version before replacing the published configuration.
 @frappe.whitelist()
 def publish_theme_config(config, label=None, profile_id=None):
     manager_only()
@@ -127,6 +135,8 @@ def publish_theme_config(config, label=None, profile_id=None):
     }
 
 
+# ── 4. PROFILE CRUD ────────────────────────────────────────────────────────────
+# Built-in profiles come from the engine; only custom JSON profiles are mutable.
 @frappe.whitelist()
 def manage_theme_profile(action, profile_id=None, name=None, config=None, description=None):
     manager_only()
@@ -201,6 +211,8 @@ def manage_theme_profile(action, profile_id=None, name=None, config=None, descri
     return studio_state(settings)
 
 
+# ── 5. VERSION RESTORE / PORTABLE IMPORT ───────────────────────────────────────
+# Restores land in the draft slot, giving administrators a review step.
 @frappe.whitelist()
 def restore_theme_version(version_id):
     manager_only()
@@ -227,6 +239,8 @@ def import_theme_profile(payload, name=None):
     )
 
 
+# ── 6. ASSIGNMENTS / SITE POLICY ───────────────────────────────────────────────
+# Validate every referenced profile before saving user, role, or company maps.
 @frappe.whitelist()
 def save_theme_assignments(data, flags=None):
     manager_only()
@@ -252,6 +266,7 @@ def save_theme_assignments(data, flags=None):
     return studio_state(settings)
 
 
+# ── 7. SCHEDULED ACTIVATION ────────────────────────────────────────────────────
 @frappe.whitelist()
 def save_theme_schedule(data):
     manager_only()
@@ -277,6 +292,8 @@ def save_theme_schedule(data):
     return studio_state(settings)
 
 
+# ── 8. PER-USER PROFILE PREFERENCE ─────────────────────────────────────────────
+# User choice is allowed only when site policy is unlocked and opt-in is enabled.
 @frappe.whitelist()
 def set_user_theme_profile(profile_id):
     user = frappe.session.user
@@ -313,6 +330,7 @@ def set_user_theme_profile(profile_id):
     }
 
 
+# ── 9. RESOLVED RUNTIME / CACHE CONTROL ────────────────────────────────────────
 @frappe.whitelist()
 def get_resolved_theme_runtime():
     """Return the currently resolved profile for live schedule/user updates."""

@@ -1,3 +1,5 @@
+"""Regression coverage for Workspace EditorJS stacking and asset versions."""
+
 from pathlib import Path
 import unittest
 

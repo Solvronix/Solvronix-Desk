@@ -1,6 +1,11 @@
-/* Solvronix Desk — visual theme editor */
+/* =============================================================================
+   Solvronix Desk — Theme Studio
+   Visual token editor, live Desk preview, profiles, history, and deployment.
+   ============================================================================= */
 frappe.provide("solvronix_desk");
 
+/* ── 1. DECLARATIVE CONTROL SCHEMA ───────────────────────────────────────────
+   One definition drives navigation, field rendering, search, and section reset. */
 solvronix_desk.theme_studio_sections = [
 	{
 		id: "colors", title: "Main colours", index: "01",
@@ -134,6 +139,8 @@ solvronix_desk.theme_studio_sections = [
 	},
 ];
 
+/* ── 2. FRAPPE PAGE LIFECYCLE ────────────────────────────────────────────────
+   Preserve unsaved local edits across SPA page shows; remove preview on leave. */
 frappe.pages["theme-studio"].on_page_load = function (wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
@@ -158,6 +165,7 @@ frappe.pages["theme-studio"].on_page_hide = function () {
 	if (studio) studio.remove_draft();
 };
 
+/* ── 3. STUDIO CONTROLLER / SERVER STATE ───────────────────────────────────── */
 solvronix_desk.ThemeStudio = class ThemeStudio {
 	constructor(wrapper, page) {
 		this.wrapper = $(wrapper);
@@ -176,6 +184,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.original_dark = document.documentElement.getAttribute("data-theme") === "dark";
 	}
 
+	/* Load the resolved profile, published baseline, flags, and deployment data. */
 	load() {
 		var self = this;
 		this.page.set_primary_action(__("Publish theme"), function () { self.save(); }, "check");
@@ -204,6 +213,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		});
 	}
 
+	/* External changes are safe to pull only when no local draft would be lost. */
 	refresh_if_clean() {
 		if (!this.config || this.dirty) return;
 		var self = this;
@@ -221,6 +231,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		});
 	}
 
+	/* ── 4. EDITOR SHELL / CONTROL FACTORIES ─────────────────────────────────
+	   Render from the schema, then cache nodes updated repeatedly by preview. */
 	render() {
 		this.$root.off();
 		this.$root.removeClass("sts-loading").addClass("st-theme-studio").html(
@@ -286,6 +298,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.$root.toggleClass("is-dirty", this.dirty);
 	}
 
+	/* Profile controls adapt to built-in versus user-created theme ownership. */
 	_profile_bar_html() {
 		var self = this;
 		var profiles = (this.state && this.state.profiles) || [];
@@ -373,6 +386,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		return "";
 	}
 
+	/* Deployment tools live inside the same schema as ordinary theme controls. */
 	_operations_html() {
 		var flags = (this.state && this.state.flags) || {};
 		return '<div class="sts-operation-grid">' +
@@ -482,6 +496,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"</small></div></div>";
 	}
 
+	/* ── 5. PREVIEW BLOCK LAYOUT ──────────────────────────────────────────────
+	   Rebuild block order from stable IDs while preserving the active scene. */
 	render_blocks() {
 		var blocks = {
 			metrics:
@@ -528,6 +544,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		});
 	}
 
+	/* ── 6. EVENT BINDINGS ───────────────────────────────────────────────────
+	   Delegation keeps the generated control surface cheap to re-render. */
 	bind() {
 		var self = this;
 		this.$root.on("input change", "[data-setting]", function () {
@@ -636,6 +654,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.$root.on("click", '[data-action="redo"]', function () { self.redo(); });
 	}
 
+	/* ── 7. SEARCH, JSON, AND RESET OPERATIONS ──────────────────────────────── */
 	_search_controls(query) {
 		query = String(query || "").trim().toLowerCase();
 		this.$root.toggleClass("is-searching", !!query);
@@ -717,6 +736,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		});
 	}
 
+	/* ── 8. PROFILE MANAGEMENT ───────────────────────────────────────────────
+	   Built-ins are immutable; update/rename/delete remain custom-profile only. */
 	_selected_profile() {
 		var id = this.$root.find("#sts-profile-select").val();
 		return ((this.state && this.state.profiles) || []).find(function (item) { return item.id === id; });
@@ -830,6 +851,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		});
 	}
 
+	/* ── 9. DRAFTS, IMPORT/EXPORT, VERSIONS, AND DEPLOYMENT ────────────────── */
 	save_draft() {
 		var self = this;
 		frappe.call({
@@ -1052,6 +1074,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this._save_assignments(this.state.assignments || {}, flags);
 	}
 
+	/* ── 10. BLOCK ORDER AND UNDO/REDO HISTORY ───────────────────────────────
+	   Snapshots are bounded so a long editing session cannot grow indefinitely. */
 	_sync_layout() {
 		var next = this.$canvas.children("[data-block]").map(function () { return $(this).data("block"); }).get();
 		if (JSON.stringify(next) === JSON.stringify(this.config.layout)) return;
@@ -1099,6 +1123,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.changed(false);
 	}
 
+	/* ── 11. DIRTY STATE AND LIVE PREVIEW ──────────────────────────────────── */
 	changed(mark) {
 		if (mark !== false) this.dirty = true;
 		this.dirty = JSON.stringify(this.config) !== JSON.stringify(this.saved) ||
@@ -1133,6 +1158,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this._refresh_server_preview();
 	}
 
+	/* Light configs receive derived dark surfaces for Dark/Auto preview without
+	   overwriting the administrator's stored light palette. */
 	_resolved_visual_config(config, forceDark) {
 		var c = this._clone(config || {});
 		var dark = forceDark;
@@ -1292,6 +1319,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		$target.find("[data-login-footer]").text(c.footer_text || "Solvronix Desk");
 	}
 
+	/* Debounce server CSS generation and discard stale asynchronous responses. */
 	_refresh_server_preview() {
 		var self = this, snapshot = JSON.stringify(this.config);
 		clearTimeout(this.preview_timer);
@@ -1318,6 +1346,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		}, 220);
 	}
 
+	/* ── 12. ACCESSIBILITY CONTRAST AUDIT ──────────────────────────────────── */
 	_update_wcag(serverFailures) {
 		var failures = serverFailures || [];
 		if (!serverFailures) {
@@ -1355,6 +1384,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		return (values[0] + 0.05) / (values[1] + 0.05);
 	}
 
+	/* ── 13. PUBLISH / RESET / DESK-WIDE DRAFT APPLICATION ────────────────── */
 	save() {
 		if (!this.config || !this.dirty) {
 			frappe.show_alert({ message: __("Theme is already up to date"), indicator: "blue" });
@@ -1485,6 +1515,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			(dark.length ? '[data-theme="dark"]{' + dark.join(";") + "}" : "");
 	}
 
+	/* Restore the pre-Studio runtime when navigation leaves the editor. */
 	remove_draft(restoreMode) {
 		var el = document.getElementById("st-studio-draft");
 		if (el) el.remove();
@@ -1498,6 +1529,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		}
 	}
 
+	/* ── 14. PURE HELPERS ──────────────────────────────────────────────────── */
 	_clone(value) { return JSON.parse(JSON.stringify(value)); }
 
 	_esc(value) {

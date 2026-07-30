@@ -1,10 +1,17 @@
-/* Theme Studio — scoped visual editor */
+/* =============================================================================
+   Solvronix Desk — Theme Studio
+   Scoped visual editor: preview styles never leak into the live Desk shell.
+   ============================================================================= */
+
+/* ── PAGE CANVAS / LOADING ─────────────────────────────────────────────────── */
 [data-page-route="theme-studio"] .page-content { padding: 0 !important; }
 [data-page-route="theme-studio"] .layout-main-section { max-width: none !important; padding: 0 !important; }
 .sts-loading { min-height: 65vh; display: grid; place-content: center; justify-items: center; gap: 14px; color: #697386; }
 .sts-loader { width: 30px; height: 30px; border: 2px solid #d7dce3; border-top-color: var(--st-accent); border-radius: 50%; animation: sts-spin .8s linear infinite; }
 @keyframes sts-spin { to { transform: rotate(360deg); } }
 
+/* ── EDITOR SPLIT LAYOUT ─────────────────────────────────────────────────────
+   Fixed control rail on the left; preview workbench consumes remaining space. */
 .st-theme-studio {
 	--ink: #19202d;
 	--muted: #70798b;
@@ -26,6 +33,7 @@
 .sts-eyebrow { color: #b6512d; font-size: 10px; font-weight: 800; letter-spacing: .18em; margin-bottom: 8px; }
 .sts-controls h2 { margin: 0; max-width: 230px; color: #18202b; font-family: Georgia, 'Times New Roman', serif; font-size: 27px; line-height: 1.08; letter-spacing: -.025em; }
 .sts-intro { margin: 10px 0 24px; color: #727882; font-size: 12px; line-height: 1.6; }
+/* ── CONTROL PRIMITIVES / SECTIONS ─────────────────────────────────────────── */
 .sts-label, .sts-color-row > label { display: block; margin: 0; color: #596170; font-size: 11px; font-weight: 650; }
 .sts-presets { padding-bottom: 22px; border-bottom: 1px solid #e6e2da; }
 .sts-presets > div { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 9px; }
@@ -56,6 +64,7 @@
 .sts-segments button { height: 26px; padding: 0 3px; border: 0; border-radius: 6px; background: transparent; color: #777d86; font-size: 9px; font-weight: 650; }
 .sts-segments button.active { background: #fff; color: #202631; box-shadow: 0 1px 4px rgba(36,31,25,.12); }
 
+/* ── PROFILE AND DEPLOYMENT CONTROLS ───────────────────────────────────────── */
 .sts-profile-bar { margin: 0 0 15px; padding: 12px; border: 1px solid #dfdbd2; border-radius: 10px; background: #f4f1ea; }
 .sts-profile-select-row { display: grid; grid-template-columns: 1fr 46px; gap: 5px; margin-top: 7px; }
 .sts-profile-select-row select,
@@ -165,6 +174,7 @@
 .sts-history { display: flex; gap: 2px; margin-left: auto; }
 .sts-history button { border: 1px solid #ddd9d1; background: #f9f8f5; }
 .sts-history button:disabled { opacity: .35; }
+/* ── PREVIEW WORKBENCH / DEVICE FRAME ──────────────────────────────────────── */
 .sts-stage { flex: 1; padding: 24px; overflow: auto; display: grid; place-items: start center; background-color: #eeece6; background-image: radial-gradient(#c8c4ba 0.65px, transparent 0.65px); background-size: 14px 14px; }
 .sts-preview-frame { width: min(1120px, 100%); min-width: 690px; overflow: hidden; border: 1px solid rgba(36,36,36,.16); border-radius: 13px; background: #fff; box-shadow: 0 24px 70px rgba(48,42,34,.17); transition: width .32s cubic-bezier(.2,.8,.2,1); }
 .sts-preview-frame[data-device="tablet"] { width: 780px; }
@@ -176,6 +186,7 @@
 .sts-browser-bar > span:nth-child(3) { background: #65b46e; }
 .sts-browser-bar > div { width: 210px; height: 16px; margin: auto; border-radius: 5px; background: #f8f8f8; color: #929292; font-size: 7px; line-height: 16px; text-align: center; }
 .sts-app-shell { display: flex; height: 614px; color: var(--studio-text); background: var(--studio-page); font-family: var(--studio-font,'Segoe UI',sans-serif); font-size: var(--studio-base-font,14px); }
+/* ── PREVIEW NAVIGATION SHELL ──────────────────────────────────────────────── */
 .sts-preview-sidebar {
 	width: 64px; min-width: 64px; display: flex; flex-direction: column; padding: 0 8px 10px;
 	background: var(--studio-sidebar); color: var(--studio-sidebar-text);
@@ -213,6 +224,7 @@
 .sts-scene { display: none; }
 .sts-scene.active { display: block; animation: sts-scene-in .22s ease both; }
 @keyframes sts-scene-in { from { opacity: 0; transform: translateY(4px); } }
+/* ── WORKSPACE SCENE / DRAGGABLE BLOCKS ────────────────────────────────────── */
 .sts-preview-heading { display: flex; align-items: end; justify-content: space-between; margin-bottom: 14px; }
 .sts-preview-heading small { color: var(--studio-accent); font-size: 7px; font-weight: 800; letter-spacing: .16em; }
 .sts-preview-heading h3 { margin: 2px 0 0; color: var(--studio-text); font-family: Georgia, serif; font-size: 20px; letter-spacing: -.02em; }
@@ -253,6 +265,7 @@
 .sts-quick-actions > div:last-child { display: grid; gap: 6px; padding: 11px; }
 .sts-quick-actions > div:last-child button { height: 27px; border: 1px solid color-mix(in srgb, var(--studio-text) 10%, transparent); border-radius: calc(var(--studio-radius) * .65); background: color-mix(in srgb, var(--studio-brand) 4%, var(--studio-card)); color: var(--studio-text); font-size: 7px; text-align: left; }
 
+/* ── FORM / TABLE / LOGIN SCENES ───────────────────────────────────────────── */
 .sts-form-card,.sts-table-card { overflow: hidden; border: 1px solid var(--studio-border); border-radius: var(--studio-card-radius); background: var(--studio-card); box-shadow: var(--studio-shadow); }
 .sts-form-section-title { padding: 12px 14px; border-bottom: 1px solid var(--studio-border); color: var(--studio-text); font-size: 9px; font-weight: 750; }
 .sts-form-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; padding: 15px; }
@@ -297,6 +310,7 @@
 .sts-login-card button { width: 100%; margin-top: 4px; }
 .sts-login-card small { display: block; margin-top: 14px; color: var(--studio-muted); font-size: 6px; text-align: center; }
 
+/* ── PREVIEW DEVICE ADAPTATION ─────────────────────────────────────────────── */
 .sts-preview-frame[data-device="mobile"] .sts-preview-sidebar,
 .sts-preview-frame[data-device="mobile"] .sts-preview-sidebar.is-expanded { width: 48px; min-width: 48px; padding-inline: 7px; }
 .sts-preview-frame[data-device="mobile"] .sts-preview-sidebar span, .sts-preview-frame[data-device="mobile"] .sts-preview-user, .sts-preview-frame[data-device="mobile"] .sts-preview-logo span { display: none; }
@@ -313,6 +327,7 @@
 .sts-preview-frame[data-device="mobile"] .sts-table-head span:last-child,
 .sts-preview-frame[data-device="mobile"] .sts-table-row > strong { display: none; }
 
+/* ── EDITOR RESPONSIVENESS / REDUCED MOTION ───────────────────────────────── */
 @media (max-width: 1050px) {
 	.st-theme-studio { grid-template-columns: 330px minmax(0, 1fr); }
 	.sts-controls { padding-inline: 18px; }

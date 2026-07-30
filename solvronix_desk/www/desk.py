@@ -5,6 +5,8 @@ from solvronix_desk import theme_engine
 
 
 def get_context(context):
+    """Extend Frappe's Desk context with server-rendered, flash-free theme CSS."""
+
     # Delegate entirely to Frappe's original context setup.
     # This populates desk_theme, boot, csrf_token, app_include_css, etc.
     # Our boot_session hook (boot.py add_boot_data) runs inside frappe.build_bootinfo()

@@ -1,13 +1,21 @@
-/* Solvronix Theme Studio — runtime context, assignments, and advanced rules */
+/* =============================================================================
+   Solvronix Theme Studio — Runtime
+   Applies resolved theme context, profile choices, layout flags, and safe
+   administrator extensions throughout Frappe's single-page Desk lifecycle.
+   ============================================================================= */
 (function () {
   "use strict";
 
+  /* Boot values provide a zero-request first paint; realtime refresh can replace
+     these references later without reinstalling listeners. */
   var config = (window.frappe && frappe.boot && frappe.boot.st_theme_config) || {};
   var flags = (window.frappe && frappe.boot && frappe.boot.st_theme_flags) || {};
   var profiles = (window.frappe && frappe.boot && frappe.boot.st_theme_profiles) || [];
   var scheduleTimer = null;
   var appliedClassMappings = [];
 
+  /* ── 1. ROUTE CONTEXT ─────────────────────────────────────────────────────
+     Expose the current page/DocType/workspace as HTML attributes for scoped CSS. */
   function setRouteContext() {
     var route = [];
     try { route = frappe.get_route ? frappe.get_route() : []; } catch (e) {}
@@ -29,6 +37,8 @@
     applyClassMappings();
   }
 
+  /* ── 2. ADMINISTRATOR CLASS MAPPINGS ──────────────────────────────────────
+     Remove the previous mapping set before applying the newest resolved config. */
   function applyClassMappings() {
     appliedClassMappings.forEach(function (mapping) {
       try {
@@ -50,6 +60,8 @@
     });
   }
 
+  /* ── 3. LAYOUT PREFERENCES ────────────────────────────────────────────────
+     Data attributes feed CSS variants; the sidebar needs a small behavior hook. */
   function applyLayoutPreferences() {
     document.documentElement.setAttribute(
       "data-st-density",
@@ -86,6 +98,8 @@
     }
   }
 
+  /* ── 4. OPTIONAL PER-USER PROFILE SELECTOR ────────────────────────────────
+     Install once inside the shared Appearance panel when site policy allows it. */
   function installUserThemeSelector() {
     if (!flags.allow_user_theme || flags.locked || !profiles.length) return;
     var host = document.getElementById("st-op-appearance");
@@ -117,6 +131,8 @@
     host.appendChild(row);
   }
 
+  /* ── 5. TRUSTED CUSTOM JAVASCRIPT ─────────────────────────────────────────
+     Executes once per page session and only when explicitly enabled by a manager. */
   function executeCustomJavaScript() {
     if (!config.enable_custom_js || !config.custom_js || window.__stCustomJsExecuted) return;
     window.__stCustomJsExecuted = true;
@@ -128,6 +144,8 @@
     }
   }
 
+  /* ── 6. ATOMIC RUNTIME REFRESH ────────────────────────────────────────────
+     CSS, config, mode, mappings, selector, and schedule move as one state update. */
   function applyRuntime(runtime) {
     if (!runtime) return;
     if (Object.prototype.hasOwnProperty.call(runtime, "css")) {
@@ -159,6 +177,7 @@
     }
   }
 
+  /* Keep only one minute timer alive while schedule resolution is enabled. */
   function ensureScheduleTimer(schedule) {
     schedule = schedule || {};
     if (schedule.enabled && !scheduleTimer) {
@@ -169,6 +188,7 @@
     }
   }
 
+  /* Server time and assignment rules remain authoritative for scheduled themes. */
   function refreshScheduledTheme() {
     frappe.call({
       method: "solvronix_desk.theme_api.get_resolved_theme_runtime",
@@ -178,6 +198,8 @@
     });
   }
 
+  /* ── 7. BOOT / SPA OBSERVERS ──────────────────────────────────────────────
+     Route and DOM observers reapply behavior when Frappe replaces page fragments. */
   function ready() {
     setRouteContext();
     window.addEventListener("st-theme-runtime-refresh", function (event) {

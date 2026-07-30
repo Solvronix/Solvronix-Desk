@@ -1,3 +1,5 @@
+"""Unit coverage for theme validation, profile resolution, and CSS rendering."""
+
 import importlib.util
 from pathlib import Path
 import sys

@@ -1,3 +1,5 @@
+"""Structural regression coverage for Smart Home's persistent widget layout."""
+
 from pathlib import Path
 import unittest
 
@@ -41,7 +43,7 @@ class SmartHomeWidgetsTest(unittest.TestCase):
 
     def test_smart_home_asset_cache_is_bumped(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/smart_home.css?v=3", hooks)
+        self.assertIn("/assets/solvronix_desk/css/smart_home.css?v=4", hooks)
 
 
 if __name__ == "__main__":

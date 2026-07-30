@@ -1,3 +1,5 @@
+"""Regression coverage for the ERPNext-compatible full-width Desk toggle."""
+
 from pathlib import Path
 import unittest
 

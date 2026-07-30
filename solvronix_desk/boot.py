@@ -2,7 +2,9 @@ import frappe
 
 
 def add_boot_data(bootinfo):
-    """Populate boot data for desk.html Jinja template and JS."""
+    """Populate all Solvronix first-paint data in Frappe's shared boot payload."""
+
+    # ── 1. ROUTING ─────────────────────────────────────────────────────────────
     try:
         if frappe.db.get_single_value("Theme Settings", "enable_smart_home"):
             bootinfo.home_page = "smart-home"
@@ -10,7 +12,8 @@ def add_boot_data(bootinfo):
         frappe.log_error("solvronix_desk: boot home_page check failed")
         pass
 
-    # Color vars + branding in boot — zero API calls needed in JS
+    # ── 2. RESOLVED THEME / BRANDING ───────────────────────────────────────────
+    # Boot transport avoids extra API calls and visible first-paint theme shifts.
     try:
         s = frappe.get_single("Theme Settings")
         from solvronix_desk import theme_engine
@@ -19,7 +22,8 @@ def add_boot_data(bootinfo):
         bootinfo.st_accent = config["accent_color"]
         bootinfo.st_dark_mode_default = int(s.dark_mode_default or 0)
 
-        # Personalization defaults (v1.2.0) — per-user localStorage overrides win in JS
+        # ── 3. PERSONALIZATION DEFAULTS ─────────────────────────────────────────
+        # Per-user localStorage overrides still win client-side.
         theme_mode = config.get("preferred_mode") or getattr(s, "default_theme_mode", None) or ""
         if not theme_mode:
             # legacy fallback: old "Start in Dark Mode" checkbox
@@ -47,13 +51,15 @@ def add_boot_data(bootinfo):
         bootinfo.st_theme_schedule = theme_engine.schedule(s)
         active_profile = theme_engine.resolved_profile(s, frappe.session.user)
         bootinfo.st_active_theme_profile = active_profile["id"] if active_profile else ""
-        # Install key: first 10 chars of creation timestamp.
+        # ── 4. INSTALL-SCOPED SETUP GUIDE KEY ───────────────────────────────────
+        # First 10 chars of creation timestamp.
         # Changes on every fresh install, so the localStorage dismiss key
         # becomes invalid after reinstall and the setup guide shows again.
         creation = frappe.db.get_single_value("Theme Settings", "creation") or ""
         bootinfo.st_install_key = str(creation)[:10].replace("-", "")
         bootinfo.enable_command_palette = int(s.enable_command_palette or 1)
     except Exception:
+        # Fail soft: Desk must remain usable even if settings are mid-migration.
         frappe.log_error("solvronix_desk: boot data failed")
         bootinfo.st_brand  = "#1B3F7E"
         bootinfo.st_accent = "#F57C00"

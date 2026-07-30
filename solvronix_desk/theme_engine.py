@@ -10,6 +10,8 @@ from datetime import datetime
 import frappe
 
 
+# ── 1. VALIDATION LIMITS / CANONICAL SCHEMA ────────────────────────────────────
+# These guards bound every administrator-controlled value before CSS generation.
 HEX_COLOR = re.compile(r"^#[0-9a-fA-F]{6}$")
 SAFE_FONT = re.compile(r"^[a-zA-Z0-9 _,'\"-]{1,100}$")
 SAFE_CLASS = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_-]{0,63}$")
@@ -131,6 +133,7 @@ DEFAULT_CONFIG = {
 }
 
 
+# Field registries make sanitization declarative and keep UI/API behavior aligned.
 COLOR_FIELDS = {
     "brand_color", "accent_color", "page_background", "card_background",
     "text_color", "muted_text_color", "link_color", "border_color",
@@ -207,6 +210,8 @@ TEXT_LIMITS = {
 }
 
 
+# ── 2. PRIMITIVE NORMALIZERS ───────────────────────────────────────────────────
+# Helpers fail closed and always return values matching the canonical schema.
 def parse_json(value, fallback):
     if isinstance(value, type(fallback)):
         return deepcopy(value)
@@ -283,6 +288,7 @@ def clean_layout(value):
     return clean + [item for item in STUDIO_BLOCKS if item not in clean]
 
 
+# Advanced rules are deliberately bounded; invalid entries are dropped softly.
 def sanitize_scoped_rules(value):
     rules = parse_json(value, []) if isinstance(value, str) else value
     clean = []
@@ -322,6 +328,7 @@ def sanitize_custom_variables(value):
 
 
 def sanitize_config(raw, base=None, validate_contrast=True):
+    """Normalize an untrusted partial config against a complete safe baseline."""
     raw = parse_json(raw, {}) if isinstance(raw, str) else (raw or {})
     if not isinstance(raw, dict):
         frappe.throw("Invalid theme configuration")
@@ -388,6 +395,7 @@ def sanitize_config(raw, base=None, validate_contrast=True):
     return result
 
 
+# ── 3. WCAG CONTRAST AUDIT ─────────────────────────────────────────────────────
 def wcag_failures(config):
     pairs = [
         ("Text / page", config["text_color"], config["page_background"]),
@@ -412,6 +420,7 @@ def wcag_failures(config):
     return [name for name, foreground, background in pairs if contrast_ratio(foreground, background) < 4.5]
 
 
+# ── 4. BUILT-IN AND CUSTOM PROFILES ────────────────────────────────────────────
 def _profile(profile_id, name, overrides, description, builtin=True):
     return {
         "id": profile_id,
@@ -495,6 +504,8 @@ def builtin_profiles():
     ]
 
 
+# ── 5. LEGACY MIGRATION / STORED PROFILE NORMALIZATION ─────────────────────────
+# Older Theme Settings fields remain a baseline for incremental upgrades.
 def json_field(settings, field, fallback):
     return parse_json(getattr(settings, field, None), fallback)
 
@@ -563,6 +574,9 @@ def profiles(settings):
     return builtin_profiles() + clean
 
 
+# ── 6. ASSIGNMENTS, SCHEDULES, AND RESOLUTION PRECEDENCE ───────────────────────
+# Schedule wins first, followed by user choice, explicit user/company/role rules,
+# the site default profile, and finally the published base configuration.
 def profile_by_id(settings, profile_id):
     return next((item for item in profiles(settings) if item["id"] == profile_id), None)
 
@@ -660,6 +674,7 @@ def resolve_profile_id(settings, user=None):
     return selected["id"] if selected else str(getattr(settings, "active_profile", "") or "")
 
 
+# ── 7. CSS RENDERING HELPERS ───────────────────────────────────────────────────
 def shadow_values(style):
     return {
         "None": ("none", "none", "none"),
@@ -681,6 +696,7 @@ def css_attr(value):
 
 
 def render_css(config, enabled=True):
+    """Render one sanitized configuration into the complete Desk token sheet."""
     if not enabled:
         return "/* Solvronix custom theme disabled */"
     config = sanitize_config(config, validate_contrast=False)

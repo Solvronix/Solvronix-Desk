@@ -1,9 +1,12 @@
+"""Stable Desk-facing API facade for theme, branding, and user utilities."""
+
 import json
 import re
 
 import frappe
 from solvronix_desk import theme_engine
 
+# ── 1. LEGACY COMPATIBILITY CONSTANTS / NORMALIZERS ───────────────────────────
 # Site-default font size name → root font-size. Rem-based sizing scales with it.
 FONT_SIZE_CSS = {
     "Small":   "87.5%",
@@ -66,6 +69,8 @@ def _theme_config(settings):
     return theme_engine.resolve_config(settings)
 
 
+# ── 2. THEME CSS / CONFIG COMPATIBILITY ENDPOINTS ──────────────────────────────
+# Theme Studio owns publishing; these routes remain stable for older clients.
 @frappe.whitelist(allow_guest=True)
 def get_theme_css():
     """Return :root CSS variable overrides from Theme Settings.
@@ -100,6 +105,8 @@ def save_theme_config(config):
     return publish_theme_config(config)
 
 
+# ── 3. PUBLIC BRANDING ─────────────────────────────────────────────────────────
+# Login needs this before authentication, so output is intentionally display-only.
 @frappe.whitelist(allow_guest=True)
 def get_branding():
     """Return branding config dict for JS logo/favicon/title injection."""
@@ -121,6 +128,7 @@ def get_branding():
         return {}
 
 
+# ── 4. DESK NAVIGATION DATA ────────────────────────────────────────────────────
 @frappe.whitelist()
 def get_workspaces():
     """Version-proof workspace list for the module switcher, All Options
@@ -146,6 +154,7 @@ def get_workspaces():
         return {"pages": [], "private_pages": []}
 
 
+# ── 5. LANGUAGE PREFERENCE ─────────────────────────────────────────────────────
 @frappe.whitelist()
 def get_available_languages():
     """Return enabled languages for the language switcher in the top toolbar."""
@@ -174,6 +183,7 @@ def set_user_language(lang_code):
     return {"ok": True}
 
 
+# ── 6. USER WORKSPACE / APPEARANCE UTILITIES ───────────────────────────────────
 @frappe.whitelist()
 def reset_workspace_for_user():
     """Delete all user-specific Workspace customizations for the current user.

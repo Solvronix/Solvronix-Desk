@@ -1,3 +1,5 @@
+"""Integration-contract coverage for Theme Studio's public implementation."""
+
 from pathlib import Path
 import json
 import unittest
@@ -93,10 +95,10 @@ class ThemeStudioTest(unittest.TestCase):
 
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=4", hooks)
-        self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=6", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=5", hooks)
+        self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=7", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
-        self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=4", hooks)
+        self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=5", hooks)
         self.assertIn('"on_update": "solvronix_desk.events.theme_settings_on_update"', hooks)
 
     def test_complete_studio_feature_surfaces_exist(self):

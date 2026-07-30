@@ -1,6 +1,8 @@
 import frappe
 
 
+# ── INSTALL / MIGRATION DEFAULTS ───────────────────────────────────────────────
+# The same idempotent seed path supports both fresh installs and later upgrades.
 def after_install():
     """Seed default values into Theme Settings after app install."""
     try:
@@ -26,7 +28,7 @@ def after_install():
         }
         for field, val in defaults.items():
             existing = frappe.db.get_single_value("Theme Settings", field)
-            # Preserve deliberate false/blank administrator choices on migrate.
+            # Only NULL means uninitialized; preserve deliberate false/blank choices.
             if existing is None:
                 frappe.db.set_single_value("Theme Settings", field, val)
         frappe.db.commit()

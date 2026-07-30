@@ -1,6 +1,7 @@
 import frappe
 
 
+# ── THEME SETTINGS REALTIME PROPAGATION ────────────────────────────────────────
 def theme_settings_on_update(doc, method):
     """Broadcast theme change to all connected desk users instantly.
     No room/user specified → frappe uses get_site_room() → all desk users.
@@ -23,5 +24,5 @@ def theme_settings_on_update(doc, method):
         )
     except Exception:
         frappe.log_error("solvronix_desk: st_theme_changed realtime broadcast failed")
-        # Never break Theme Settings save on realtime failure
+        # Never break Theme Settings persistence because a websocket is unavailable.
         pass

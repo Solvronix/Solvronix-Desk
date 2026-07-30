@@ -5,6 +5,11 @@
 
 frappe.provide("solvronix_desk");
 
+/* ────────────────────────────────────────────────────────────────────────────
+   1. FRAPPE PAGE LIFECYCLE
+   Build once on page load; SPA revisits only refresh live values so the user's
+   widget order and the existing DOM remain intact.
+   ──────────────────────────────────────────────────────────────────────────── */
 frappe.pages["smart-home"].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
@@ -22,6 +27,10 @@ frappe.pages["smart-home"].on_page_show = function () {
 	if (instance) instance.refresh();
 };
 
+/* ────────────────────────────────────────────────────────────────────────────
+   2. DASHBOARD CONTROLLER
+   Owns widget rendering, edit state, persistence, permissions, and data refresh.
+   ──────────────────────────────────────────────────────────────────────────── */
 solvronix_desk.SmartHome = class SmartHome {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
@@ -34,6 +43,7 @@ solvronix_desk.SmartHome = class SmartHome {
 		this.kpis = this._get_kpi_definitions();
 	}
 
+	/* Public entry point; guarded because Frappe can revisit a cached page. */
 	build() {
 		if (this._built) return;
 		this._built = true;
@@ -44,6 +54,7 @@ solvronix_desk.SmartHome = class SmartHome {
 		this.refresh();
 	}
 
+	/* Update data in place without rebuilding or reordering widget nodes. */
 	refresh() {
 		if (!this._built) return;
 		this._refresh_kpis();
@@ -51,6 +62,8 @@ solvronix_desk.SmartHome = class SmartHome {
 		this._refresh_pending();
 	}
 
+	/* ── 3. PAGE SHELL ────────────────────────────────────────────────────────
+	   The greeting is fixed page chrome; everything below it is a widget. */
 	_build_shell() {
 		var hour = new Date().getHours();
 		var greeting =
@@ -104,10 +117,13 @@ solvronix_desk.SmartHome = class SmartHome {
 		);
 	}
 
+	/* ── 4. WIDGET REGISTRY / FACTORIES ──────────────────────────────────────
+	   Permission-safe KPI definitions and standard panels share one grid. */
 	_render_widgets() {
 		var $grid = this.$body.find("#st-sh-widget-grid");
 		var self = this;
 
+		/* KPI cards are individual widgets rather than one fixed KPI row. */
 		this.kpis.forEach(function (kpi) {
 			$grid.append(self._kpi_widget(kpi));
 		});
@@ -146,6 +162,7 @@ solvronix_desk.SmartHome = class SmartHome {
 		this._render_quick_create();
 	}
 
+	/* Shared wrapper: ID is persisted; size maps to a responsive CSS grid span. */
 	_widget_shell(id, size, inner, extra_class) {
 		return (
 			'<section class="st-sh-widget ' + (extra_class || "") + '" ' +
@@ -166,6 +183,7 @@ solvronix_desk.SmartHome = class SmartHome {
 		);
 	}
 
+	/* KPI content remains a normal Desk link outside customization mode. */
 	_kpi_widget(kpi) {
 		var inner =
 			'<a href="' + kpi.route + '" class="st-sh-kpi-link" tabindex="0">' +
@@ -185,6 +203,7 @@ solvronix_desk.SmartHome = class SmartHome {
 		);
 	}
 
+	/* Common frame keeps operational panel markup and drag controls consistent. */
 	_panel_widget(id, title, subtitle, icon, size, body) {
 		var inner =
 			'<div class="st-sh-card">' +
@@ -199,6 +218,7 @@ solvronix_desk.SmartHome = class SmartHome {
 		return this._widget_shell(id, size, inner, "st-sh-panel-widget");
 	}
 
+	/* Filter before rendering so inaccessible DocTypes never enter the DOM. */
 	_get_kpi_definitions() {
 		var can_read = ((frappe.boot && frappe.boot.user && frappe.boot.user.can_read) || []);
 		return [
@@ -243,10 +263,13 @@ solvronix_desk.SmartHome = class SmartHome {
 		});
 	}
 
+	/* ── 5. LAYOUT EDITING / DRAG AND DROP ───────────────────────────────────
+	   HTML5 drag handles pointer reordering; arrows provide a keyboard fallback. */
 	_bind_layout_events() {
 		var self = this;
 		var $grid = this.$body.find("#st-sh-widget-grid");
 
+		/* Links are disabled while editing to prevent accidental navigation. */
 		this.$body.on("click.st_sh_layout", ".st-sh-customize", function () {
 			self._set_editing(!self.editing);
 		});
@@ -261,6 +284,7 @@ solvronix_desk.SmartHome = class SmartHome {
 			});
 		});
 
+		/* Move the existing node so loaded values and event bindings survive. */
 		this.$body.on("click.st_sh_layout", ".st-sh-move", function (event) {
 			event.preventDefault();
 			event.stopPropagation();
@@ -285,6 +309,7 @@ solvronix_desk.SmartHome = class SmartHome {
 			}
 		});
 
+		/* Keep one active source and expose a stable ID to browser drag tooling. */
 		$grid.on("dragstart.st_sh_layout", ".st-sh-widget", function (event) {
 			if (!self.editing) {
 				event.preventDefault();
@@ -299,6 +324,7 @@ solvronix_desk.SmartHome = class SmartHome {
 			}
 		});
 
+		/* Pointer midpoint decides whether insertion occurs before or after. */
 		$grid.on("dragover.st_sh_layout", ".st-sh-widget", function (event) {
 			if (!self.dragged || this === self.dragged) return;
 			event.preventDefault();
@@ -327,6 +353,7 @@ solvronix_desk.SmartHome = class SmartHome {
 		});
 	}
 
+	/* Toggle every edit-only affordance from one authoritative state. */
 	_set_editing(enabled) {
 		this.editing = enabled === true;
 		var $home = this.$body.find(".st-smart-home");
@@ -344,6 +371,7 @@ solvronix_desk.SmartHome = class SmartHome {
 		}
 	}
 
+	/* Clear transient markers after cancel; persist only a successful drop. */
 	_finish_drag(save) {
 		this.$body.find(".st-sh-widget")
 			.removeClass("st-sh-dragging st-sh-drop-before st-sh-drop-after");
@@ -351,6 +379,8 @@ solvronix_desk.SmartHome = class SmartHome {
 		if (save) this._save_layout();
 	}
 
+	/* ── 6. PER-USER LAYOUT PERSISTENCE ──────────────────────────────────────
+	   Only stable IDs are stored; content and permissions remain authoritative. */
 	_save_layout() {
 		var order = this.$body.find(".st-sh-widget").map(function () {
 			return this.dataset.widgetId;
@@ -377,12 +407,14 @@ solvronix_desk.SmartHome = class SmartHome {
 			if (known[id]) $grid.append(known[id]);
 		});
 
-		/* New or newly-permitted widgets remain in their default relative order. */
+		/* Newly-added or newly-permitted widgets append instead of disappearing
+		   from an older saved layout that does not know their IDs. */
 		Object.keys(known).forEach(function (id) {
 			if (order.indexOf(id) === -1) $grid.append(known[id]);
 		});
 	}
 
+	/* Inline feedback avoids showing a global toast after every small movement. */
 	_announce_saved(message) {
 		var $state = this.$body.find(".st-sh-save-state");
 		$state.text(message).addClass("is-visible");
@@ -392,6 +424,8 @@ solvronix_desk.SmartHome = class SmartHome {
 		}, 1800);
 	}
 
+	/* ── 7. LIVE KPI COUNTS ──────────────────────────────────────────────────
+	   Requests are independent so one failed DocType cannot block other KPIs. */
 	_refresh_kpis() {
 		var self = this;
 		this.kpis.forEach(function (kpi) {
@@ -410,12 +444,15 @@ solvronix_desk.SmartHome = class SmartHome {
 		});
 	}
 
+	/* ── 8. RECENT DOCUMENTS ─────────────────────────────────────────────────
+	   Route history is instant and avoids an unnecessary server-side query. */
 	_refresh_recent() {
 		var $container = this.$body.find("#st-sh-recent");
 		var history = (frappe.route_history || []).slice().reverse();
 		var seen = {};
 		var items = [];
 
+		/* De-duplicate repeated visits while retaining most-recent-first order. */
 		for (var index = 0; index < history.length && items.length < 8; index++) {
 			var route = history[index];
 			if (
@@ -459,6 +496,8 @@ solvronix_desk.SmartHome = class SmartHome {
 		}).join(""));
 	}
 
+	/* ── 9. QUICK CREATE ─────────────────────────────────────────────────────
+	   Static session permissions determine a compact, predictable action list. */
 	_render_quick_create() {
 		var $container = this.$body.find("#st-sh-qc");
 		var can_create = ((frappe.boot && frappe.boot.user && frappe.boot.user.can_create) || []);
@@ -487,6 +526,8 @@ solvronix_desk.SmartHome = class SmartHome {
 		}).join("") + '</div>');
 	}
 
+	/* ── 10. NEEDS ATTENTION ─────────────────────────────────────────────────
+	   Permission-safe counts run in parallel and render as one settled batch. */
 	_refresh_pending() {
 		var $container = this.$body.find("#st-sh-pending");
 		var can_read = ((frappe.boot && frappe.boot.user && frappe.boot.user.can_read) || []);
@@ -527,6 +568,8 @@ solvronix_desk.SmartHome = class SmartHome {
 		var complete = 0;
 		var found = [];
 		var self = this;
+
+		/* Shared completion count allows parallel requests and a single redraw. */
 		checks.forEach(function (check) {
 			frappe.call({
 				method: "frappe.client.get_count",
@@ -548,6 +591,7 @@ solvronix_desk.SmartHome = class SmartHome {
 		});
 	}
 
+	/* Non-zero results become actionable rows after the request batch settles. */
 	_render_attention($container, found) {
 		if (!found.length) {
 			this._render_all_clear($container);
@@ -565,6 +609,7 @@ solvronix_desk.SmartHome = class SmartHome {
 		}).join(""));
 	}
 
+	/* Positive empty state makes a zero-result attention widget intentional. */
 	_render_all_clear($container) {
 		$container.html(
 			'<div class="st-sh-all-clear">' +
@@ -576,6 +621,8 @@ solvronix_desk.SmartHome = class SmartHome {
 		);
 	}
 
+	/* ── 11. SAFE UI HELPERS ─────────────────────────────────────────────────
+	   Icon lookup fails softly across Frappe versions; dynamic text is escaped. */
 	_icon(name, size) {
 		try {
 			return frappe.utils.icon(name, size || "sm") || "";
