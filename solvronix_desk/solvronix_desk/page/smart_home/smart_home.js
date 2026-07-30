@@ -1,7 +1,6 @@
 /* ================================================================
-   Solvronix Desk — Smart Home / "Today's View"
-   Role-aware dashboard: KPI cards, recent docs, quick create,
-   pending items. Registered as Frappe Page "smart-home".
+   Solvronix Desk — Smart Home / Today's View
+   Permission-aware widgets with a persistent drag-and-drop layout.
    ================================================================ */
 
 frappe.provide("solvronix_desk");
@@ -12,110 +11,208 @@ frappe.pages["smart-home"].on_page_load = function (wrapper) {
 		title: __("Today's View"),
 		single_column: true,
 	});
-	var inst = new solvronix_desk.SmartHome(wrapper);
-	frappe.pages["smart-home"]._inst = inst;
-	/* Build shell once, then load all data */
-	inst._build_shell();
-	inst._fetch_data();
+
+	var instance = new solvronix_desk.SmartHome(wrapper);
+	frappe.pages["smart-home"]._inst = instance;
+	instance.build();
 };
 
 frappe.pages["smart-home"].on_page_show = function () {
-	var inst = frappe.pages["smart-home"]._inst;
-	if (!inst) return;
-	/* Shell already in DOM — only refresh numbers + recent list.
-	   No HTML wipe, so user sees previous values instantly. */
-	inst._refresh_kpis();
-	inst._refresh_recent();
-	inst._refresh_pending();
+	var instance = frappe.pages["smart-home"]._inst;
+	if (instance) instance.refresh();
 };
 
 solvronix_desk.SmartHome = class SmartHome {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
 		this.$body = this.wrapper.find(".page-content");
-		this._kpi_defs = null;
+		this.user = (frappe.session && frappe.session.user) || "Guest";
+		this.storage_key = "st_smart_home_layout_v2::" + this.user;
+		this.editing = false;
+		this.dragged = null;
+		this._built = false;
+		this.kpis = this._get_kpi_definitions();
 	}
 
-	/* ── Build the page skeleton (called once on page_load) ─── */
-	_build_shell() {
-		var hour = new Date().getHours();
-		var greeting =
-			hour < 12 ? __("Good morning") :
-			hour < 17 ? __("Good afternoon") :
-			            __("Good evening");
-
-		var user_email = (frappe.session && frappe.session.user) || "";
-		var user_info = (frappe.boot.user_info || {})[user_email] || {};
-		var full_name = user_info.full_name || (frappe.session && frappe.session.user_fullname) || user_email || "";
-
-		var today = new Date();
-		var date_label = today.toLocaleDateString(undefined, {
-			weekday: "long", year: "numeric", month: "long", day: "numeric",
-		});
-
-		this.$body.html(
-			'<div class="st-smart-home">' +
-
-			  '<div class="st-sh-header">' +
-			    '<div>' +
-			      '<h2 class="st-sh-greeting">' + greeting + ', <span class="st-sh-name">' + this._esc(full_name) + '</span></h2>' +
-			      '<div class="st-sh-date">' + date_label + '</div>' +
-			    '</div>' +
-			    '<a href="/desk/home" class="st-sh-all-ws">' + __("All Workspaces") + ' &rarr;</a>' +
-			  '</div>' +
-
-			  '<div class="st-sh-kpi-row" id="st-sh-kpis"></div>' +
-
-			  '<div class="st-sh-layout">' +
-			    '<div class="st-sh-main">' +
-			      '<div class="st-sh-card">' +
-			        '<div class="st-sh-card-head">' + __("Recent Documents") + '</div>' +
-			        '<div id="st-sh-recent" class="st-sh-card-body"><div class="st-sh-spin"></div></div>' +
-			      '</div>' +
-			    '</div>' +
-			    '<div class="st-sh-side">' +
-			      '<div class="st-sh-card">' +
-			        '<div class="st-sh-card-head">' + __("Quick Create") + '</div>' +
-			        '<div id="st-sh-qc" class="st-sh-card-body"><div class="st-sh-spin"></div></div>' +
-			      '</div>' +
-			      '<div class="st-sh-card">' +
-			        '<div class="st-sh-card-head">' + __("Needs Attention") + '</div>' +
-			        '<div id="st-sh-pending" class="st-sh-card-body"><div class="st-sh-spin"></div></div>' +
-			      '</div>' +
-			    '</div>' +
-			  '</div>' +
-
-			'</div>'
-		);
-
-		/* Build KPI card shells immediately with spinner values */
-		this._build_kpi_shells();
-		/* Quick Create is static — render once, never needs refresh */
-		this._render_quick_create();
+	build() {
+		if (this._built) return;
+		this._built = true;
+		this._build_shell();
+		this._render_widgets();
+		this._restore_layout();
+		this._bind_layout_events();
+		this.refresh();
 	}
 
-	/* ── First full load ───────────────────────────────────────── */
-	_fetch_data() {
+	refresh() {
+		if (!this._built) return;
 		this._refresh_kpis();
 		this._refresh_recent();
 		this._refresh_pending();
 	}
 
-	/* ── KPI card shells (built once, numbers updated in place) ── */
-	_build_kpi_shells() {
-		var $row = this.$body.find("#st-sh-kpis");
-		var can_read = (frappe.boot.user && frappe.boot.user.can_read) || [];
+	_build_shell() {
+		var hour = new Date().getHours();
+		var greeting =
+			hour < 12 ? __("Good morning") :
+			hour < 17 ? __("Good afternoon") :
+			__("Good evening");
 
-		var defs = [
+		var user_info = ((frappe.boot && frappe.boot.user_info) || {})[this.user] || {};
+		var full_name =
+			user_info.full_name ||
+			(frappe.session && frappe.session.user_fullname) ||
+			this.user ||
+			"";
+		var date_label = new Date().toLocaleDateString(undefined, {
+			weekday: "long",
+			year: "numeric",
+			month: "long",
+			day: "numeric",
+		});
+
+		this.$body.html(
+			'<main class="st-smart-home">' +
+				'<header class="st-sh-header">' +
+					'<div class="st-sh-welcome">' +
+						'<div class="st-sh-eyebrow">' + __("Your command centre") + '</div>' +
+						'<h2 class="st-sh-greeting">' +
+							greeting + ', <span class="st-sh-name">' + this._esc(full_name) + '</span>' +
+						'</h2>' +
+						'<div class="st-sh-date">' + this._esc(date_label) + '</div>' +
+					'</div>' +
+					'<div class="st-sh-header-actions">' +
+						'<span class="st-sh-save-state" role="status" aria-live="polite"></span>' +
+						'<button class="btn btn-default btn-sm st-sh-reset" type="button">' +
+							this._icon("refresh", "sm") + '<span>' + __("Reset") + '</span>' +
+						'</button>' +
+						'<button class="btn btn-primary btn-sm st-sh-customize" type="button" aria-pressed="false">' +
+							this._icon("edit", "sm") +
+							'<span class="st-sh-customize-label">' + __("Customize layout") + '</span>' +
+						'</button>' +
+						'<a href="/desk/home" class="st-sh-all-ws">' +
+							__("All Workspaces") + ' <span aria-hidden="true">&rarr;</span>' +
+						'</a>' +
+					'</div>' +
+				'</header>' +
+				'<div class="st-sh-edit-note" role="status">' +
+					'<span class="st-sh-edit-note-icon">' + this._icon("drag", "sm") + '</span>' +
+					'<span>' + __("Drag widgets to rearrange them. Your layout saves automatically.") + '</span>' +
+				'</div>' +
+				'<div class="st-sh-widget-grid" id="st-sh-widget-grid"></div>' +
+			'</main>'
+		);
+	}
+
+	_render_widgets() {
+		var $grid = this.$body.find("#st-sh-widget-grid");
+		var self = this;
+
+		this.kpis.forEach(function (kpi) {
+			$grid.append(self._kpi_widget(kpi));
+		});
+
+		$grid.append(
+			this._panel_widget(
+				"recent-documents",
+				__("Recent Documents"),
+				__("Records you opened lately"),
+				"clock",
+				"wide",
+				'<div id="st-sh-recent" class="st-sh-card-body"><div class="st-sh-spin"></div></div>'
+			)
+		);
+		$grid.append(
+			this._panel_widget(
+				"quick-create",
+				__("Quick Create"),
+				__("Start something new"),
+				"add",
+				"half",
+				'<div id="st-sh-qc" class="st-sh-card-body"></div>'
+			)
+		);
+		$grid.append(
+			this._panel_widget(
+				"needs-attention",
+				__("Needs Attention"),
+				__("Items waiting on action"),
+				"warning",
+				"half",
+				'<div id="st-sh-pending" class="st-sh-card-body"><div class="st-sh-spin"></div></div>'
+			)
+		);
+
+		this._render_quick_create();
+	}
+
+	_widget_shell(id, size, inner, extra_class) {
+		return (
+			'<section class="st-sh-widget ' + (extra_class || "") + '" ' +
+				'data-widget-id="' + this._esc(id) + '" data-widget-size="' + size + '" draggable="false">' +
+				'<div class="st-sh-drag-tools">' +
+					'<button class="st-sh-move st-sh-move-back" type="button" title="' + __("Move backward") + '" aria-label="' + __("Move backward") + '">' +
+						'&larr;' +
+					'</button>' +
+					'<button class="st-sh-drag-handle" type="button" title="' + __("Drag to rearrange") + '" aria-label="' + __("Drag to rearrange") + '">' +
+						'<span></span><span></span><span></span><span></span><span></span><span></span>' +
+					'</button>' +
+					'<button class="st-sh-move st-sh-move-forward" type="button" title="' + __("Move forward") + '" aria-label="' + __("Move forward") + '">' +
+						'&rarr;' +
+					'</button>' +
+				'</div>' +
+				inner +
+			'</section>'
+		);
+	}
+
+	_kpi_widget(kpi) {
+		var inner =
+			'<a href="' + kpi.route + '" class="st-sh-kpi-link" tabindex="0">' +
+				'<div class="st-sh-kpi-top">' +
+					'<span class="st-sh-kpi-icon">' + this._icon(kpi.icon, "md") + '</span>' +
+					'<span class="st-sh-kpi-trend" aria-hidden="true">&nearr;</span>' +
+				'</div>' +
+				'<div class="st-sh-kpi-num" data-kpi-value>—</div>' +
+				'<div class="st-sh-kpi-label">' + kpi.label + '</div>' +
+			'</a>';
+
+		return this._widget_shell(
+			kpi.id,
+			"quarter",
+			inner,
+			"st-sh-kpi st-sh-tone-" + kpi.accent
+		);
+	}
+
+	_panel_widget(id, title, subtitle, icon, size, body) {
+		var inner =
+			'<div class="st-sh-card">' +
+				'<div class="st-sh-card-head">' +
+					'<div class="st-sh-card-heading">' +
+						'<span class="st-sh-card-icon">' + this._icon(icon, "sm") + '</span>' +
+						'<div><h3>' + title + '</h3><p>' + subtitle + '</p></div>' +
+					'</div>' +
+				'</div>' +
+				body +
+			'</div>';
+		return this._widget_shell(id, size, inner, "st-sh-panel-widget");
+	}
+
+	_get_kpi_definitions() {
+		var can_read = ((frappe.boot && frappe.boot.user && frappe.boot.user.can_read) || []);
+		return [
 			{
+				id: "unpaid-invoices",
 				label: __("Unpaid Invoices"),
 				dt: "Sales Invoice",
 				filters: { status: ["in", ["Unpaid", "Overdue"]], docstatus: 1 },
 				route: "/desk/sales-invoice?status=Unpaid",
 				icon: "file-text",
-				accent: "orange",
+				accent: "amber",
 			},
 			{
+				id: "open-orders",
 				label: __("Open Orders"),
 				dt: "Sales Order",
 				filters: { status: ["in", ["To Deliver and Bill", "To Bill", "To Deliver"]], docstatus: 1 },
@@ -124,6 +221,7 @@ solvronix_desk.SmartHome = class SmartHome {
 				accent: "blue",
 			},
 			{
+				id: "open-tasks",
 				label: __("Open Tasks"),
 				dt: "Task",
 				filters: { status: "Open" },
@@ -132,169 +230,366 @@ solvronix_desk.SmartHome = class SmartHome {
 				accent: "green",
 			},
 			{
+				id: "my-todos",
 				label: __("My ToDos"),
 				dt: "ToDo",
 				filters: { status: "Open" },
 				route: "/desk/todo?status=Open",
 				icon: "circle-check",
-				accent: "purple",
+				accent: "coral",
 			},
-		].filter(function (k) { return can_read.indexOf(k.dt) !== -1; }).slice(0, 4);
-
-		if (!defs.length) {
-			$row.hide();
-			this._kpi_defs = [];
-			return;
-		}
-
-		this._kpi_defs = defs;
-		$row.empty();
-
-		defs.forEach(function (kpi) {
-			var icon_html = "";
-			try { icon_html = frappe.utils.icon(kpi.icon, "md") || ""; } catch (e) {}
-
-			$(
-				'<a href="' + kpi.route + '" class="st-sh-kpi kpi-' + kpi.accent + '" data-kpi-dt="' + kpi.dt + '">' +
-				  '<div class="st-sh-kpi-icon">' + (icon_html || "<span>&#9632;</span>") + '</div>' +
-				  '<div class="st-sh-kpi-data">' +
-				    '<div class="st-sh-kpi-num">—</div>' +
-				    '<div class="st-sh-kpi-label">' + kpi.label + '</div>' +
-				  '</div>' +
-				'</a>'
-			).appendTo($row);
+		].filter(function (kpi) {
+			return can_read.indexOf(kpi.dt) !== -1;
 		});
 	}
 
-	/* ── Refresh only KPI numbers (no DOM rebuild) ──────────────── */
-	_refresh_kpis() {
-		var defs = this._kpi_defs;
-		if (!defs || !defs.length) return;
-		var $row = this.$body.find("#st-sh-kpis");
+	_bind_layout_events() {
+		var self = this;
+		var $grid = this.$body.find("#st-sh-widget-grid");
 
-		defs.forEach(function (kpi, idx) {
-			var $num = $row.find(".st-sh-kpi").eq(idx).find(".st-sh-kpi-num");
+		this.$body.on("click.st_sh_layout", ".st-sh-customize", function () {
+			self._set_editing(!self.editing);
+		});
+
+		this.$body.on("click.st_sh_layout", ".st-sh-reset", function () {
+			frappe.confirm(__("Reset your Smart Home widget order?"), function () {
+				try {
+					localStorage.removeItem(self.storage_key);
+				} catch (e) {}
+				self._restore_layout();
+				self._announce_saved(__("Default layout restored"));
+			});
+		});
+
+		this.$body.on("click.st_sh_layout", ".st-sh-move", function (event) {
+			event.preventDefault();
+			event.stopPropagation();
+			var widget = this.closest(".st-sh-widget");
+			if (!widget || !self.editing) return;
+			if (this.classList.contains("st-sh-move-back") && widget.previousElementSibling) {
+				widget.parentNode.insertBefore(widget, widget.previousElementSibling);
+			} else if (
+				this.classList.contains("st-sh-move-forward") &&
+				widget.nextElementSibling
+			) {
+				widget.parentNode.insertBefore(widget.nextElementSibling, widget);
+			}
+			self._save_layout();
+			widget.focus({ preventScroll: true });
+		});
+
+		this.$body.on("click.st_sh_layout", ".st-sh-widget a", function (event) {
+			if (self.editing) {
+				event.preventDefault();
+				event.stopPropagation();
+			}
+		});
+
+		$grid.on("dragstart.st_sh_layout", ".st-sh-widget", function (event) {
+			if (!self.editing) {
+				event.preventDefault();
+				return;
+			}
+			self.dragged = this;
+			this.classList.add("st-sh-dragging");
+			var original = event.originalEvent;
+			if (original && original.dataTransfer) {
+				original.dataTransfer.effectAllowed = "move";
+				original.dataTransfer.setData("text/plain", this.dataset.widgetId);
+			}
+		});
+
+		$grid.on("dragover.st_sh_layout", ".st-sh-widget", function (event) {
+			if (!self.dragged || this === self.dragged) return;
+			event.preventDefault();
+			$grid.find(".st-sh-drop-before, .st-sh-drop-after")
+				.removeClass("st-sh-drop-before st-sh-drop-after");
+			var original = event.originalEvent;
+			var rect = this.getBoundingClientRect();
+			var after = original.clientY > rect.top + rect.height / 2;
+			this.classList.add(after ? "st-sh-drop-after" : "st-sh-drop-before");
+		});
+
+		$grid.on("drop.st_sh_layout", ".st-sh-widget", function (event) {
+			if (!self.dragged || this === self.dragged) return;
+			event.preventDefault();
+			var target = this;
+			var put_after = target.classList.contains("st-sh-drop-after");
+			target.parentNode.insertBefore(
+				self.dragged,
+				put_after ? target.nextElementSibling : target
+			);
+			self._finish_drag(true);
+		});
+
+		$grid.on("dragend.st_sh_layout", ".st-sh-widget", function () {
+			self._finish_drag(false);
+		});
+	}
+
+	_set_editing(enabled) {
+		this.editing = enabled === true;
+		var $home = this.$body.find(".st-smart-home");
+		var $button = this.$body.find(".st-sh-customize");
+		$home.toggleClass("st-sh-is-editing", this.editing);
+		$button.attr("aria-pressed", this.editing ? "true" : "false");
+		$button.find(".st-sh-customize-label").text(
+			this.editing ? __("Done") : __("Customize layout")
+		);
+		this.$body.find(".st-sh-widget").attr("draggable", this.editing ? "true" : "false");
+		if (this.editing) {
+			this.$body.find(".st-sh-widget").attr("tabindex", "0").first().focus();
+		} else {
+			this.$body.find(".st-sh-widget").removeAttr("tabindex");
+		}
+	}
+
+	_finish_drag(save) {
+		this.$body.find(".st-sh-widget")
+			.removeClass("st-sh-dragging st-sh-drop-before st-sh-drop-after");
+		this.dragged = null;
+		if (save) this._save_layout();
+	}
+
+	_save_layout() {
+		var order = this.$body.find(".st-sh-widget").map(function () {
+			return this.dataset.widgetId;
+		}).get();
+		try {
+			localStorage.setItem(this.storage_key, JSON.stringify({ order: order }));
+		} catch (e) {}
+		this._announce_saved(__("Layout saved"));
+	}
+
+	_restore_layout() {
+		var $grid = this.$body.find("#st-sh-widget-grid");
+		var saved = null;
+		try {
+			saved = JSON.parse(localStorage.getItem(this.storage_key) || "null");
+		} catch (e) {}
+
+		var order = saved && Array.isArray(saved.order) ? saved.order : [];
+		var known = {};
+		$grid.children(".st-sh-widget").each(function () {
+			known[this.dataset.widgetId] = this;
+		});
+		order.forEach(function (id) {
+			if (known[id]) $grid.append(known[id]);
+		});
+
+		/* New or newly-permitted widgets remain in their default relative order. */
+		Object.keys(known).forEach(function (id) {
+			if (order.indexOf(id) === -1) $grid.append(known[id]);
+		});
+	}
+
+	_announce_saved(message) {
+		var $state = this.$body.find(".st-sh-save-state");
+		$state.text(message).addClass("is-visible");
+		clearTimeout(this._save_timer);
+		this._save_timer = setTimeout(function () {
+			$state.removeClass("is-visible");
+		}, 1800);
+	}
+
+	_refresh_kpis() {
+		var self = this;
+		this.kpis.forEach(function (kpi) {
+			var $num = self.$body
+				.find('[data-widget-id="' + kpi.id + '"] [data-kpi-value]');
 			frappe.call({
 				method: "frappe.client.get_count",
 				args: { doctype: kpi.dt, filters: kpi.filters },
-				callback: function (r) {
-					$num.text(r.message !== undefined ? r.message : "—");
+				callback: function (response) {
+					$num.text(response.message !== undefined ? response.message : "—");
 				},
-				error: function () { $num.text("—"); },
+				error: function () {
+					$num.text("—");
+				},
 			});
 		});
 	}
 
-	/* ── Recent Documents (cheap — reads frappe.route_history) ─── */
 	_refresh_recent() {
-		var $body = this.$body.find("#st-sh-recent");
+		var $container = this.$body.find("#st-sh-recent");
 		var history = (frappe.route_history || []).slice().reverse();
-		var seen = {}, items = [];
+		var seen = {};
+		var items = [];
 
-		for (var i = 0; i < history.length && items.length < 8; i++) {
-			var r = history[i];
-			if (r[0] === "Form" && r[1] && r[2] && !r[2].startsWith("new-")) {
-				var key = r[1] + "::" + r[2];
+		for (var index = 0; index < history.length && items.length < 8; index++) {
+			var route = history[index];
+			if (
+				route[0] === "Form" &&
+				route[1] &&
+				route[2] &&
+				!String(route[2]).startsWith("new-")
+			) {
+				var key = route[1] + "::" + route[2];
 				if (!seen[key]) {
 					seen[key] = true;
-					items.push({ doctype: r[1], name: r[2] });
+					items.push({ doctype: route[1], name: route[2] });
 				}
 			}
 		}
 
 		if (!items.length) {
-			$body.html('<div class="st-sh-empty">' + __("No recent documents yet. Start by opening any record.") + '</div>');
+			$container.html(
+				'<div class="st-sh-empty">' +
+					this._icon("clock", "md") +
+					'<span>' + __("No recent documents yet. Open a record and it will appear here.") + '</span>' +
+				'</div>'
+			);
 			return;
 		}
 
-		$body.html(items.map(function (item) {
+		var self = this;
+		$container.html(items.map(function (item) {
 			var slug = frappe.router.slug(item.doctype);
 			var url = "/desk/" + slug + "/" + encodeURIComponent(item.name);
-			return '<a href="' + url + '" class="st-sh-doc-row">' +
-				'<span class="st-sh-doc-dt">' + item.doctype + '</span>' +
-				'<span class="st-sh-doc-name">' + item.name + '</span>' +
-			'</a>';
+			return (
+				'<a href="' + url + '" class="st-sh-doc-row">' +
+					'<span class="st-sh-doc-mark"></span>' +
+					'<span class="st-sh-doc-copy">' +
+						'<span class="st-sh-doc-name">' + self._esc(item.name) + '</span>' +
+						'<span class="st-sh-doc-dt">' + self._esc(__(item.doctype)) + '</span>' +
+					'</span>' +
+					'<span class="st-sh-row-arrow" aria-hidden="true">&rarr;</span>' +
+				'</a>'
+			);
 		}).join(""));
 	}
 
-	/* ── Quick Create (static permission check — render once) ─── */
 	_render_quick_create() {
-		var $body = this.$body.find("#st-sh-qc");
-		var can_create = (frappe.boot.user && frappe.boot.user.can_create) || [];
+		var $container = this.$body.find("#st-sh-qc");
+		var can_create = ((frappe.boot && frappe.boot.user && frappe.boot.user.can_create) || []);
 		var order = [
-			"Sales Invoice", "Quotation", "Sales Order",
-			"Purchase Order", "Purchase Invoice",
-			"Expense Claim", "Leave Application",
+			"Sales Invoice", "Quotation", "Sales Order", "Purchase Order",
+			"Purchase Invoice", "Expense Claim", "Leave Application",
 			"Customer", "Supplier", "Task", "ToDo",
 		];
-		var items = order.filter(function (dt) {
-			return can_create.indexOf(dt) !== -1;
+		var items = order.filter(function (doctype) {
+			return can_create.indexOf(doctype) !== -1;
 		}).slice(0, 6);
 
 		if (!items.length) {
-			$body.html('<div class="st-sh-empty">' + __("No create permissions found.") + '</div>');
+			$container.html('<div class="st-sh-empty"><span>' + __("No create permissions found.") + '</span></div>');
 			return;
 		}
 
-		$body.html(items.map(function (dt) {
-			var slug = frappe.router.slug(dt);
-			return '<a href="/desk/' + slug + '/new" class="st-sh-qc-row">' +
-				'<span class="st-sh-qc-plus">+</span>' +
-				'<span>' + __(dt) + '</span>' +
-			'</a>';
-		}).join(""));
+		$container.html('<div class="st-sh-qc-grid">' + items.map(function (doctype) {
+			var slug = frappe.router.slug(doctype);
+			return (
+				'<a href="/desk/' + slug + '/new" class="st-sh-qc-item">' +
+					'<span class="st-sh-qc-plus">+</span>' +
+					'<span>' + __(doctype) + '</span>' +
+				'</a>'
+			);
+		}).join("") + '</div>');
 	}
 
-	/* ── Pending / Needs Attention ──────────────────────────────── */
 	_refresh_pending() {
-		var $body = this.$body.find("#st-sh-pending");
-		var can_read = (frappe.boot.user && frappe.boot.user.can_read) || [];
-
+		var $container = this.$body.find("#st-sh-pending");
+		var can_read = ((frappe.boot && frappe.boot.user && frappe.boot.user.can_read) || []);
 		var checks = [
-			{ dt: "Sales Invoice",     filters: { status: "Overdue", docstatus: 1 },             label: __("{0} overdue sales invoices"),               route: "/desk/sales-invoice?status=Overdue" },
-			{ dt: "Purchase Order",    filters: { status: "To Receive and Bill", docstatus: 1 },  label: __("{0} pending purchase orders"),              route: "/desk/purchase-order" },
-			{ dt: "Leave Application", filters: { status: "Open", docstatus: 0 },                 label: __("{0} leave applications awaiting approval"),  route: "/desk/leave-application?status=Open" },
-			{ dt: "Expense Claim",     filters: { status: "Draft", docstatus: 0 },       label: __("{0} expense claims pending"),               route: "/desk/expense-claim" },
-		].filter(function (c) { return can_read.indexOf(c.dt) !== -1; });
+			{
+				dt: "Sales Invoice",
+				filters: { status: "Overdue", docstatus: 1 },
+				label: __("{0} overdue sales invoices"),
+				route: "/desk/sales-invoice?status=Overdue",
+			},
+			{
+				dt: "Purchase Order",
+				filters: { status: "To Receive and Bill", docstatus: 1 },
+				label: __("{0} pending purchase orders"),
+				route: "/desk/purchase-order",
+			},
+			{
+				dt: "Leave Application",
+				filters: { status: "Open", docstatus: 0 },
+				label: __("{0} leave applications awaiting approval"),
+				route: "/desk/leave-application?status=Open",
+			},
+			{
+				dt: "Expense Claim",
+				filters: { status: "Draft", docstatus: 0 },
+				label: __("{0} expense claims pending"),
+				route: "/desk/expense-claim",
+			},
+		].filter(function (check) {
+			return can_read.indexOf(check.dt) !== -1;
+		});
 
 		if (!checks.length) {
-			$body.html('<div class="st-sh-empty">&#10003; ' + __("All clear!") + '</div>');
+			this._render_all_clear($container);
 			return;
 		}
 
-		var done = 0, found = [];
-
-		checks.forEach(function (chk) {
+		var complete = 0;
+		var found = [];
+		var self = this;
+		checks.forEach(function (check) {
 			frappe.call({
 				method: "frappe.client.get_count",
-				args: { doctype: chk.dt, filters: chk.filters },
-				callback: function (r) {
-					if (r.message > 0) {
-						found.push({ msg: chk.label.replace("{0}", r.message), route: chk.route });
+				args: { doctype: check.dt, filters: check.filters },
+				callback: function (response) {
+					if (response.message > 0) {
+						found.push({
+							count: response.message,
+							message: check.label.replace("{0}", response.message),
+							route: check.route,
+						});
 					}
-					if (++done === checks.length) _render();
+					if (++complete === checks.length) self._render_attention($container, found);
 				},
 				error: function () {
-					if (++done === checks.length) _render();
+					if (++complete === checks.length) self._render_attention($container, found);
 				},
 			});
 		});
+	}
 
-		function _render() {
-			$body.html(!found.length
-				? '<div class="st-sh-empty st-sh-all-clear">&#10003; ' + __("All clear — nothing needs attention.") + '</div>'
-				: found.map(function (f) {
-					return '<a href="' + f.route + '" class="st-sh-pending-row">&#9888; ' + f.msg + '</a>';
-				}).join("")
+	_render_attention($container, found) {
+		if (!found.length) {
+			this._render_all_clear($container);
+			return;
+		}
+		var self = this;
+		$container.html(found.map(function (item) {
+			return (
+				'<a href="' + item.route + '" class="st-sh-pending-row">' +
+					'<span class="st-sh-pending-count">' + self._esc(item.count) + '</span>' +
+					'<span>' + self._esc(item.message) + '</span>' +
+					'<span class="st-sh-row-arrow" aria-hidden="true">&rarr;</span>' +
+				'</a>'
 			);
+		}).join(""));
+	}
+
+	_render_all_clear($container) {
+		$container.html(
+			'<div class="st-sh-all-clear">' +
+				'<span class="st-sh-clear-check">✓</span>' +
+				'<div><strong>' + __("All clear") + '</strong><span>' +
+					__("Nothing needs your attention right now.") +
+				'</span></div>' +
+			'</div>'
+		);
+	}
+
+	_icon(name, size) {
+		try {
+			return frappe.utils.icon(name, size || "sm") || "";
+		} catch (e) {
+			return "";
 		}
 	}
 
-	_esc(str) {
-		return String(str || "")
+	_esc(value) {
+		return String(value === undefined || value === null ? "" : value)
 			.replace(/&/g, "&amp;")
 			.replace(/</g, "&lt;")
 			.replace(/>/g, "&gt;")
-			.replace(/"/g, "&quot;");
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#039;");
 	}
 };
