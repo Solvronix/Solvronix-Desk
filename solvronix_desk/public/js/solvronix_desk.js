@@ -182,6 +182,85 @@
     /* Frappe v16 handles sidebar collapse natively. */
   }
 
+  /* A focused start section keeps Today, New, and accessible workspaces together. */
+  function injectWorkspaceRail() {
+    var $sidebar = $(".body-sidebar").first();
+    if (!$sidebar.length || $sidebar.find("#st-workspace-rail").length || $sidebar.data("st-rail-loading")) return;
+    $sidebar.data("st-rail-loading", true);
+
+    frappe.call({
+      method: "solvronix_desk.api.get_workspaces",
+      callback: function (response) {
+        $sidebar.removeData("st-rail-loading");
+        if (!$sidebar.closest("body").length || $sidebar.find("#st-workspace-rail").length) return;
+        var message = (response && response.message) || {};
+        var pages = (message.pages || []).concat(message.private_pages || []);
+        var seen = {};
+        pages = pages.filter(function (page) {
+          var title = String(page.title || page.name || "").trim();
+          if (!title || seen[title]) return false;
+          seen[title] = true;
+          return true;
+        }).slice(0, 9);
+
+        function esc(value) {
+          return frappe.utils.escape_html(String(value || ""));
+        }
+        function routeFor(page) {
+          var route = page.route || String(page.title || page.name || "")
+            .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+          return "/desk/" + encodeURIComponent(route).replace(/%2F/gi, "/");
+        }
+
+        var createOrder = ["Sales Invoice", "Quotation", "Sales Order", "Purchase Order", "Customer", "Supplier", "Task", "ToDo"];
+        var canCreate = ((frappe.boot && frappe.boot.user && frappe.boot.user.can_create) || []);
+        var createItems = createOrder.filter(function (doctype) {
+          return canCreate.indexOf(doctype) !== -1;
+        }).slice(0, 6);
+
+        var html =
+          '<nav id="st-workspace-rail" aria-label="' + esc(__("Start and workspaces")) + '">' +
+            '<div class="st-rail-primary">' +
+              '<a class="st-rail-link st-rail-today" href="/desk/smart-home" title="' + esc(__("Today")) + '">' +
+                '<span class="st-rail-icon">' + frappe.utils.icon("sun", "sm") + '</span><span class="st-rail-label">' + esc(__("Today")) + '</span></a>' +
+              '<button class="st-rail-link st-rail-new" type="button" title="' + esc(__("New")) + '" aria-expanded="false">' +
+                '<span class="st-rail-icon">' + frappe.utils.icon("add", "sm") + '</span><span class="st-rail-label">' + esc(__("New")) + '</span>' +
+                '<span class="st-rail-new-plus">+</span></button>' +
+            '</div>' +
+            '<div class="st-rail-create" hidden>' +
+              (createItems.length ? createItems.map(function (doctype) {
+                return '<button type="button" data-new-doctype="' + esc(doctype) + '"><span>+</span>' + esc(__(doctype)) + '</button>';
+              }).join("") : '<small>' + esc(__("No create permissions found.")) + '</small>') +
+            '</div>' +
+            '<div class="st-rail-section-title"><span>' + esc(__("Workspaces")) + '</span><a href="/desk/home" title="' + esc(__("All Workspaces")) + '">&rarr;</a></div>' +
+            '<div class="st-rail-workspaces">' +
+              pages.map(function (page, index) {
+                var title = page.title || page.name;
+                return '<a class="st-rail-workspace" href="' + routeFor(page) + '" title="' + esc(title) + '">' +
+                  '<span class="st-rail-dot st-rail-dot-' + (index % 5) + '"></span><span class="st-rail-label">' + esc(title) + '</span></a>';
+              }).join("") +
+            '</div>' +
+          '</nav>';
+
+        var $top = $sidebar.find(".body-sidebar-top").first();
+        ($top.length ? $top : $sidebar).prepend(html);
+        var $rail = $sidebar.find("#st-workspace-rail");
+        $rail.on("click", ".st-rail-new", function () {
+          var $menu = $rail.find(".st-rail-create");
+          var open = $menu.prop("hidden");
+          $menu.prop("hidden", !open);
+          $(this).attr("aria-expanded", open ? "true" : "false");
+        });
+        $rail.on("click", "[data-new-doctype]", function () {
+          frappe.new_doc(this.dataset.newDoctype);
+        });
+      },
+      error: function () {
+        $sidebar.removeData("st-rail-loading");
+      }
+    });
+  }
+
   /* ────────────────────────────────────────────────────────────────────────────
      5. MODULE SWITCHER — search + keyboard nav
   ──────────────────────────────────────────────────────────────────────────── */
@@ -1274,6 +1353,7 @@
     sidebarReady(function () {
       injectSidebarCollapseToggle();
       injectSidebarBrandingHeader();   /* retry — branding may already be cached */
+      injectWorkspaceRail();
       patchNativeSidebar();
       injectPoweredBy();
     });
@@ -1283,6 +1363,7 @@
     /* Move Frappe's native notification bell into toolbar after desktop page renders */
     setTimeout(moveNativeBell, 800);
     $(document).on("page-change", function () {
+      injectWorkspaceRail();
       patchNativeSidebar();
       injectPoweredBy();
       injectSetupGuide();

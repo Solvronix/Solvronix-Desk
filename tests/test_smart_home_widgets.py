@@ -43,7 +43,28 @@ class SmartHomeWidgetsTest(unittest.TestCase):
 
     def test_smart_home_asset_cache_is_bumped(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/smart_home.css?v=4", hooks)
+        self.assertIn("/assets/solvronix_desk/css/smart_home.css?v=5", hooks)
+
+    def test_widget_library_and_simple_builder_are_available(self):
+        js = JS.read_text(encoding="utf-8")
+        css = CSS.read_text(encoding="utf-8")
+
+        self.assertIn("Add widgets", js)
+        self.assertIn("Build your own", js)
+        self.assertIn("data-template-id", js)
+        self.assertIn("st-sh-builder-form", js)
+        self.assertIn("_create_custom_widget", js)
+        self.assertIn("library_drag_id", js)
+        self.assertIn(".st-sh-library", css)
+        self.assertIn(".st-sh-builder", css)
+
+    def test_custom_widgets_are_saved_per_user(self):
+        js = JS.read_text(encoding="utf-8")
+
+        self.assertIn("state.custom", js)
+        self.assertIn("state.added", js)
+        self.assertIn("state.hidden", js)
+        self.assertIn("JSON.stringify(this.state)", js)
 
 
 if __name__ == "__main__":

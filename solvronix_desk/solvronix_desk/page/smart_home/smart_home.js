@@ -39,8 +39,10 @@ solvronix_desk.SmartHome = class SmartHome {
 		this.storage_key = "st_smart_home_layout_v2::" + this.user;
 		this.editing = false;
 		this.dragged = null;
+		this.library_drag_id = null;
 		this._built = false;
 		this.kpis = this._get_kpi_definitions();
+		this.state = this._load_layout();
 	}
 
 	/* Public entry point; guarded because Frappe can revisit a cached page. */
@@ -96,6 +98,9 @@ solvronix_desk.SmartHome = class SmartHome {
 					'</div>' +
 					'<div class="st-sh-header-actions">' +
 						'<span class="st-sh-save-state" role="status" aria-live="polite"></span>' +
+						'<button class="btn btn-default btn-sm st-sh-add-widgets" type="button">' +
+							this._icon("add", "sm") + '<span>' + __("Add widgets") + '</span>' +
+						'</button>' +
 						'<button class="btn btn-default btn-sm st-sh-reset" type="button">' +
 							this._icon("refresh", "sm") + '<span>' + __("Reset") + '</span>' +
 						'</button>' +
@@ -108,6 +113,7 @@ solvronix_desk.SmartHome = class SmartHome {
 						'</a>' +
 					'</div>' +
 				'</header>' +
+				this._widget_library_markup() +
 				'<div class="st-sh-edit-note" role="status">' +
 					'<span class="st-sh-edit-note-icon">' + this._icon("drag", "sm") + '</span>' +
 					'<span>' + __("Drag widgets to rearrange them. Your layout saves automatically.") + '</span>' +
@@ -117,18 +123,78 @@ solvronix_desk.SmartHome = class SmartHome {
 		);
 	}
 
+	/* The library is a lightweight drawer: templates can be clicked or dragged. */
+	_widget_library_markup() {
+		var self = this;
+		var templates = this._widget_templates();
+		return (
+			'<div class="st-sh-library-backdrop" hidden></div>' +
+			'<aside class="st-sh-library" aria-hidden="true" aria-label="' + __("Widget library") + '">' +
+				'<div class="st-sh-library-head">' +
+					'<div><span class="st-sh-library-kicker">' + __("Make it yours") + '</span>' +
+					'<h3>' + __("Widget library") + '</h3>' +
+					'<p>' + __("Click a widget or drag it onto your dashboard.") + '</p></div>' +
+					'<button class="st-sh-library-close" type="button" aria-label="' + __("Close") + '">&times;</button>' +
+				'</div>' +
+				'<div class="st-sh-library-list">' +
+					templates.map(function (item) {
+						return (
+							'<button class="st-sh-library-item" type="button" draggable="true" data-template-id="' + item.id + '">' +
+								'<span class="st-sh-library-icon st-sh-tone-' + item.accent + '">' + self._icon(item.icon, "md") + '</span>' +
+								'<span><strong>' + item.title + '</strong><small>' + item.description + '</small></span>' +
+								'<span class="st-sh-library-add" aria-hidden="true">+</span>' +
+							'</button>'
+						);
+					}).join("") +
+				'</div>' +
+				'<button class="st-sh-build-widget" type="button">' +
+					'<span class="st-sh-build-plus">+</span><span><strong>' + __("Build your own") + '</strong>' +
+					'<small>' + __("Create a note, number or shortcut in seconds") + '</small></span>' +
+				'</button>' +
+			'</aside>' +
+			this._builder_markup()
+		);
+	}
+
+	_builder_markup() {
+		return (
+			'<div class="st-sh-builder-backdrop" hidden>' +
+				'<section class="st-sh-builder" role="dialog" aria-modal="true" aria-labelledby="st-sh-builder-title">' +
+					'<div class="st-sh-builder-head"><div><span>' + __("Simple builder") + '</span>' +
+						'<h3 id="st-sh-builder-title">' + __("Create a widget") + '</h3></div>' +
+						'<button class="st-sh-builder-close" type="button" aria-label="' + __("Close") + '">&times;</button></div>' +
+					'<div class="st-sh-builder-layout"><form class="st-sh-builder-form">' +
+						'<label>' + __("Widget type") + '<select name="type">' +
+							'<option value="note">' + __("Note") + '</option><option value="number">' + __("Number") + '</option>' +
+							'<option value="link">' + __("Shortcut") + '</option></select></label>' +
+						'<label>' + __("Title") + '<input name="title" maxlength="48" value="' + __("My widget") + '" required></label>' +
+						'<label class="st-sh-builder-value">' + __("Content") + '<textarea name="value" maxlength="240" rows="3" placeholder="' + __("Write something useful...") + '"></textarea></label>' +
+						'<label class="st-sh-builder-url" hidden>' + __("Link") + '<input name="url" type="url" placeholder="/desk/todo"></label>' +
+						'<div class="st-sh-builder-row"><label>' + __("Size") + '<select name="size"><option value="quarter">' + __("Small") + '</option>' +
+							'<option value="half" selected>' + __("Medium") + '</option><option value="wide">' + __("Wide") + '</option></select></label>' +
+							'<label>' + __("Colour") + '<select name="accent"><option value="blue">' + __("Blue") + '</option>' +
+							'<option value="green">' + __("Green") + '</option><option value="amber">' + __("Amber") + '</option>' +
+							'<option value="coral">' + __("Coral") + '</option></select></label></div>' +
+						'<button class="btn btn-primary st-sh-builder-submit" type="submit">' + __("Add to dashboard") + '</button>' +
+					'</form><div class="st-sh-builder-preview"><span>' + __("Live preview") + '</span><div data-builder-preview></div></div></div>' +
+				'</section>' +
+			'</div>'
+		);
+	}
+
 	/* ── 4. WIDGET REGISTRY / FACTORIES ──────────────────────────────────────
 	   Permission-safe KPI definitions and standard panels share one grid. */
 	_render_widgets() {
 		var $grid = this.$body.find("#st-sh-widget-grid");
 		var self = this;
+		var hidden = this.state.hidden || [];
 
 		/* KPI cards are individual widgets rather than one fixed KPI row. */
 		this.kpis.forEach(function (kpi) {
-			$grid.append(self._kpi_widget(kpi));
+			if (hidden.indexOf(kpi.id) === -1) $grid.append(self._kpi_widget(kpi));
 		});
 
-		$grid.append(
+		if (hidden.indexOf("recent-documents") === -1) $grid.append(
 			this._panel_widget(
 				"recent-documents",
 				__("Recent Documents"),
@@ -138,7 +204,7 @@ solvronix_desk.SmartHome = class SmartHome {
 				'<div id="st-sh-recent" class="st-sh-card-body"><div class="st-sh-spin"></div></div>'
 			)
 		);
-		$grid.append(
+		if (hidden.indexOf("quick-create") === -1) $grid.append(
 			this._panel_widget(
 				"quick-create",
 				__("Quick Create"),
@@ -148,7 +214,7 @@ solvronix_desk.SmartHome = class SmartHome {
 				'<div id="st-sh-qc" class="st-sh-card-body"></div>'
 			)
 		);
-		$grid.append(
+		if (hidden.indexOf("needs-attention") === -1) $grid.append(
 			this._panel_widget(
 				"needs-attention",
 				__("Needs Attention"),
@@ -159,7 +225,16 @@ solvronix_desk.SmartHome = class SmartHome {
 			)
 		);
 
+		(this.state.added || []).forEach(function (id) {
+			var template = self._find_template(id);
+			if (template && hidden.indexOf(id) === -1) $grid.append(self._template_widget(template));
+		});
+		(this.state.custom || []).forEach(function (widget) {
+			if (hidden.indexOf(widget.id) === -1) $grid.append(self._custom_widget(widget));
+		});
+
 		this._render_quick_create();
+		this._start_live_widgets();
 	}
 
 	/* Shared wrapper: ID is persisted; size maps to a responsive CSS grid span. */
@@ -168,6 +243,7 @@ solvronix_desk.SmartHome = class SmartHome {
 			'<section class="st-sh-widget ' + (extra_class || "") + '" ' +
 				'data-widget-id="' + this._esc(id) + '" data-widget-size="' + size + '" draggable="false">' +
 				'<div class="st-sh-drag-tools">' +
+					'<button class="st-sh-remove-widget" type="button" title="' + __("Remove widget") + '" aria-label="' + __("Remove widget") + '">&times;</button>' +
 					'<button class="st-sh-move st-sh-move-back" type="button" title="' + __("Move backward") + '" aria-label="' + __("Move backward") + '">' +
 						'&larr;' +
 					'</button>' +
@@ -180,6 +256,57 @@ solvronix_desk.SmartHome = class SmartHome {
 				'</div>' +
 				inner +
 			'</section>'
+		);
+	}
+
+	_widget_templates() {
+		return [
+			{ id: "focus-clock", title: __("Focus Clock"), description: __("Current time and a calm focus cue"), icon: "clock", accent: "blue", size: "quarter" },
+			{ id: "today-date", title: __("Today"), description: __("A clean daily date card"), icon: "calendar", accent: "coral", size: "quarter" },
+			{ id: "scratch-pad", title: __("Scratch Pad"), description: __("Keep a quick note on your dashboard"), icon: "edit", accent: "amber", size: "half" },
+			{ id: "useful-links", title: __("Useful Links"), description: __("Jump to Tasks, ToDos and reports"), icon: "link", accent: "green", size: "half" },
+		];
+	}
+
+	_find_template(id) {
+		return this._widget_templates().find(function (item) { return item.id === id; });
+	}
+
+	_template_widget(template) {
+		var body = "";
+		if (template.id === "focus-clock") {
+			body = '<div class="st-sh-live-clock" data-live-clock>--:--</div><div class="st-sh-live-caption">' + __("One thing at a time.") + '</div>';
+		} else if (template.id === "today-date") {
+			body = '<div class="st-sh-date-widget"><strong data-date-day></strong><span data-date-month></span></div>';
+		} else if (template.id === "scratch-pad") {
+			body = '<textarea class="st-sh-scratch-input" maxlength="500" placeholder="' + __("Type a quick note...") + '">' + this._esc(this.state.scratch || "") + '</textarea>';
+		} else {
+			body = '<div class="st-sh-useful-links"><a href="/desk/task">' + __("Tasks") + ' <span>&rarr;</span></a>' +
+				'<a href="/desk/todo">' + __("ToDos") + ' <span>&rarr;</span></a><a href="/desk/query-report">' + __("Reports") + ' <span>&rarr;</span></a></div>';
+		}
+		return this._panel_widget(template.id, template.title, template.description, template.icon, template.size, '<div class="st-sh-card-body">' + body + '</div>');
+	}
+
+	_custom_widget(widget) {
+		var value = this._esc(widget.value || "");
+		var body;
+		if (widget.type === "link") {
+			var href = this._safe_url(widget.url);
+			body = '<a class="st-sh-custom-link" href="' + href + '"><span>' + (value || __("Open")) + '</span><b>&rarr;</b></a>';
+		} else if (widget.type === "number") {
+			body = '<div class="st-sh-custom-number">' + (value || "0") + '</div>';
+		} else {
+			body = '<div class="st-sh-custom-note">' + (value || __("Empty note")) + '</div>';
+		}
+		return this._widget_shell(
+			widget.id,
+			widget.size || "half",
+			'<div class="st-sh-card st-sh-custom-card st-sh-tone-' + (widget.accent || "blue") + '">' +
+				'<div class="st-sh-card-head"><div class="st-sh-card-heading"><span class="st-sh-card-icon">' +
+				this._icon(widget.type === "link" ? "link" : (widget.type === "number" ? "chart" : "edit"), "sm") +
+				'</span><div><h3>' + this._esc(widget.title || __("My widget")) + '</h3><p>' + __("Custom widget") + '</p></div></div></div>' +
+				'<div class="st-sh-card-body">' + body + '</div></div>',
+			"st-sh-panel-widget st-sh-user-widget"
 		);
 	}
 
@@ -269,6 +396,62 @@ solvronix_desk.SmartHome = class SmartHome {
 		var self = this;
 		var $grid = this.$body.find("#st-sh-widget-grid");
 
+		this.$body.on("click.st_sh_layout", ".st-sh-add-widgets", function () {
+			self._set_library(true);
+		});
+		this.$body.on("click.st_sh_layout", ".st-sh-library-close, .st-sh-library-backdrop", function () {
+			self._set_library(false);
+		});
+		this.$body.on("click.st_sh_layout", ".st-sh-library-item", function () {
+			self._add_template(this.dataset.templateId);
+		});
+		this.$body.on("dragstart.st_sh_library", ".st-sh-library-item", function (event) {
+			self.library_drag_id = this.dataset.templateId;
+			var original = event.originalEvent;
+			if (original && original.dataTransfer) {
+				original.dataTransfer.effectAllowed = "copy";
+				original.dataTransfer.setData("text/plain", self.library_drag_id);
+			}
+			self.$body.find(".st-smart-home").addClass("st-sh-library-dragging");
+		});
+		this.$body.on("dragend.st_sh_library", ".st-sh-library-item", function () {
+			self.library_drag_id = null;
+			self.$body.find(".st-smart-home").removeClass("st-sh-library-dragging");
+		});
+		$grid.on("dragover.st_sh_library", function (event) {
+			if (!self.library_drag_id) return;
+			event.preventDefault();
+		});
+		$grid.on("drop.st_sh_library", function (event) {
+			if (!self.library_drag_id || $(event.target).closest(".st-sh-widget").length) return;
+			event.preventDefault();
+			self._add_template(self.library_drag_id);
+			self.library_drag_id = null;
+		});
+
+		this.$body.on("click.st_sh_layout", ".st-sh-build-widget", function () {
+			self._set_library(false);
+			self._set_builder(true);
+		});
+		this.$body.on("click.st_sh_layout", ".st-sh-builder-close, .st-sh-builder-backdrop", function (event) {
+			if (event.target === this) self._set_builder(false);
+		});
+		this.$body.on("click.st_sh_layout", ".st-sh-builder", function (event) {
+			event.stopPropagation();
+		});
+		this.$body.on("change.st_sh_layout input.st_sh_layout", ".st-sh-builder-form input, .st-sh-builder-form textarea, .st-sh-builder-form select", function () {
+			self._update_builder_preview();
+		});
+		this.$body.on("change.st_sh_layout", '.st-sh-builder-form [name="type"]', function () {
+			var is_link = this.value === "link";
+			self.$body.find(".st-sh-builder-url").prop("hidden", !is_link);
+			self._update_builder_preview();
+		});
+		this.$body.on("submit.st_sh_layout", ".st-sh-builder-form", function (event) {
+			event.preventDefault();
+			self._create_custom_widget(this);
+		});
+
 		/* Links are disabled while editing to prevent accidental navigation. */
 		this.$body.on("click.st_sh_layout", ".st-sh-customize", function () {
 			self._set_editing(!self.editing);
@@ -279,9 +462,26 @@ solvronix_desk.SmartHome = class SmartHome {
 				try {
 					localStorage.removeItem(self.storage_key);
 				} catch (e) {}
+				self.state = { order: [], added: [], custom: [], hidden: [], scratch: "" };
+				self.$body.find("#st-sh-widget-grid").empty();
+				self._render_widgets();
 				self._restore_layout();
+				self._set_editing(self.editing);
 				self._announce_saved(__("Default layout restored"));
 			});
+		});
+
+		this.$body.on("click.st_sh_layout", ".st-sh-remove-widget", function (event) {
+			event.preventDefault();
+			event.stopPropagation();
+			var widget = this.closest(".st-sh-widget");
+			if (!widget) return;
+			self._remove_widget(widget.dataset.widgetId);
+		});
+
+		this.$body.on("input.st_sh_layout", ".st-sh-scratch-input", function () {
+			self.state.scratch = this.value;
+			self._save_layout(false);
 		});
 
 		/* Move the existing node so loaded values and event bindings survive. */
@@ -337,6 +537,13 @@ solvronix_desk.SmartHome = class SmartHome {
 		});
 
 		$grid.on("drop.st_sh_layout", ".st-sh-widget", function (event) {
+			if (self.library_drag_id) {
+				event.preventDefault();
+				event.stopPropagation();
+				self._add_template(self.library_drag_id);
+				self.library_drag_id = null;
+				return;
+			}
 			if (!self.dragged || this === self.dragged) return;
 			event.preventDefault();
 			var target = this;
@@ -363,17 +570,104 @@ solvronix_desk.SmartHome = class SmartHome {
 		$button.find(".st-sh-customize-label").text(
 			this.editing ? __("Done") : __("Customize layout")
 		);
-		this.$body.find(".st-sh-widget").attr("draggable", this.editing ? "true" : "false");
+		this.$body.find("#st-sh-widget-grid > .st-sh-widget").attr("draggable", this.editing ? "true" : "false");
 		if (this.editing) {
-			this.$body.find(".st-sh-widget").attr("tabindex", "0").first().focus();
+			this.$body.find("#st-sh-widget-grid > .st-sh-widget").attr("tabindex", "0").first().focus();
 		} else {
-			this.$body.find(".st-sh-widget").removeAttr("tabindex");
+			this.$body.find("#st-sh-widget-grid > .st-sh-widget").removeAttr("tabindex");
 		}
+	}
+
+	_set_library(open) {
+		var $library = this.$body.find(".st-sh-library");
+		this.$body.find(".st-sh-library-backdrop").prop("hidden", !open);
+		$library.toggleClass("is-open", open).attr("aria-hidden", open ? "false" : "true");
+		if (open) $library.find(".st-sh-library-close").focus();
+	}
+
+	_set_builder(open) {
+		var $backdrop = this.$body.find(".st-sh-builder-backdrop");
+		$backdrop.prop("hidden", !open).toggleClass("is-open", open);
+		if (open) {
+			this._update_builder_preview();
+			$backdrop.find('[name="title"]').focus();
+		}
+	}
+
+	_add_template(id) {
+		var template = this._find_template(id);
+		if (!template) return;
+		var exists = this.$body.find('[data-widget-id="' + id + '"]').length > 0;
+		if (exists) {
+			this._set_library(false);
+			this._announce_saved(__("Widget is already on your dashboard"));
+			return;
+		}
+		this.state.added = this.state.added || [];
+		if (this.state.added.indexOf(id) === -1) this.state.added.push(id);
+		this.state.hidden = (this.state.hidden || []).filter(function (hidden_id) { return hidden_id !== id; });
+		var $widget = $(this._template_widget(template));
+		if (this.editing) $widget.attr({ draggable: "true", tabindex: "0" });
+		this.$body.find("#st-sh-widget-grid").append($widget);
+		this._start_live_widgets();
+		this._save_layout();
+		this._set_library(false);
+	}
+
+	_create_custom_widget(form) {
+		var data = new FormData(form);
+		var widget = {
+			id: "custom-" + Date.now().toString(36),
+			type: String(data.get("type") || "note"),
+			title: String(data.get("title") || __("My widget")).trim().slice(0, 48),
+			value: String(data.get("value") || "").trim().slice(0, 240),
+			url: String(data.get("url") || "").trim().slice(0, 300),
+			size: ["quarter", "half", "wide"].indexOf(data.get("size")) > -1 ? data.get("size") : "half",
+			accent: ["blue", "green", "amber", "coral"].indexOf(data.get("accent")) > -1 ? data.get("accent") : "blue",
+		};
+		this.state.custom = this.state.custom || [];
+		this.state.custom.push(widget);
+		var $widget = $(this._custom_widget(widget));
+		if (this.editing) $widget.attr({ draggable: "true", tabindex: "0" });
+		this.$body.find("#st-sh-widget-grid").append($widget);
+		this._save_layout();
+		this._set_builder(false);
+		form.reset();
+		this._announce_saved(__("Widget created"));
+	}
+
+	_update_builder_preview() {
+		var form = this.$body.find(".st-sh-builder-form")[0];
+		if (!form) return;
+		var data = new FormData(form);
+		var preview = {
+			id: "preview",
+			type: String(data.get("type") || "note"),
+			title: String(data.get("title") || __("My widget")),
+			value: String(data.get("value") || ""),
+			url: String(data.get("url") || ""),
+			size: "half",
+			accent: String(data.get("accent") || "blue"),
+		};
+		this.$body.find("[data-builder-preview]").html(this._custom_widget(preview));
+	}
+
+	_remove_widget(id) {
+		var custom_index = (this.state.custom || []).findIndex(function (item) { return item.id === id; });
+		if (custom_index > -1) {
+			this.state.custom.splice(custom_index, 1);
+		} else {
+			this.state.added = (this.state.added || []).filter(function (item) { return item !== id; });
+			this.state.hidden = this.state.hidden || [];
+			if (this.state.hidden.indexOf(id) === -1) this.state.hidden.push(id);
+		}
+		this.$body.find('[data-widget-id="' + id + '"]').remove();
+		this._save_layout();
 	}
 
 	/* Clear transient markers after cancel; persist only a successful drop. */
 	_finish_drag(save) {
-		this.$body.find(".st-sh-widget")
+		this.$body.find("#st-sh-widget-grid > .st-sh-widget")
 			.removeClass("st-sh-dragging st-sh-drop-before st-sh-drop-after");
 		this.dragged = null;
 		if (save) this._save_layout();
@@ -381,24 +675,20 @@ solvronix_desk.SmartHome = class SmartHome {
 
 	/* ── 6. PER-USER LAYOUT PERSISTENCE ──────────────────────────────────────
 	   Only stable IDs are stored; content and permissions remain authoritative. */
-	_save_layout() {
-		var order = this.$body.find(".st-sh-widget").map(function () {
+	_save_layout(announce) {
+		var order = this.$body.find("#st-sh-widget-grid > .st-sh-widget").map(function () {
 			return this.dataset.widgetId;
 		}).get();
+		this.state.order = order;
 		try {
-			localStorage.setItem(this.storage_key, JSON.stringify({ order: order }));
+			localStorage.setItem(this.storage_key, JSON.stringify(this.state));
 		} catch (e) {}
-		this._announce_saved(__("Layout saved"));
+		if (announce !== false) this._announce_saved(__("Layout saved"));
 	}
 
 	_restore_layout() {
 		var $grid = this.$body.find("#st-sh-widget-grid");
-		var saved = null;
-		try {
-			saved = JSON.parse(localStorage.getItem(this.storage_key) || "null");
-		} catch (e) {}
-
-		var order = saved && Array.isArray(saved.order) ? saved.order : [];
+		var order = Array.isArray(this.state.order) ? this.state.order : [];
 		var known = {};
 		$grid.children(".st-sh-widget").each(function () {
 			known[this.dataset.widgetId] = this;
@@ -412,6 +702,32 @@ solvronix_desk.SmartHome = class SmartHome {
 		Object.keys(known).forEach(function (id) {
 			if (order.indexOf(id) === -1) $grid.append(known[id]);
 		});
+	}
+
+	_load_layout() {
+		var saved = null;
+		try {
+			saved = JSON.parse(localStorage.getItem(this.storage_key) || "null");
+		} catch (e) {}
+		return saved && typeof saved === "object" ? {
+			order: Array.isArray(saved.order) ? saved.order : [],
+			added: Array.isArray(saved.added) ? saved.added : [],
+			custom: Array.isArray(saved.custom) ? saved.custom : [],
+			hidden: Array.isArray(saved.hidden) ? saved.hidden : [],
+			scratch: typeof saved.scratch === "string" ? saved.scratch : "",
+		} : { order: [], added: [], custom: [], hidden: [], scratch: "" };
+	}
+
+	_start_live_widgets() {
+		var self = this;
+		function update() {
+			var now = new Date();
+			self.$body.find("[data-live-clock]").text(now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+			self.$body.find("[data-date-day]").text(now.getDate());
+			self.$body.find("[data-date-month]").text(now.toLocaleDateString(undefined, { weekday: "long", month: "long" }));
+		}
+		update();
+		if (!this._clock_timer) this._clock_timer = setInterval(update, 30000);
 	}
 
 	/* Inline feedback avoids showing a global toast after every small movement. */
@@ -638,5 +954,11 @@ solvronix_desk.SmartHome = class SmartHome {
 			.replace(/>/g, "&gt;")
 			.replace(/"/g, "&quot;")
 			.replace(/'/g, "&#039;");
+	}
+
+	_safe_url(value) {
+		var url = String(value || "").trim();
+		if (/^(\/(?!\/)|https?:\/\/)/i.test(url)) return this._esc(url);
+		return "#";
 	}
 };
