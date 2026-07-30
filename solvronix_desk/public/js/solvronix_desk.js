@@ -42,6 +42,39 @@
 
   var ST = (window.solvronix_desk = window.solvronix_desk || {});
   var COLLAPSE_KEY = "st_sidebar_collapsed";
+  var FULL_WIDTH_KEY = "container_fullwidth";
+
+  function isFullWidthEnabled() {
+    try {
+      return JSON.parse(localStorage.getItem(FULL_WIDTH_KEY) || "false") === true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function applyFullWidth(enabled) {
+    var isEnabled = enabled === true;
+    document.body.classList.toggle("full-width", isEnabled);
+    try {
+      localStorage.setItem(FULL_WIDTH_KEY, JSON.stringify(isEnabled));
+    } catch (e) {}
+    $(document.body).trigger("toggleFullWidth");
+    return isEnabled;
+  }
+
+  function toggleFullWidth() {
+    /* Keep the same storage key and body class as Frappe/ERPNext. */
+    if (frappe.ui && frappe.ui.toolbar &&
+        typeof frappe.ui.toolbar.toggle_full_width === "function") {
+      frappe.ui.toolbar.toggle_full_width();
+      return isFullWidthEnabled();
+    }
+    return applyFullWidth(!isFullWidthEnabled());
+  }
+
+  ST.isFullWidthEnabled = isFullWidthEnabled;
+  ST.applyFullWidth = applyFullWidth;
+  ST.toggleFullWidth = toggleFullWidth;
 
   /* ────────────────────────────────────────────────────────────────────────────
      1. DYNAMIC CSS FROM THEME SETTINGS
@@ -645,6 +678,11 @@
           '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1v1M7 12v1M1 7H2M12 7h1M2.9 2.9l.7.7M10.4 10.4l.7.7M2.9 11.1l.7-.7M10.4 3.6l.7-.7M9.5 7a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>' +
           'Toggle Theme' +
         '</button>' +
+        '<button class="st-ud-item" data-action="toggle-full-width" aria-pressed="false">' +
+          '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 2H2v3M9 2h3v3M5 12H2V9M9 12h3V9M2 5l3-3M12 5L9 2M2 9l3 3M12 9l-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+          '<span>Toggle Full Width</span>' +
+          '<span class="st-ud-state" aria-hidden="true">&#10003;</span>' +
+        '</button>' +
         '<button class="st-ud-item" data-action="reset-layout">' +
           '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 7a5 5 0 1 1 1.1 3.1M2 11V7.5H5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
           'Reset Desktop Layout' +
@@ -657,6 +695,16 @@
       '</div>'
     );
     $("body").append($userDrop);
+
+    var $fullWidthItem = $userDrop.find('[data-action="toggle-full-width"]');
+    function syncFullWidthItem() {
+      var enabled = isFullWidthEnabled();
+      $fullWidthItem
+        .toggleClass("st-active", enabled)
+        .attr("aria-pressed", enabled ? "true" : "false");
+    }
+    syncFullWidthItem();
+    $(document.body).on("toggleFullWidth.st_user_menu", syncFullWidthItem);
 
     /* ── Populate installed apps grid ── */
     (function () {
@@ -741,6 +789,13 @@
         } else if (frappe.ui && frappe.ui.ThemeSwitcher) {
           new frappe.ui.ThemeSwitcher().show();
         }
+      } else if (action === "toggle-full-width") {
+        toggleFullWidth();
+        syncFullWidthItem();
+        frappe.show_alert({
+          message: frappe._(isFullWidthEnabled() ? "Full width enabled" : "Full width disabled"),
+          indicator: "green",
+        }, 2);
       } else if (action === "reset-layout") {
         frappe.confirm(frappe._("Reset your desktop layout to default?"), function () {
           frappe.call({

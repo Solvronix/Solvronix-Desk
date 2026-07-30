@@ -1900,6 +1900,26 @@ body.st-has-toolbar header.navbar {
 .st-ud-item:hover svg {
   opacity: 1;
 }
+.st-ud-state {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+  border-radius: 999px;
+  background: var(--st-accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+.st-ud-item.st-active .st-ud-state {
+  opacity: 1;
+  transform: scale(1);
+}
 .st-ud-logout {
   color: #DC2626 !important;
 }
@@ -2196,6 +2216,28 @@ html[data-theme="dark"] .st-ud-app-ver {
   flex: 1 1 auto !important;
   width: auto !important;
   min-width: 0 !important;
+}
+
+/* ── USER-CONTROLLED FULL-WIDTH DESK ─────────────────────────────────────────
+   Uses Frappe's native body.full-width state and container_fullwidth setting.
+   Keep sidebars intact while removing the centered content cap on every page. */
+@media (min-width: 769px) {
+  body.full-width {
+    --page-max-width: 100%;
+  }
+
+  body.full-width .page-head .container,
+  body.full-width .page-body .container,
+  body.full-width .page-content .container,
+  body.full-width .layout-main {
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  body.full-width .layout-main {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
 }
 
 /* EditorJS block picker/toolbars must float above workspace blocks while editing. */
