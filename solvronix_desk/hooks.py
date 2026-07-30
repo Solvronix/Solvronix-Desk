@@ -10,7 +10,7 @@ app_version = "1.3.1"
 
 required_apps = []
 
-web_include_css = ["/assets/solvronix_desk/css/login.css?v=6"]
+web_include_css = ["/assets/solvronix_desk/css/login.css?v=8"]
 web_include_js = ["/assets/solvronix_desk/js/login_theme.js?v=2"]
 
 app_include_css = [

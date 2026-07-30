@@ -153,6 +153,27 @@ body:has(.for-forgot) .page-header-wrapper {
   padding: 40px 20px !important;
   background: transparent !important;
 }
+/* GitHub #5: fixes a ghost/duplicate card behind the login form on fresh
+   installs. Frappe's own compiled login.bundle.css only gives .for-email-login
+   a static "display:none" base rule — .for-forgot, .for-signup, and
+   .for-login-with-email-link have none, so as plain <section> elements they
+   default to display:block the instant the browser parses them, before
+   login.js runs (on DOM-ready) and hides everything except the active
+   section via jQuery .toggle(). That's normally an imperceptible sub-frame
+   flash in stock Frappe, but this theme immediately styles .page-card-head/
+   .page-card inside EVERY .for-* section as a prominent white card with
+   shadow + entrance animation, turning the gap into a visible duplicate card.
+   Deliberately NOT !important: jQuery's .toggle(true) sets an inline display
+   style, which always wins over a plain (non-!important) stylesheet rule —
+   so this only fills the gap before any inline style exists, and steps aside
+   the instant Frappe legitimately shows Forgot Password / Sign Up / Login-
+   with-email-link. Using !important here would permanently hide those flows. */
+.for-forgot,
+.for-signup,
+.for-login-with-email-link {
+  display: none;
+}
+
 .for-forgot,
 .for-signup,
 .for-email-login,
@@ -194,21 +215,31 @@ body:has(.for-forgot) .page-header-wrapper {
   .for-forgot .page-card { animation: none !important; }
 }
 
-/* ── CARD HEAD (logo + title) ── top half of the unified card ───────────── */
+/* ── CARD HEAD (logo + title) ──────────────────────────────────────────────
+   NOTE: in this Frappe version .page-card-head is nested INSIDE
+   .login-content.page-card (confirmed via live DOM inspection), not a
+   sibling "top half" box as the old comment/CSS below assumed. Giving it
+   its own independent width/background/shape on top of the parent's is
+   exactly what caused GitHub #5's ghost-card overflow: both parent and
+   child forced themselves to the same 420px width, but the parent's own
+   48px horizontal padding left only ~324px of content space, so the child
+   overflowed the parent's right edge by exactly that 48px. Fix: the child
+   is now a plain inner block — no width/background/radius/shadow/border of
+   its own, all of that lives solely on the parent (.login-content.page-card
+   below), which is the single real "card" box. */
 .for-login .page-card-head,
 .for-forgot .page-card-head,
 .for-signup .page-card-head,
 .for-email-login .page-card-head,
 .for-login-with-email-link .page-card-head {
-  width: 420px !important;
-  max-width: 92vw !important;
-  background: var(--st-card-bg, #FFFFFF) !important;
-  border-radius: 16px 16px 0 0 !important;
-  padding: 40px 48px 20px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 32px 0 20px !important;
   text-align: center !important;
   box-shadow: none !important;
   border: none !important;
-  border-bottom: none !important;
   margin: 0 !important;
 }
 
@@ -234,7 +265,8 @@ body:has(.for-forgot) .page-header-wrapper {
   margin: 0 !important;
 }
 
-/* ── CARD BODY ── bottom half of the unified card ───────────────────────── */
+/* ── CARD ── the single real card box (.page-card-head above is just an
+   inner block within this, not a separate stacked box — see its comment) */
 .for-login .login-content.page-card,
 .for-forgot .login-content.page-card,
 .for-signup .login-content.page-card,
@@ -247,7 +279,7 @@ body:has(.for-forgot) .page-header-wrapper {
   width: 420px !important;
   max-width: 92vw !important;
   min-height: auto !important;
-  border-radius: 0 0 16px 16px !important;
+  border-radius: 16px !important;
   padding: 8px 48px 40px !important;
   background: var(--st-card-bg, #FFFFFF) !important;
   box-shadow: 0 32px 80px rgba(0,0,0,0.35) !important;
