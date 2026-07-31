@@ -1114,15 +1114,36 @@
        send the user to Today's View. This does NOT listen on every navigation —
        so sidebar items, workspace links, Desktop page, etc. are never intercepted.
        Frappe's boot.home_page = "smart-home" already handles the normal first-load
-       redirect; this is only a safety net for edge cases (direct URL visits). */
-    (function () {
+       redirect; this is only a safety net for edge cases (direct URL visits).
+
+       frappe.router.route() is async — it only sets frappe.router.current_route
+       (what frappe.get_route() reads) AFTER its internal parse() resolves, which
+       can require an async doctype-meta round trip. Checking synchronously here
+       can run before that first resolution, reading a stale/empty route while
+       core's own routing for the real target is still in flight — hijacking the
+       URL to smart-home while the real page renders underneath it, unrelated to
+       the URL. But we also must not just wait for the next "change" event
+       unconditionally: if core's first route() has ALREADY resolved by the time
+       this runs, current_route is already correct and there's no later "change"
+       coming for THIS load — a bare .once() would sit armed and misfire on
+       whatever the user navigates to next (confirmed live: it fired on a later,
+       unrelated SPA navigation instead of the initial load). So: check directly
+       if current_route is already populated (no race); only if it's genuinely
+       still pending (current_route null — the initial route() hasn't resolved
+       yet) do we wait for the "change" that resolution is guaranteed to fire. */
+    var checkAndRedirectHome = function () {
       var route = (frappe.get_route && frappe.get_route()) || [];
       var isEmptyOrWorkspace = route.length === 0 ||
         (route.length === 1 && (route[0] === "" || route[0] === "workspace"));
       if (isEmptyOrWorkspace) {
         frappe.set_route("smart-home");
       }
-    }());
+    };
+    if (frappe.router && frappe.router.current_route) {
+      checkAndRedirectHome();
+    } else {
+      frappe.router.once("change", checkAndRedirectHome);
+    }
   }
 
   $(document).ready(onDeskReady);

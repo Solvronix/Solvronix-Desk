@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.3] — 2026-07-31
+
+### Fixed
+- Workspace dashboard widgets (metric cards/charts) failed to render after navigating Today's View → Home → any workspace, until "Reset Desktop Layout" was performed. The "All Apps" grid (`module_cards.js`) rendered itself via `container.innerHTML =` directly into `.layout-main-section` — the exact DOM node Frappe's `frappe.workspace` singleton owns for its EditorJS instance (`.editor-js-container` / `#editorjs`) across every workspace navigation, Home included. This destroyed those nodes with no teardown; the next workspace's widgets rendered into a re-created but never-reattached, detached editor holder — invisible to the user. The grid now hides (instead of destroys) the real workspace content and restores it when navigating away, so Frappe's singleton is never corrupted. Reported as #7.
+- Browser URL/breadcrumb could get stuck on "Today's View" (`smart-home`) while the actually-rendered page was something else entirely (e.g. a List View), most often right after a full page reload. Our boot-time safety-net redirect read `frappe.get_route()` synchronously inside `$(document).ready`, but Frappe's own router resolves the real route asynchronously — reading it too early could see an empty route and wrongly hijack the URL to `smart-home` while the real page's async render kept going underneath it. The check now runs inside a one-time `frappe.router.on("change", ...)` listener, which only fires once the real route is fully resolved.
+- Clicking the Home icon (to Today's View) could briefly flash the previous workspace's real dashboard content before Today's View settled in. The grid's restore logic re-looked-up the workspace container at restore time, which could still point at the outgoing page if Frappe hadn't finished switching pages yet. It now restores the exact container reference captured when the content was hidden, removing the timing dependency entirely.
+- Navigating to a bare `/desk` URL (e.g. clicking the breadcrumb Home icon) while "Enable Smart Home" is on could leave the URL/route empty while Today's View rendered anyway, with the previous workspace's sidebar stuck on screen. Frappe core silently substitutes an empty page name with `frappe.boot.home_page` at the content level only, without ever updating the route — a split-brain state Frappe's own sidebar logic isn't built to detect, and one that could make our own grid inject into the wrong, stale container. We now turn that silent substitution into a real navigation, so the route, the rendered page, and the sidebar all agree.
+
 ## [1.3.2] — 2026-07-30
 
 ### Fixed
