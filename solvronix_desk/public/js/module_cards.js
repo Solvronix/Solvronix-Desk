@@ -89,6 +89,15 @@
   /* ── Workspace data cache ────────────────────────────────────── */
   var _wsCache = null;
 
+  /* Cached reference to frappe.workspace's own .layout-main-section —
+     the SAME singleton node for the whole session. Captured the moment
+     we hide its real content; restore uses THIS, never a fresh lookup,
+     so it can't be fooled by frappe.container.page not having swapped
+     over to the new route yet (which caused a visible flash of the old
+     workspace content when navigating away — e.g. clicking the Home
+     icon to Today's View). */
+  var _hiddenContainer = null;
+
   function fetchWorkspaces(cb) {
     if (_wsCache) { cb(_wsCache); return; }
     frappe.call({
@@ -166,13 +175,58 @@
     if (empty) empty.style.display = any ? "none" : "";
   }
 
+  /* ── Hide/restore Frappe's own workspace content ──────────────
+     `container` (.layout-main-section) is the SAME long-lived DOM
+     node Frappe's `frappe.workspace` singleton owns for every
+     workspace, including Home — it creates `.editor-js-container`
+     / `#editorjs` in it once and reuses them for the whole session.
+     We must never destroy those nodes (via innerHTML=) or the
+     EditorJS instance loses its holder and every later workspace
+     silently fails to render (GitHub #7). Hide them instead, and
+     restore on the way out. ────────────────────────────────────── */
+  function hideRealWorkspaceContent(container) {
+    _hiddenContainer = container;
+    var kids = container.children;
+    for (var i = 0; i < kids.length; i++) {
+      var el = kids[i];
+      if (el.id === "st-module-grid") continue;
+      if (el.style.display !== "none") {
+        el.dataset.stHiddenByGrid = "1";
+        el.style.display = "none";
+      }
+    }
+  }
+
+  function restoreRealWorkspaceContent() {
+    var container = _hiddenContainer;
+    if (!container) return;
+    var grid = container.querySelector("#st-module-grid");
+    if (grid) grid.style.display = "none";
+    var hidden = container.querySelectorAll("[data-st-hidden-by-grid]");
+    for (var i = 0; i < hidden.length; i++) {
+      hidden[i].style.display = "";
+      delete hidden[i].dataset.stHiddenByGrid;
+    }
+    _hiddenContainer = null;
+  }
+
   /* ── Render the full module grid into the page ───────────────── */
   function renderGrid(container) {
     if (!container) return;
 
+    hideRealWorkspaceContent(container);
+
+    /* Reuse the grid element across visits instead of rebuilding it */
+    var grid = container.querySelector("#st-module-grid");
+    if (!grid) {
+      grid = document.createElement("div");
+      grid.id = "st-module-grid";
+      container.appendChild(grid);
+    }
+    grid.style.display = "";
+
     /* Grid shell with skeleton loaders */
-    container.innerHTML =
-      '<div id="st-module-grid">' +
+    grid.innerHTML =
       '<div class="st-ws-header">' +
       '<div class="st-ws-title">All Apps</div>' +
       '<div class="st-ws-subtitle">Jump to any workspace from here</div>' +
@@ -180,8 +234,7 @@
       '<div class="st-ws-search-wrap">' +
       '<input id="st-ws-search-input" class="st-ws-search" type="text" placeholder="Search apps…" autocomplete="off">' +
       '</div>' +
-      buildSkeletons(8) +
-      '</div>';
+      buildSkeletons(8);
 
     /* Wire search input */
     var searchInput = document.getElementById("st-ws-search-input");
@@ -252,11 +305,38 @@
     return false;
   }
 
+  /* ── Detect Frappe's silent bare-route content substitution ───
+     frappe.views.pageview.show() (Frappe core) substitutes an empty
+     page name with frappe.boot.home_page — solvronix_desk sets this
+     to "smart-home" when Theme Settings' "Enable Smart Home" is on.
+     That substitution happens at the CONTENT level only: it changes
+     what's rendered (frappe.container.change_to("smart-home")) but
+     never touches frappe.router.current_route, which stays "" — a
+     split-brain state where the route and the visible page disagree.
+     This breaks Frappe's own sidebar resolution (set_workspace_sidebar
+     reads the still-empty route, finds no match, and no-ops — leaving
+     whatever workspace sidebar was showing before stuck on screen) and
+     would make us inject the grid into frappe.container.page, which by
+     then is smart-home's own Page instance, not a Workspace — its
+     .layout-main-section lookup fails and getPageContent()'s unscoped
+     fallback grabs the first matching node anywhere in the DOM, likely
+     a stale hidden one from whatever workspace was active before.
+     Fix at the source: turn the silent substitution into a REAL
+     navigation, so route/content/sidebar all agree on smart-home. */
+  function smartHomeOverrideActive() {
+    return !!(frappe.boot && frappe.boot.home_page);
+  }
+
   /* ── Main injection logic ────────────────────────────────────── */
   function maybeInjectGrid() {
     if (!isHomeRoute()) return;
-    /* Don't re-inject if already rendered */
-    if (document.getElementById("st-module-grid")) return;
+    if (smartHomeOverrideActive()) {
+      frappe.set_route(frappe.boot.home_page);
+      return;
+    }
+    /* Already visible — nothing to do */
+    var existing = document.getElementById("st-module-grid");
+    if (existing && existing.style.display !== "none") return;
 
     /* Wait for the page content div to appear */
     var attempts = 0;
@@ -277,7 +357,21 @@
     /* Hook route change event */
     frappe.router.on("change", function () {
       /* Small delay — let Frappe set up the new page first */
-      setTimeout(function () { maybeInjectGrid(); }, 300);
+      setTimeout(function () {
+        if (isHomeRoute()) {
+          maybeInjectGrid();
+        } else {
+          /* Leaving Home for a real workspace — restore whatever
+             Frappe's own workspace singleton put in this container
+             before the grid hid it, so it renders correctly. Uses the
+             container reference cached at hide time (not a fresh
+             getPageContent() lookup) — frappe.container.page may not
+             have swapped to the new route yet when this fires, which
+             previously caused a visible flash of the old workspace
+             content (e.g. clicking the Home icon to Today's View). */
+          restoreRealWorkspaceContent();
+        }
+      }, 300);
     });
 
     /* Also trigger on first load if already on home */
