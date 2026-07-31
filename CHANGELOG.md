@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.4] — 2026-07-31
+
+### Fixed
+- Theme chrome (toolbar, branding, dynamic colors, sidebar extras) rendered on top of Frappe's Setup Wizard during first-run onboarding. `onDeskReady()` ran unconditionally on every desk page load with no check for setup state; it now skips entirely while `frappe.boot.setup_complete` is falsy, so Setup Wizard stays Frappe's clean, standalone flow. Reported as #9.
+
 ## [1.3.3] — 2026-07-31
 
 ### Fixed

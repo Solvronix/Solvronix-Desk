@@ -1087,6 +1087,10 @@
   }
 
   function onDeskReady() {
+    /* Setup Wizard should stay Frappe's clean, standalone onboarding flow —
+       no theme chrome (toolbar/branding/etc.) until setup actually completes. */
+    if (frappe.boot && !frappe.boot.setup_complete) return;
+
     injectDynamicTheme();
     injectBranding();
     setupTitleUpdate();

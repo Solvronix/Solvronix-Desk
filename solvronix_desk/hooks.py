@@ -6,7 +6,7 @@ app_email = "sales@solvronix.com"
 app_license = "MIT"
 app_color = "#E8610A"
 app_icon = "octicon octicon-paintcan"
-app_version = "1.3.3"
+app_version = "1.3.4"
 
 required_apps = []
 
@@ -28,7 +28,7 @@ app_include_css = [
 app_include_js = [
     "/assets/solvronix_desk/js/dark_mode.js?v=8",
     "/assets/solvronix_desk/js/personalization.js?v=1",
-    "/assets/solvronix_desk/js/solvronix_desk.js?v=40",
+    "/assets/solvronix_desk/js/solvronix_desk.js?v=41",
     "/assets/solvronix_desk/js/sidebar.js?v=3",
     "/assets/solvronix_desk/js/command_palette.js?v=5",
     "/assets/solvronix_desk/js/progressive_forms.js?v=4",
