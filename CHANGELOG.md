@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.5] — 2026-07-31
+
+### Fixed
+- The "All Options" panel had several strings never wrapped for translation (toolbar button, panel title, search placeholder, "Loading…", "No workspaces found.", the "All Workspaces"/"General" group headers, "Appearance"/"Density"/"Compact"/"Comfortable") — now wrapped in `frappe._()`. Searching the panel with a query that matched nothing left it silently blank with zero feedback; it now shows a "No results" message, reusing the same translatable string Command Palette already uses for its own search. While testing this fix in Arabic, found the same gap on the Today's View dashboard (greeting, KPI labels, Recent Documents/Quick Create/Needs Attention cards, empty states) and the Setup Guide banner — all now wrapped too. Added the app's first `translations/ar.csv` with Arabic entries for all of the above (43 strings). Reported as #11.
+
 ## [1.3.4] — 2026-07-31
 
 ### Fixed
