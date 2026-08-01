@@ -114,6 +114,24 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn(".st-login-company-fallback", login_css)
         self.assertIn(".st-hide-powered .for-login .page-card-actions::after", login_css)
 
+    def test_preview_elements_expose_contextual_property_inspector(self):
+        js = PAGE.read_text(encoding="utf-8")
+        css = CSS.read_text(encoding="utf-8")
+        for inspector in (
+            "dashboard.heading", "dashboard.metrics", "dashboard.chart",
+            "form.heading", "form.card", "form.fields", "form.actions",
+            "table.heading", "table.grid", "table.status",
+            "login.background", "login.branding", "login.card",
+            "login.fields", "login.button", "login.footer",
+        ):
+            self.assertIn(f'"{inspector}"', js)
+        self.assertIn("_inspector_catalog()", js)
+        self.assertIn("_render_inspector()", js)
+        self.assertIn("_sync_setting_inputs(key, this)", js)
+        self.assertIn("data-open-control-section", js)
+        self.assertIn(".sts-context-inspector", css)
+        self.assertIn(".is-inspected", css)
+
     def test_published_navigation_tokens_reach_actual_desk_selectors(self):
         engine = ENGINE.read_text(encoding="utf-8")
         desk_css = DESK_CSS.read_text(encoding="utf-8")
@@ -131,7 +149,7 @@ class ThemeStudioTest(unittest.TestCase):
 
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=8", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=6", hooks)

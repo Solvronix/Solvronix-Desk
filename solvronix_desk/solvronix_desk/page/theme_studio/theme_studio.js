@@ -189,6 +189,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.active_section = "colors";
 		this.active_profile = "";
 		this.published_profile = "";
+		this.selected_inspector = null;
 		this.preview_timer = null;
 		this.original_dark = document.documentElement.getAttribute("data-theme") === "dark";
 	}
@@ -251,6 +252,9 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				'<h2>' + __("Make it unmistakably yours.") + "</h2>" +
 				'<p class="sts-intro">' + __("Every theme token, assignment, and deployment control in one place.") + "</p>" +
 				this._profile_bar_html() +
+				'<section class="sts-context-inspector is-empty" id="sts-context-inspector">' +
+					'<div class="sts-inspector-empty"><b>' + __("Visual properties") + '</b><span>' +
+						__("Click an item in any preview to edit its properties here.") + "</span></div></section>" +
 				'<div class="sts-control-search"><span>⌕</span><input type="search" id="sts-control-search" placeholder="' + __("Search theme controls…") + '"></div>' +
 				this._tabs_html() +
 				'<div class="sts-control-panels">' + this._sections_html() + "</div>" +
@@ -285,7 +289,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 							'<div class="sts-preview-main">' +
 								'<div class="sts-preview-page">' +
 									'<div class="sts-scene active" data-scene="dashboard">' +
-										'<div class="sts-preview-heading"><div><small>' + __("WORKSPACE") + '</small><h3>' + __("Good morning, Ayesha") + '</h3></div><button>' + __("Create new") + "</button></div>" +
+										'<div class="sts-preview-heading" data-inspector="dashboard.heading"><div><small>' + __("WORKSPACE") + '</small><h3>' + __("Good morning, Ayesha") + '</h3></div><button>' + __("Create new") + "</button></div>" +
 										'<div class="sts-drop-hint">' + this._icon("move") + __("Drag cards to rearrange your layout") + "</div>" +
 										'<div class="sts-canvas" id="sts-canvas"></div>' +
 									"</div>" +
@@ -301,9 +305,11 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		);
 		this.$preview = this.$root.find("#st-theme-studio-preview");
 		this.$canvas = this.$root.find("#sts-canvas");
+		this.$inspector = this.$root.find("#sts-context-inspector");
 		this.bind();
 		this._sync_profile_actions();
 		this.render_blocks();
+		this._render_inspector();
 		this.apply();
 		this.$root.toggleClass("is-dirty", this.dirty);
 	}
@@ -325,6 +331,104 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				'<button type="button" data-profile-action="rename">' + __("Rename") + "</button>" +
 				'<button type="button" data-profile-action="delete">' + __("Delete") + "</button>" +
 			"</div></div>";
+	}
+
+	/* Preview elements map to existing schema keys, keeping the contextual
+	   inspector and full category panels on one canonical configuration model. */
+	_inspector_catalog() {
+		return {
+			"navigation.toolbar": { title: "Top toolbar", scene: "Global", keys: ["navbar_background", "toolbar_text_color", "header_height", "sticky_navbar"] },
+			"navigation.sidebar": { title: "Sidebar", scene: "Global", keys: ["sidebar_background", "sidebar_text_color", "sidebar_icon_color", "sidebar_active_color", "sidebar_hover_color", "sidebar_width", "sidebar_mode"] },
+			"dashboard.heading": { title: "Dashboard heading", scene: "Dashboard", keys: ["page_background", "text_color", "heading_scale", "primary_button_color", "button_radius"] },
+			"dashboard.metrics": { title: "Number cards", scene: "Dashboard", keys: ["number_card_color", "text_color", "muted_text_color", "card_radius", "shadow_style"] },
+			"dashboard.chart": { title: "Chart card", scene: "Dashboard", keys: ["chart_background", "chart_palette", "text_color", "card_radius", "shadow_style"] },
+			"dashboard.activity": { title: "Activity card", scene: "Dashboard", keys: ["workspace_card_color", "text_color", "muted_text_color", "border_color", "card_radius"] },
+			"dashboard.shortcuts": { title: "Quick actions", scene: "Dashboard", keys: ["workspace_card_color", "shortcut_style", "primary_button_color", "button_radius", "card_radius"] },
+			"form.heading": { title: "Form heading", scene: "Form", keys: ["page_background", "text_color", "heading_scale", "primary_button_color", "button_radius"] },
+			"form.card": { title: "Form card", scene: "Form", keys: ["card_background", "border_color", "card_radius", "shadow_style", "section_spacing"] },
+			"form.fields": { title: "Form fields", scene: "Form", keys: ["input_background", "input_border_color", "focus_color", "readonly_background", "label_font_size", "button_radius", "button_height", "form_column_gap"] },
+			"form.actions": { title: "Form actions", scene: "Form", keys: ["primary_button_color", "secondary_button_color", "secondary_button_text", "button_radius", "button_height", "button_padding"] },
+			"table.heading": { title: "Table heading", scene: "Table", keys: ["page_background", "text_color", "heading_scale", "primary_button_color", "button_radius"] },
+			"table.grid": { title: "Data table", scene: "Table", keys: ["table_header_color", "alternate_row_color", "selected_row_color", "row_hover_color", "list_row_height", "table_font_size", "border_color", "card_radius"] },
+			"table.status": { title: "Status badges", scene: "Table", keys: ["success_color", "warning_color", "error_color", "info_color", "colorblind_palette"] },
+			"login.background": { title: "Login background", scene: "Login", keys: ["login_bg_image", "login_background", "login_gradient_to", "login_gradient_angle"] },
+			"login.branding": { title: "Login branding", scene: "Login", keys: ["company_logo", "app_title", "login_heading", "login_description"] },
+			"login.card": { title: "Login card", scene: "Login", keys: ["card_background", "text_color", "muted_text_color", "login_card_opacity", "card_radius", "shadow_style"] },
+			"login.fields": { title: "Login fields", scene: "Login", keys: ["input_background", "input_border_color", "focus_color", "label_font_size", "button_radius", "button_height"] },
+			"login.button": { title: "Login button", scene: "Login", keys: ["accent_color", "button_radius", "button_height", "button_padding"] },
+			"login.footer": { title: "Login footer", scene: "Login", keys: ["footer_text", "hide_powered", "muted_text_color"] },
+		};
+	}
+
+	_definition_for(key) {
+		var definition = null;
+		solvronix_desk.theme_studio_sections.some(function (section) {
+			definition = section.controls.find(function (item) { return item[0] === key; }) || null;
+			return !!definition;
+		});
+		return definition;
+	}
+
+	_section_for_key(key) {
+		var section = solvronix_desk.theme_studio_sections.find(function (item) {
+			return item.controls.some(function (definition) { return definition[0] === key; });
+		});
+		return section && section.id;
+	}
+
+	_render_inspector() {
+		if (!this.$inspector || !this.$inspector.length) return;
+		var item = this._inspector_catalog()[this.selected_inspector];
+		if (!item) {
+			this.selected_inspector = null;
+			this.$inspector.addClass("is-empty").html('<div class="sts-inspector-empty"><b>' +
+				__("Visual properties") + '</b><span>' + __("Click an item in any preview to edit its properties here.") + "</span></div>");
+			this.$preview && this.$preview.find(".is-inspected").removeClass("is-inspected");
+			return;
+		}
+		var self = this;
+		var controls = item.keys.map(function (key) {
+			var definition = self._definition_for(key);
+			return definition ? self._render_control(definition, "inspector") : "";
+		}).join("");
+		var section = this._section_for_key(item.keys[0]);
+		this.$inspector.removeClass("is-empty").html(
+			'<div class="sts-inspector-head"><div><small>' + __(item.scene) + '</small><b>' + __(item.title) +
+			'</b></div><button type="button" data-inspector-close title="' + __("Close inspector") + '">×</button></div>' +
+			'<p>' + __("Changes apply instantly to the preview and published theme.") + '</p><div class="sts-inspector-controls">' +
+			controls + '</div><button type="button" class="sts-inspector-more" data-open-control-section="' + section + '">' +
+			__("Open full settings section") + "</button>"
+		);
+		this._restore_inspector_highlight();
+	}
+
+	_select_inspector(id, element) {
+		if (!this._inspector_catalog()[id]) return;
+		this.selected_inspector = id;
+		this.$preview.find(".is-inspected").removeClass("is-inspected");
+		$(element).addClass("is-inspected");
+		this._render_inspector();
+		if (this.$inspector[0]) this.$inspector[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
+	}
+
+	_restore_inspector_highlight() {
+		if (!this.$preview || !this.selected_inspector) return;
+		this.$preview.find(".is-inspected").removeClass("is-inspected");
+		this.$preview.find('[data-inspector="' + this.selected_inspector + '"]:visible').first().addClass("is-inspected");
+	}
+
+	_sync_setting_inputs(key, source) {
+		var value = this.config[key];
+		this.$root.find('[data-setting="' + key + '"]').each(function () {
+			if (this === source) return;
+			var $control = $(this);
+			if (this.type === "checkbox") $control.prop("checked", !!value);
+			else if ($control.data("palette")) $control.val((value || []).join(", "));
+			else if (this.type !== "color" || value) $control.val(value);
+		});
+		this.$root.find('[data-hex="' + key + '"]').val(value || "");
+		var $outputs = this.$root.find('[data-output="' + key + '"]');
+		$outputs.each(function () { $(this).text(value + ($(this).data("unit") || "")); });
 	}
 
 	_tabs_html() {
@@ -350,15 +454,16 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		}).join("");
 	}
 
-	_render_control(definition) {
+	_render_control(definition, scope) {
 		var key = definition[0], label = __(definition[1]), type = definition[2];
+		var inputId = "sts-" + (scope ? scope + "-" : "") + key;
 		if (type === "color" || type === "optional-color") {
-			return this._color_control(key, label, type === "optional-color");
+			return this._color_control(key, label, type === "optional-color", scope);
 		}
-		if (type === "range") return this._range_control(key, label, definition[3], definition[4], definition[5]);
+		if (type === "range") return this._range_control(key, label, definition[3], definition[4], definition[5], scope);
 		if (type === "select") {
 			var current = this.config[key];
-			return '<div class="sts-field"><label for="sts-' + key + '">' + label + '</label><select id="sts-' + key +
+			return '<div class="sts-field"><label for="' + inputId + '">' + label + '</label><select id="' + inputId +
 				'" data-setting="' + key + '">' + definition[3].map(function (option) {
 					return '<option value="' + option + '"' + (String(option) === String(current) ? " selected" : "") + ">" + __(String(option)) + "</option>";
 				}).join("") + "</select></div>";
@@ -368,17 +473,17 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				(this.config[key] ? " checked" : "") + '><i></i></label>';
 		}
 		if (type === "text") {
-			return '<div class="sts-field"><label for="sts-' + key + '">' + label + '</label><input id="sts-' + key +
+			return '<div class="sts-field"><label for="' + inputId + '">' + label + '</label><input id="' + inputId +
 				'" type="text" data-setting="' + key + '" value="' + this._esc(this.config[key] || "") + '"></div>';
 		}
 		if (type === "attach-image") {
-			return '<div class="sts-field sts-attach-field"><label for="sts-' + key + '">' + label + '</label><div>' +
-				'<input id="sts-' + key + '" type="text" data-setting="' + key + '" value="' +
+			return '<div class="sts-field sts-attach-field"><label for="' + inputId + '">' + label + '</label><div>' +
+				'<input id="' + inputId + '" type="text" data-setting="' + key + '" value="' +
 				this._esc(this.config[key] || "") + '" placeholder="/files/..."><button type="button" data-upload-setting="' +
 				key + '" data-upload-label="' + this._esc(label) + '">' + __("Choose file") + '</button></div></div>';
 		}
 		if (type === "textarea") {
-			return '<div class="sts-field"><label for="sts-' + key + '">' + label + '</label><textarea id="sts-' + key +
+			return '<div class="sts-field"><label for="' + inputId + '">' + label + '</label><textarea id="' + inputId +
 				'" rows="3" data-setting="' + key + '">' + this._esc(this.config[key] || "") + "</textarea></div>";
 		}
 		if (type === "palette") {
@@ -434,11 +539,12 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			}).join("") + "</div></div>";
 	}
 
-	_color_control(key, label, optional) {
+	_color_control(key, label, optional, scope) {
 		var value = this.config[key] || (key === "brand_color" ? "#1B3F7E" : key === "accent_color" ? "#F57C00" : "#FFFFFF");
+		var inputId = "sts-" + (scope ? scope + "-" : "") + key;
 		return '<div class="sts-color-row" data-control="' + key + '">' +
-			'<label for="sts-' + key + '">' + label + "</label>" +
-			'<div><input id="sts-' + key + '" type="color" value="' + value + '" data-setting="' + key + '">' +
+			'<label for="' + inputId + '">' + label + "</label>" +
+			'<div><input id="' + inputId + '" type="color" value="' + value + '" data-setting="' + key + '">' +
 			'<input class="sts-hex" type="text" value="' + (this.config[key] || "") + '" placeholder="' +
 				(optional ? __("Auto") : value) + '" data-hex="' + key + '" maxlength="7" spellcheck="false">' +
 			(optional ? '<button type="button" class="sts-auto" data-clear="' + key + '" title="' + __("Use automatic value") + '">×</button>' : "") +
@@ -454,15 +560,16 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		return labels[key] || key;
 	}
 
-	_range_control(key, label, min, max, unit) {
-		return '<div class="sts-range-row"><div><label for="sts-' + key + '">' + label +
+	_range_control(key, label, min, max, unit, scope) {
+		var inputId = "sts-" + (scope ? scope + "-" : "") + key;
+		return '<div class="sts-range-row"><div><label for="' + inputId + '">' + label +
 			'</label><output data-output="' + key + '" data-unit="' + unit + '">' + this.config[key] + unit + "</output></div>" +
-			'<input id="sts-' + key + '" type="range" min="' + min + '" max="' + max +
+			'<input id="' + inputId + '" type="range" min="' + min + '" max="' + max +
 			'" value="' + this.config[key] + '" data-setting="' + key + '"></div>';
 	}
 
 	_sidebar_html() {
-		return '<aside class="sts-preview-sidebar">' +
+		return '<aside class="sts-preview-sidebar" data-inspector="navigation.sidebar">' +
 			'<button type="button" class="sts-preview-logo sts-sidebar-toggle" title="' + __("Expand or collapse sidebar") + '"><b>S</b><span>Solvronix</span></button>' +
 			'<nav><small>' + __("MAIN") + '</small><a class="active">' + this._icon("home") + "<span>" + __("Overview") + "</span></a>" +
 			'<a>' + this._icon("chart") + "<span>" + __("Analytics") + "</span></a>" +
@@ -473,33 +580,33 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	}
 
 	_navbar_html() {
-		return '<header class="sts-preview-nav"><div class="sts-toolbar-left">' +
+		return '<header class="sts-preview-nav" data-inspector="navigation.toolbar"><div class="sts-toolbar-left">' +
 			'<time>10:42:18</time><i></i><a>☼ ' + __("Today’s View") + '</a></div>' +
 			'<div class="sts-nav-actions"><button>◎ EN⌄</button><button>•••</button>' +
 			'<span class="sts-avatar">AK</span></div></header>';
 	}
 
 	_form_scene_html() {
-		return '<div class="sts-scene" data-scene="form"><div class="sts-preview-heading"><div><small>' + __("DOCUMENT") +
+		return '<div class="sts-scene" data-scene="form"><div class="sts-preview-heading" data-inspector="form.heading"><div><small>' + __("DOCUMENT") +
 			'</small><h3>' + __("Customer profile") + '</h3></div><button>' + __("Save") + '</button></div>' +
-			'<div class="sts-form-card"><div class="sts-form-section-title">' + __("General information") + '</div><div class="sts-form-grid">' +
-			'<label><span>' + __("Customer name") + '</span><input value="Northstar Trading"></label>' +
-			'<label><span>' + __("Customer group") + '</span><select><option>Commercial</option></select></label>' +
-			'<label><span>' + __("Email address") + '</span><input value="hello@northstar.example"></label>' +
-			'<label><span>' + __("Read-only field") + '</span><input readonly value="CUST-00084"></label>' +
-			'<label class="sts-form-wide"><span>' + __("Notes") + '</span><textarea>Priority account with quarterly review.</textarea></label>' +
-			'</div><div class="sts-form-actions"><button class="secondary">' + __("Cancel") + '</button><button>' + __("Save changes") +
+			'<div class="sts-form-card" data-inspector="form.card"><div class="sts-form-section-title">' + __("General information") + '</div><div class="sts-form-grid">' +
+			'<label data-inspector="form.fields"><span>' + __("Customer name") + '</span><input value="Northstar Trading"></label>' +
+			'<label data-inspector="form.fields"><span>' + __("Customer group") + '</span><select><option>Commercial</option></select></label>' +
+			'<label data-inspector="form.fields"><span>' + __("Email address") + '</span><input value="hello@northstar.example"></label>' +
+			'<label data-inspector="form.fields"><span>' + __("Read-only field") + '</span><input readonly value="CUST-00084"></label>' +
+			'<label class="sts-form-wide" data-inspector="form.fields"><span>' + __("Notes") + '</span><textarea>Priority account with quarterly review.</textarea></label>' +
+			'</div><div class="sts-form-actions" data-inspector="form.actions"><button class="secondary">' + __("Cancel") + '</button><button>' + __("Save changes") +
 			'</button></div></div></div>';
 	}
 
 	_table_scene_html() {
-		return '<div class="sts-scene" data-scene="table"><div class="sts-preview-heading"><div><small>' + __("REPORT") +
+		return '<div class="sts-scene" data-scene="table"><div class="sts-preview-heading" data-inspector="table.heading"><div><small>' + __("REPORT") +
 			'</small><h3>' + __("Sales invoices") + '</h3></div><button>' + __("New invoice") + '</button></div>' +
-			'<div class="sts-table-card"><div class="sts-table-head"><span>ID</span><span>' + __("Customer") + '</span><span>' +
+			'<div class="sts-table-card" data-inspector="table.grid"><div class="sts-table-head"><span>ID</span><span>' + __("Customer") + '</span><span>' +
 			__("Status") + '</span><span>' + __("Amount") + '</span></div>' +
 			[['INV-0841','Northstar','Paid','$2,480'],['INV-0840','Acme Retail','Overdue','$1,920'],['INV-0839','Orbit Foods','Draft','$760'],['INV-0838','Harbor Labs','Paid','$4,210']].map(function (row, index) {
 				return '<div class="sts-table-row' + (index === 1 ? " selected" : "") + '"><span>' + row[0] + '</span><span>' + row[1] +
-					'</span><span><i class="status-' + row[2].toLowerCase() + '">' + row[2] + '</i></span><strong>' + row[3] + '</strong></div>';
+					'</span><span><i data-inspector="table.status" class="status-' + row[2].toLowerCase() + '">' + row[2] + '</i></span><strong>' + row[3] + '</strong></div>';
 			}).join("") + "</div></div>";
 	}
 
@@ -510,16 +617,16 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			'<img class="sts-login-company-logo" data-login-company-logo src="' + this._esc(this.config.company_logo) +
 			'" alt="' + this._esc(this.config.app_title || "") + '">' :
 			'<img class="sts-login-company-logo" data-login-company-logo alt="" hidden>';
-		return '<div class="sts-scene sts-login-scene" data-scene="login"><div class="sts-login-shell">' +
-			'<div class="sts-login-card-head">' + companyLogo + '<div class="sts-login-app-logo">' + this._icon("cube") +
+		return '<div class="sts-scene sts-login-scene" data-scene="login" data-inspector="login.background"><div class="sts-login-shell" data-inspector="login.card">' +
+			'<div class="sts-login-card-head" data-inspector="login.branding">' + companyLogo + '<div class="sts-login-app-logo">' + this._icon("cube") +
 			'</div><h3 data-login-heading>' + this._esc(this.config.login_heading || __("Welcome back")) +
 			'</h3><p data-login-description>' + this._esc(this.config.login_description || "") + '</p></div>' +
-			'<div class="sts-login-card-body"><label><span>' + __("Email or Username") + '</span><div class="sts-login-input">' +
-			this._icon("mail") + '<input value="jane@example.com"></div></label><label><span>' + __("Password") +
+			'<div class="sts-login-card-body"><label data-inspector="login.fields"><span>' + __("Email or Username") + '</span><div class="sts-login-input">' +
+			this._icon("mail") + '<input value="jane@example.com"></div></label><label data-inspector="login.fields"><span>' + __("Password") +
 			'</span><div class="sts-login-input">' + this._icon("lock") + '<input type="password" value="password">' +
 			this._icon("eye") + '</div></label><a class="sts-login-forgot">' + __("Forgot password?") + '</a>' +
-			'<button>' + __("Continue") + '</button><small data-login-powered>' + __("Powered by Solvronix") +
-			'</small></div></div><small class="sts-login-custom-footer" data-login-footer></small></div>';
+			'<button data-inspector="login.button">' + __("Continue") + '</button><small data-login-powered data-inspector="login.footer">' + __("Powered by Solvronix") +
+			'</small></div></div><small class="sts-login-custom-footer" data-login-footer data-inspector="login.footer"></small></div>';
 	}
 
 	/* ── 5. PREVIEW BLOCK LAYOUT ──────────────────────────────────────────────
@@ -527,24 +634,24 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	render_blocks() {
 		var blocks = {
 			metrics:
-				'<section class="sts-block sts-metrics" draggable="true" data-block="metrics"><div class="sts-drag">' + this._icon("grip") + "</div>" +
+				'<section class="sts-block sts-metrics" draggable="true" data-block="metrics" data-inspector="dashboard.metrics"><div class="sts-drag">' + this._icon("grip") + "</div>" +
 				[["Revenue", "$84.2k", "+12.4%"], ["Invoices", "128", "+8.1%"], ["Customers", "846", "+4.6%"]].map(function (m, i) {
 					return '<article><div class="sts-metric-icon m' + i + '"></div><small>' + __(m[0]) + "</small><strong>" + m[1] +
 						'</strong><em>' + m[2] + "</em></article>";
 				}).join("") + "</section>",
 			chart:
-				'<section class="sts-block sts-chart-card" draggable="true" data-block="chart"><div class="sts-drag">' + this._icon("grip") +
+				'<section class="sts-block sts-chart-card" draggable="true" data-block="chart" data-inspector="dashboard.chart"><div class="sts-drag">' + this._icon("grip") +
 				'</div><div class="sts-card-head"><div><strong>' + __("Revenue overview") + "<small>" + __("Last 6 months") +
 				'</small></strong></div><button>•••</button></div><div class="sts-chart"><span style="--h:42%"></span><span style="--h:64%"></span>' +
 				'<span style="--h:53%"></span><span style="--h:82%"></span><span style="--h:68%"></span><span style="--h:91%"></span></div>' +
 				'<div class="sts-chart-labels"><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span></div></section>',
 			activity:
-				'<section class="sts-block sts-activity" draggable="true" data-block="activity"><div class="sts-drag">' + this._icon("grip") +
+				'<section class="sts-block sts-activity" draggable="true" data-block="activity" data-inspector="dashboard.activity"><div class="sts-drag">' + this._icon("grip") +
 				'</div><div class="sts-card-head"><strong>' + __("Recent activity") + '</strong><a>' + __("View all") + '</a></div>' +
 				'<div class="sts-activity-row"><i>SI</i><span><b>INV-2026-0841</b><small>' + __("Sales invoice · 2 min ago") + '</small></span><strong>$2,480</strong></div>' +
 				'<div class="sts-activity-row"><i>PO</i><span><b>PO-2026-0138</b><small>' + __("Purchase order · 18 min ago") + '</small></span><strong>$980</strong></div></section>',
 			quick_actions:
-				'<section class="sts-block sts-quick-actions" draggable="true" data-block="quick_actions"><div class="sts-drag">' + this._icon("grip") +
+				'<section class="sts-block sts-quick-actions" draggable="true" data-block="quick_actions" data-inspector="dashboard.shortcuts"><div class="sts-drag">' + this._icon("grip") +
 				'</div><div class="sts-card-head"><strong>' + __("Quick actions") + '</strong></div><div><button>＋ ' + __("Invoice") +
 				'</button><button>＋ ' + __("Customer") + '</button><button>＋ ' + __("Task") + "</button></div></section>",
 		};
@@ -568,12 +675,30 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				self.$canvas[0].insertBefore(self.dragged, after ? this.nextSibling : this);
 			});
 		});
+		this._restore_inspector_highlight();
 	}
 
 	/* ── 6. EVENT BINDINGS ───────────────────────────────────────────────────
 	   Delegation keeps the generated control surface cheap to re-render. */
 	bind() {
 		var self = this;
+		this.$root.on("click", "[data-inspector]", function (event) {
+			var closest = $(event.target).closest("[data-inspector]")[0];
+			if (this !== closest) return;
+			event.stopPropagation();
+			self._select_inspector($(this).data("inspector"), this);
+		});
+		this.$root.on("click", "[data-inspector-close]", function () {
+			self.selected_inspector = null;
+			self._render_inspector();
+		});
+		this.$root.on("click", "[data-open-control-section]", function () {
+			var section = $(this).data("open-control-section");
+			self.active_section = section;
+			self.$root.find("[data-section-tab]").removeClass("active").filter('[data-section-tab="' + section + '"]').addClass("active");
+			self.$root.find(".sts-control-panel").removeClass("active").filter('[data-section="' + section + '"]').addClass("active");
+			self.$root.find('[data-section="' + section + '"]')[0].scrollIntoView({ behavior: "smooth", block: "start" });
+		});
 		this.$root.on("input change", "[data-setting]", function () {
 			var key = $(this).data("setting");
 			self._checkpoint();
@@ -593,6 +718,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			} else {
 				self.config[key] = this.value;
 			}
+			self._sync_setting_inputs(key, this);
 			self.changed();
 		});
 		this.$root.on("change", "[data-hex]", function () {
@@ -605,14 +731,14 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			}
 			self._checkpoint();
 			self.config[key] = value;
-			if (value) self.$root.find("#sts-" + key).val(value);
+			self._sync_setting_inputs(key, this);
 			self.changed();
 		});
 		this.$root.on("click", "[data-clear]", function () {
 			var key = $(this).data("clear");
 			self._checkpoint();
 			self.config[key] = "";
-			self.$root.find('[data-hex="' + key + '"]').val("");
+			self._sync_setting_inputs(key);
 			self.changed();
 		});
 		/* Frappe's Attach Image prompt provides upload, library, and URL support
@@ -625,7 +751,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				function (values) {
 					self._checkpoint();
 					self.config[key] = values.file_url || "";
-					self.$root.find('#sts-' + key).val(self.config[key]);
+					self._sync_setting_inputs(key);
 					self.changed();
 				},
 				label,
@@ -636,10 +762,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			self._checkpoint();
 			self.config.brand_color = $(this).data("brand");
 			self.config.accent_color = $(this).data("accent");
-			self.$root.find("#sts-brand_color").val(self.config.brand_color);
-			self.$root.find('[data-hex="brand_color"]').val(self.config.brand_color);
-			self.$root.find("#sts-accent_color").val(self.config.accent_color);
-			self.$root.find('[data-hex="accent_color"]').val(self.config.accent_color);
+			self._sync_setting_inputs("brand_color");
+			self._sync_setting_inputs("accent_color");
 			self.changed();
 		});
 		this.$root.on("click", ".sts-segments button", function () {
@@ -659,9 +783,16 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			self.$preview.attr("data-scene", scene);
 			self.$preview.find(".sts-scene").removeClass("active")
 				.filter('[data-scene="' + scene + '"]').addClass("active");
+			var defaults = { dashboard: "dashboard.heading", form: "form.card", table: "table.grid", login: "login.background" };
+			var element = self.$preview.find('[data-inspector="' + defaults[scene] + '"]:visible').first()[0];
+			if (element) self._select_inspector(defaults[scene], element);
 		});
 		this.$root.on("click", ".sts-sidebar-toggle", function () {
-			self.$preview.find(".sts-preview-sidebar").toggleClass("is-expanded");
+			self._checkpoint();
+			var expanded = !self.$preview.find(".sts-preview-sidebar").hasClass("is-expanded");
+			self.config.sidebar_mode = expanded ? "Expanded" : "Compact";
+			self._sync_setting_inputs("sidebar_mode");
+			self.changed();
 		});
 		this.$root.on("click", "[data-section-tab]", function () {
 			self.active_section = $(this).data("section-tab");
@@ -1189,6 +1320,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this._apply_preview_vars(this.$preview, visual, c);
 		this.$preview.attr("data-theme", previewDark ? "dark" : "light");
 		this.$preview.attr("data-density", String(c.density || "Comfortable").toLowerCase());
+		this.$preview.attr("data-shortcuts", String(c.shortcut_style || "Soft").toLowerCase());
+		this.$preview.find(".sts-preview-sidebar").toggleClass("is-expanded", c.sidebar_mode === "Expanded");
 		this.$root.find(".sts-segments button").removeClass("active")
 			.filter('[data-value="' + c.shadow_style + '"]').addClass("active");
 		this.$root.find('[data-action="undo"]').prop("disabled", !this.history.length);
@@ -1326,6 +1459,9 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"--studio-navbar": c.navbar_background || "color-mix(in srgb, " + c.brand_color + " 40%, black)",
 			"--studio-page": c.page_background || "#F3F5F7",
 			"--studio-card": c.card_background || "#FFFFFF",
+			"--studio-workspace-card": c.workspace_card_color || c.card_background || "#FFFFFF",
+			"--studio-number-card": c.number_card_color || c.card_background || "#FFFFFF",
+			"--studio-chart-bg": c.chart_background || c.card_background || "#FFFFFF",
 			"--studio-text": c.text_color || "#19202D",
 			"--studio-muted": c.muted_text_color || "#697386",
 			"--studio-border": c.border_color || "#E1E5EA",
@@ -1335,11 +1471,15 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"--studio-secondary-text": c.secondary_button_text,
 			"--studio-button-radius": c.button_radius + "px",
 			"--studio-button-height": c.button_height + "px",
+			"--studio-button-padding": c.button_padding + "px",
+			"--studio-header-height": c.header_height + "px",
 			"--studio-input-bg": c.input_background,
 			"--studio-input-border": c.input_border_color,
 			"--studio-focus": c.focus_color,
 			"--studio-readonly": c.readonly_background,
 			"--studio-card-radius": c.card_radius + "px",
+			"--studio-section-spacing": c.section_spacing + "px",
+			"--studio-form-gap": c.form_column_gap + "px",
 			"--studio-row-height": c.list_row_height + "px",
 			"--studio-table-header": c.table_header_color,
 			"--studio-row-alt": c.alternate_row_color,
@@ -1351,12 +1491,17 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"--studio-info": c.info_color,
 			"--studio-font": '"' + (c.font_family || "Aptos").replace(/["']/g, "") + '", sans-serif',
 			"--studio-base-font": c.base_font_px + "px",
+			"--studio-heading-size": (20 * c.heading_scale / 100) + "px",
+			"--studio-label-size": c.label_font_size + "px",
+			"--studio-table-font": c.table_font_size + "px",
 			"--studio-radius": c.corner_radius + "px",
 			"--studio-sidebar-width": c.sidebar_width + "px",
 			"--studio-shadow": shadow,
 			"--studio-sidebar-text": c.sidebar_text_color || this._contrast(c.sidebar_background || "#FFFFFF"),
+			"--studio-sidebar-icon": c.sidebar_icon_color || c.sidebar_text_color || this._contrast(c.sidebar_background || "#FFFFFF"),
 			"--studio-sidebar-active": c.sidebar_active_color || c.accent_color,
 			"--studio-sidebar-active-text": c.sidebar_active_text_color || this._contrast(c.sidebar_active_color),
+			"--studio-sidebar-hover": c.sidebar_hover_color || "color-mix(in srgb, " + c.sidebar_background + " 88%, " + c.text_color + ")",
 			"--studio-toolbar-text": c.toolbar_text_color || this._contrast(c.navbar_background || c.brand_color),
 			"--studio-chart-1": (c.chart_palette || [])[0] || c.brand_color,
 			"--studio-chart-2": (c.chart_palette || [])[1] || c.accent_color,
