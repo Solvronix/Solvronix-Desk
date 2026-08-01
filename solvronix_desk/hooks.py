@@ -40,6 +40,7 @@ app_include_js = [
     "/assets/solvronix_desk/js/notification_center.js?v=4",
     "/assets/solvronix_desk/js/module_cards.js?v=9",
     "/assets/solvronix_desk/js/theme_runtime.js?v=6",
+    "/assets/solvronix_desk/js/chart_runtime.js?v=1",
 ]
 
 # ── BOOT / INSTALL / DOCUMENT LIFECYCLE HOOKS ──────────────────────────────────

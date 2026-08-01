@@ -16,7 +16,7 @@ def add_boot_data(bootinfo):
     # Boot transport avoids extra API calls and visible first-paint theme shifts.
     try:
         s = frappe.get_single("Theme Settings")
-        from solvronix_desk import theme_engine
+        from solvronix_desk import chart_config, theme_engine
         config = theme_engine.resolve_config(s, frappe.session.user)
         bootinfo.st_brand  = config["brand_color"]
         bootinfo.st_accent = config["accent_color"]
@@ -39,6 +39,7 @@ def add_boot_data(bootinfo):
             "tagline":      config.get("tagline") or "",
         }
         bootinfo.st_theme_config = config
+        bootinfo.st_chart_schema = chart_config.load_schema()
         bootinfo.st_theme_profiles = [
             {"id": p["id"], "name": p["name"], "builtin": p["builtin"]}
             for p in theme_engine.profiles(s)
@@ -73,6 +74,7 @@ def add_boot_data(bootinfo):
         bootinfo.st_branding = {}
         bootinfo.st_install_key = "v1"
         bootinfo.st_theme_config = {}
+        bootinfo.st_chart_schema = {"version": 1, "groups": {}}
         bootinfo.st_theme_profiles = []
         bootinfo.st_theme_flags = {"enabled": 1, "allow_user_theme": 0, "locked": 1}
         bootinfo.st_theme_schedule = {"enabled": False}

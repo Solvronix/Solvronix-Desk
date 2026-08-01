@@ -22,9 +22,18 @@ CSS = ROOT / "solvronix_desk" / "public" / "css" / "theme_studio.css"
 DESK_CSS = ROOT / "solvronix_desk" / "public" / "css" / "solvronix_desk.css"
 SIDEBAR_CSS = ROOT / "solvronix_desk" / "public" / "css" / "sidebar.css"
 DARK_CSS = ROOT / "solvronix_desk" / "public" / "css" / "dark_mode.css"
+BOOT = ROOT / "solvronix_desk" / "boot.py"
 
 
 class ThemeStudioTest(unittest.TestCase):
+    def test_chart_runtime_is_bootstrapped_after_theme_runtime(self):
+        hooks = HOOKS.read_text(encoding="utf-8")
+        theme_index = hooks.index("/assets/solvronix_desk/js/theme_runtime.js")
+        chart_index = hooks.index("/assets/solvronix_desk/js/chart_runtime.js")
+
+        self.assertGreater(chart_index, theme_index)
+        self.assertRegex(hooks, r"chart_runtime\.js\?v=\d+")
+        self.assertIn("bootinfo.st_chart_schema = chart_config.load_schema()", BOOT.read_text(encoding="utf-8"))
     def test_studio_state_exposes_canonical_chart_schema_and_safe_registry(self):
         source = THEME_API.read_text(encoding="utf-8")
 
