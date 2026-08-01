@@ -1,8 +1,12 @@
 """Integration-contract coverage for Theme Studio's public implementation."""
 
 from pathlib import Path
+import ast
 import json
+import sys
+import types
 import unittest
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,6 +25,38 @@ DARK_CSS = ROOT / "solvronix_desk" / "public" / "css" / "dark_mode.css"
 
 
 class ThemeStudioTest(unittest.TestCase):
+    def test_workspace_api_failures_expose_non_sensitive_unavailable_flag(self):
+        source = API.read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        function = next(
+            node for node in tree.body
+            if isinstance(node, ast.FunctionDef) and node.name == "get_workspaces"
+        )
+        function.decorator_list = []
+        namespace = {}
+        fake_frappe = types.ModuleType("frappe")
+        fake_frappe.log_error = lambda *args, **kwargs: None
+        fake_desk = types.ModuleType("frappe.desk")
+        fake_desktop = types.ModuleType("frappe.desk.desktop")
+        fake_desk.desktop = fake_desktop
+        namespace["frappe"] = fake_frappe
+        modules = {
+            "frappe": fake_frappe,
+            "frappe.desk": fake_desk,
+            "frappe.desk.desktop": fake_desktop,
+        }
+        with mock.patch.dict(sys.modules, modules):
+            exec(
+                compile(ast.Module(body=[function], type_ignores=[]), str(API), "exec"),
+                namespace,
+            )
+            expected = {"pages": [], "private_pages": [], "unavailable": True}
+            self.assertEqual(namespace["get_workspaces"](), expected)
+            fake_desktop.get_workspaces = lambda: (_ for _ in ()).throw(
+                RuntimeError("private detail")
+            )
+            self.assertEqual(namespace["get_workspaces"](), expected)
+
     def test_page_is_restricted_to_system_managers(self):
         page = json.loads(PAGE_JSON.read_text(encoding="utf-8"))
         self.assertEqual(page["name"], "theme-studio")
@@ -152,7 +188,7 @@ class ThemeStudioTest(unittest.TestCase):
 
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=11", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=12", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=6", hooks)

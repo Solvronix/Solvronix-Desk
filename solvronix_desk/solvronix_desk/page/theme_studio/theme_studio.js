@@ -166,12 +166,16 @@ frappe.pages["theme-studio"].on_page_show = function () {
 	if (studio) {
 		studio.refresh_if_clean();
 		if (studio.dirty) studio.apply();
+		studio._resume_workspace_preview();
 	}
 };
 
 frappe.pages["theme-studio"].on_page_hide = function () {
 	var studio = frappe.pages["theme-studio"].studio;
-	if (studio) studio.remove_draft();
+	if (studio) {
+		studio.remove_draft();
+		studio._pause_workspace_preview();
+	}
 };
 
 /* ── 3. STUDIO CONTROLLER / SERVER STATE ───────────────────────────────────── */
@@ -192,6 +196,13 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.selected_inspector = null;
 		this.effective_visual_config = null;
 		this.preview_timer = null;
+		this.workspace_groups = [];
+		this.workspace_routes = Object.create(null);
+		this.workspace_preview_css = "";
+		this.workspace_url = "";
+		this.workspace_load_generation = 0;
+		this.workspace_request_active = false;
+		this.workspace_paused = false;
 		this.original_dark = document.documentElement.getAttribute("data-theme") === "dark";
 	}
 
@@ -269,7 +280,9 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 						'<button data-preview-scene="form">' + __("Form") + "</button>" +
 						'<button data-preview-scene="table">' + __("Table") + "</button>" +
 						'<button data-preview-scene="login">' + __("Login") + "</button>" +
+						'<button data-preview-scene="workspace">' + __("Workspace") + "</button>" +
 					"</div>" +
+					this._workspace_selector_html(this.workspace_groups) +
 					'<div class="sts-toolbar-note"><i></i>' + __("Live preview") + "</div>" +
 					'<button class="sts-compare-btn" data-action="compare">' + __("Compare with default") + "</button>" +
 					'<button class="sts-draft-btn" data-action="save-draft">' + __("Save draft") + "</button>" +
@@ -300,6 +313,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 								"</div>" +
 							"</div>" +
 						"</div>" +
+						this._workspace_scene_html() +
 					"</div>" +
 				"</div>" +
 				'<section class="sts-context-inspector" id="sts-context-inspector" aria-live="polite"></section>' +
@@ -308,11 +322,14 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.$preview = this.$root.find("#st-theme-studio-preview");
 		this.$canvas = this.$root.find("#sts-canvas");
 		this.$inspector = this.$root.find("#sts-context-inspector");
+		this.$workspace_scene = this.$root.find(".sts-workspace-preview");
+		this.$workspace_iframe = this.$root.find("#sts-workspace-iframe");
 		this.bind();
 		this._sync_profile_actions();
 		this.render_blocks();
 		this._render_inspector();
 		this.apply();
+		this._load_workspaces();
 		this.$root.toggleClass("is-dirty", this.dirty);
 	}
 
@@ -715,6 +732,297 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			'</small></div></div><small class="sts-login-custom-footer" data-login-footer data-inspector="login.footer"></small></div>';
 	}
 
+	_workspace_selector_html(groups) {
+		groups = groups || [];
+		var options = groups.map(function (group) {
+			if (!group.pages || !group.pages.length) return "";
+			return '<optgroup label="' + this._esc(group.label) + '">' + group.pages.map(function (page) {
+				return '<option value="' + this._esc(page.url) + '">' + this._esc(page.title) + "</option>";
+			}, this).join("") + "</optgroup>";
+		}, this).join("");
+		if (!options) options = '<option value="">' + __("Loading workspaces…") + "</option>";
+		return '<div class="sts-workspace-picker"><label for="sts-workspace-select">' + __("Workspace") +
+			'</label><select id="sts-workspace-select" aria-label="' + __("Workspace") + '" disabled>' + options + "</select></div>";
+	}
+
+	_workspace_scene_html() {
+		return '<div class="sts-workspace-preview" data-scene="workspace" data-state="loading">' +
+			'<div class="sts-workspace-status" data-workspace-state="loading"><span class="sts-loader"></span><strong>' + __("Loading workspace preview…") + "</strong></div>" +
+			'<div class="sts-workspace-status" data-workspace-state="empty"><strong>' + __("No visible workspaces are available.") + "</strong></div>" +
+			'<div class="sts-workspace-status" data-workspace-state="error"><strong>' + __("Workspace preview could not be loaded.") + "</strong></div>" +
+			'<iframe id="sts-workspace-iframe" tabindex="-1" aria-hidden="true" title="' + __("Read-only workspace preview") +
+			'" sandbox="allow-scripts allow-same-origin"></iframe><div class="sts-workspace-shield" aria-hidden="true"></div></div>';
+	}
+
+	_workspace_route(page) {
+		page = page || {};
+		var supplied = page.route !== undefined && page.route !== null && String(page.route).trim() !== "";
+		var route = supplied ? String(page.route).trim() : String(page.title || page.name || "").trim()
+			.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+		if (!route || /^[a-z][a-z0-9+.-]*:/i.test(route) || /^\/\//.test(route) || /[\\?#\u0000-\u001f]/.test(route)) return "";
+		if (route.indexOf("/desk/") === 0) route = route.slice(6);
+		else if (route.charAt(0) === "/") return "";
+		try { route = decodeURIComponent(route); } catch (e) { return ""; }
+		var segments = route.split("/");
+		if (!segments.length || segments.some(function (segment) {
+			return !segment || segment === "." || segment === ".." || segment.toLowerCase() === "theme-studio";
+		})) return "";
+		return "/desk/" + segments.map(function (segment) { return encodeURIComponent(segment); }).join("/");
+	}
+
+	_normalize_workspaces(message) {
+		message = message || {};
+		var seen = Object.create(null);
+		var self = this;
+		return [
+			{ id: "system", label: __("System workspaces"), input: message.pages || [] },
+			{ id: "custom", label: __("Custom workspaces"), input: message.private_pages || [] },
+		].map(function (group) {
+			var pages = Array.isArray(group.input) ? group.input : [];
+			return {
+				id: group.id,
+				label: group.label,
+				pages: pages.reduce(function (visible, page) {
+					if (!page || typeof page !== "object") return visible;
+					var hidden = page.is_hidden !== undefined ? page.is_hidden : page.hidden;
+					if (hidden === true || hidden === 1 || String(hidden).toLowerCase() === "true" || String(hidden) === "1" || page.is_visible === false) return visible;
+					var title = String(page.title || page.name || "").trim();
+					var url = self._workspace_route(page);
+					var key = url.toLowerCase();
+					if (!title || !url || seen[key]) return visible;
+					seen[key] = true;
+					visible.push({ title: title, url: url, source: group.id });
+					return visible;
+				}, []),
+			};
+		});
+	}
+
+	_load_workspaces() {
+		var self = this;
+		if (this.workspace_paused) return false;
+		var generation = (this.workspace_load_generation || 0) + 1;
+		this.workspace_load_generation = generation;
+		this.workspace_request_active = true;
+		this._set_workspace_state("loading");
+		frappe.call({
+			method: "solvronix_desk.api.get_workspaces",
+			callback: function (response) {
+				if (generation !== self.workspace_load_generation || self.workspace_paused) return;
+				self.workspace_request_active = false;
+				var message = (response && response.message) || {};
+				if (message.unavailable) {
+					self.workspace_groups = [];
+					self.workspace_routes = Object.create(null);
+					self._render_workspace_selector();
+					self._set_workspace_state("error");
+					return;
+				}
+				self.workspace_groups = self._normalize_workspaces(message);
+				self.workspace_routes = Object.create(null);
+				var first = "";
+				self.workspace_groups.forEach(function (group) {
+					group.pages.forEach(function (page) {
+						self.workspace_routes[page.url] = true;
+						if (!first) first = page.url;
+					});
+				});
+				self._render_workspace_selector();
+				if (!first) self._set_workspace_state("empty");
+				else self._select_workspace(first);
+			},
+			error: function () {
+				if (generation !== self.workspace_load_generation || self.workspace_paused) return;
+				self.workspace_request_active = false;
+				self.workspace_groups = [];
+				self.workspace_routes = Object.create(null);
+				self._render_workspace_selector();
+				self._set_workspace_state("error");
+			},
+		});
+		return true;
+	}
+
+	_pause_workspace_preview() {
+		if (this.workspace_paused) return false;
+		this.workspace_paused = true;
+		this.workspace_load_generation = (this.workspace_load_generation || 0) + 1;
+		this.workspace_request_active = false;
+		this.workspace_url = "";
+		if (this.$workspace_iframe && this.$workspace_iframe.attr) this.$workspace_iframe.attr("src", "about:blank");
+		return true;
+	}
+
+	_resume_workspace_preview() {
+		if (!this.workspace_paused) return false;
+		this.workspace_paused = false;
+		this._load_workspaces();
+		return true;
+	}
+
+	_render_workspace_selector() {
+		if (!this.$root || !this.$root.find) return;
+		var $picker = this.$root.find(".sts-workspace-picker");
+		if (!$picker.length) return;
+		$picker.replaceWith(this._workspace_selector_html(this.workspace_groups));
+		var hasPages = this.workspace_groups.some(function (group) { return group.pages.length; });
+		this.$root.find("#sts-workspace-select").prop("disabled", !hasPages);
+	}
+
+	_set_workspace_state(state) {
+		if (this.$workspace_scene && this.$workspace_scene.attr) this.$workspace_scene.attr("data-state", state);
+	}
+
+	_select_workspace(url) {
+		url = String(url || "");
+		if (!Object.prototype.hasOwnProperty.call(this.workspace_routes || {}, url)) return false;
+		if (!this.$workspace_iframe || !this.$workspace_iframe.length) return false;
+		this.workspace_url = url;
+		this._set_workspace_state("loading");
+		this.$workspace_iframe.attr("src", url);
+		return true;
+	}
+
+	_forward_workspace_wheel(event) {
+		if (event && event.preventDefault) event.preventDefault();
+		try {
+			var frame = this.$workspace_iframe && this.$workspace_iframe.length && this.$workspace_iframe[0];
+			if (!frame) return false;
+			var deltaX = Number(event && event.deltaX) || 0;
+			var deltaY = Number(event && event.deltaY) || 0;
+			var frameDocument = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+			var target = null;
+			var isScrollable = function (element) {
+				return !!element && (
+					Number(element.scrollHeight) > Number(element.clientHeight) ||
+					Number(element.scrollWidth) > Number(element.clientWidth)
+				);
+			};
+			if (frameDocument && typeof frameDocument.querySelector === "function") {
+				[".main-section", ".layout-main-section-wrapper", ".layout-main-section", ".page-body"].some(function (selector) {
+					var candidate = frameDocument.querySelector(selector);
+					if (!isScrollable(candidate)) return false;
+					target = candidate;
+					return true;
+				});
+			}
+			if (!target && frameDocument && isScrollable(frameDocument.scrollingElement)) {
+				target = frameDocument.scrollingElement;
+			}
+			if (target) {
+				if (typeof target.scrollBy === "function") target.scrollBy(deltaX, deltaY);
+				else {
+					target.scrollLeft = (Number(target.scrollLeft) || 0) + deltaX;
+					target.scrollTop = (Number(target.scrollTop) || 0) + deltaY;
+				}
+				return true;
+			}
+			if (!frame.contentWindow || typeof frame.contentWindow.scrollBy !== "function") return false;
+			frame.contentWindow.scrollBy(deltaX, deltaY);
+			return true;
+		} catch (e) {
+			return false;
+		}
+	}
+
+	_sync_workspace_document_state(frameDocument) {
+		try {
+			var frame = this.$workspace_iframe && this.$workspace_iframe.length && this.$workspace_iframe[0];
+			frameDocument = frameDocument || (frame && (frame.contentDocument || (frame.contentWindow && frame.contentWindow.document)));
+			if (!frameDocument || !frameDocument.documentElement) return false;
+			var root = frameDocument.documentElement;
+			var c = this.config || {};
+			var attributes = {
+				"data-theme": this.workspace_preview_theme || "light",
+				"data-density": String(c.density || "Comfortable").toLowerCase(),
+				"data-layout": String(c.layout_mode || "Full Width").toLowerCase().replace(/\s+/g, "-"),
+				"data-shortcuts": String(c.shortcut_style || "Soft").toLowerCase(),
+				"data-compact-forms": String(!!c.compact_forms),
+				"data-high-contrast": String(!!c.high_contrast),
+				"data-large-text": String(!!c.large_text),
+			};
+			Object.keys(attributes).forEach(function (name) { root.setAttribute(name, attributes[name]); });
+			return true;
+		} catch (e) {
+			return false;
+		}
+	}
+
+	_install_workspace_read_only_guards(frameDocument) {
+		try {
+			if (!frameDocument || typeof frameDocument.addEventListener !== "function") return false;
+			if (frameDocument.__stWorkspaceReadOnly) return true;
+			var block = function (event) {
+				event.preventDefault();
+				if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+				else if (event.stopPropagation) event.stopPropagation();
+			};
+			var blockActivation = function (event) {
+				if (["Enter", " ", "Spacebar"].indexOf(event.key) !== -1) block(event);
+			};
+			frameDocument.addEventListener("click", block, true);
+			frameDocument.addEventListener("submit", block, true);
+			frameDocument.addEventListener("keydown", blockActivation, true);
+			if (frameDocument.body && frameDocument.body.setAttribute) frameDocument.body.setAttribute("inert", "");
+			frameDocument.__stWorkspaceReadOnly = true;
+			return true;
+		} catch (e) {
+			return false;
+		}
+	}
+
+	_reject_workspace_iframe() {
+		this.workspace_url = "";
+		var blanked = false;
+		try {
+			var frame = this.$workspace_iframe && this.$workspace_iframe.length && this.$workspace_iframe[0];
+			if (frame && frame.contentWindow && frame.contentWindow.location && typeof frame.contentWindow.location.replace === "function") {
+				frame.contentWindow.location.replace("about:blank");
+				blanked = true;
+			}
+		} catch (e) {}
+		if (!blanked && this.$workspace_iframe && this.$workspace_iframe.attr) this.$workspace_iframe.attr("src", "about:blank");
+		this._set_workspace_state("error");
+		return false;
+	}
+
+	_workspace_iframe_loaded() {
+		if (!this.workspace_url) return false;
+		try {
+			var frame = this.$workspace_iframe && this.$workspace_iframe.length && this.$workspace_iframe[0];
+			if (!frame || !frame.contentWindow) return this._reject_workspace_iframe();
+			var location = frame.contentWindow.location;
+			if (String(location.search || "") || String(location.hash || "")) return this._reject_workspace_iframe();
+			var loadedUrl = this._workspace_route({ route: location.pathname });
+			if (!loadedUrl || loadedUrl !== this.workspace_url || !Object.prototype.hasOwnProperty.call(this.workspace_routes || {}, loadedUrl)) {
+				return this._reject_workspace_iframe();
+			}
+			var frameDocument = frame.contentDocument || frame.contentWindow.document;
+			this._install_workspace_read_only_guards(frameDocument);
+			this._sync_workspace_document_state(frameDocument);
+			this._set_workspace_state("ready");
+			this._inject_workspace_css(this.workspace_preview_css);
+			return true;
+		} catch (e) {
+			return this._reject_workspace_iframe();
+		}
+	}
+
+	_inject_workspace_css(css) {
+		try {
+			var frame = this.$workspace_iframe && this.$workspace_iframe.length && this.$workspace_iframe[0];
+			var frameDocument = frame && (frame.contentDocument || (frame.contentWindow && frame.contentWindow.document));
+			if (!frameDocument || !frameDocument.head) return false;
+			var element = frameDocument.getElementById("st-studio-workspace-draft") || frameDocument.createElement("style");
+			element.id = "st-studio-workspace-draft";
+			element.textContent = String(css || "");
+			if (!element.parentNode) frameDocument.head.appendChild(element);
+			return true;
+		} catch (e) {
+			return false;
+		}
+	}
+
 	/* ── 5. PREVIEW BLOCK LAYOUT ──────────────────────────────────────────────
 	   Rebuild block order from stable IDs while preserving the active scene. */
 	render_blocks() {
@@ -875,11 +1183,28 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			self.$root.find("[data-preview-scene]").removeClass("active");
 			$(this).addClass("active");
 			self.$preview.attr("data-scene", scene);
+			self.$root.toggleClass("is-workspace-preview", scene === "workspace");
 			self.$preview.find(".sts-scene").removeClass("active")
 				.filter('[data-scene="' + scene + '"]').addClass("active");
+			if (scene === "workspace") {
+				self.selected_inspector = null;
+				self._render_inspector();
+				return;
+			}
 			var defaults = { dashboard: "dashboard.heading", form: "form.card", table: "table.grid", login: "login.background" };
 			var element = self.$preview.find('[data-inspector="' + defaults[scene] + '"]:visible').first()[0];
 			if (element) self._select_inspector(defaults[scene], element);
+		});
+		this.$root.on("change", "#sts-workspace-select", function () {
+			self._select_workspace(this.value);
+		});
+		this.$workspace_iframe.on("load.stsWorkspace", function () {
+			self._workspace_iframe_loaded();
+		}).on("error.stsWorkspace", function () {
+			self._set_workspace_state("error");
+		});
+		this.$root.on("wheel", ".sts-workspace-shield", function (event) {
+			self._forward_workspace_wheel(event.originalEvent || event);
 		});
 		this.$root.on("click", ".sts-sidebar-toggle", function () {
 			self._checkpoint();
@@ -1417,6 +1742,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				window.matchMedia("(prefers-color-scheme: dark)").matches);
 		var visual = this._resolved_visual_config(c, previewDark);
 		this.effective_visual_config = visual;
+		this.workspace_preview_theme = previewDark ? "dark" : "light";
 		this._sync_effective_color_inputs(visual);
 		this._apply_preview_vars(this.$preview, visual, c);
 		this.$preview.attr("data-theme", previewDark ? "dark" : "light");
@@ -1432,6 +1758,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			stApplyDark(!!previewDark);
 		}
 		this._apply_draft_to_desk(visual);
+		this._sync_workspace_document_state();
 		this._refresh_server_preview();
 	}
 
@@ -1665,6 +1992,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				args: { config: self.config },
 				callback: function (response) {
 					if (!response.message || snapshot !== JSON.stringify(self.config)) return;
+					self.workspace_preview_css = response.message.css;
+					self._inject_workspace_css(self.workspace_preview_css);
 					var element = document.getElementById("st-studio-draft") || document.createElement("style");
 					element.id = "st-studio-draft";
 					element.textContent = response.message.css;

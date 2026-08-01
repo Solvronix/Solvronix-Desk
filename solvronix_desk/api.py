@@ -148,11 +148,11 @@ def get_workspaces():
         )
         if fn is None:
             frappe.log_error("solvronix_desk: no workspace list method found in frappe.desk.desktop")
-            return {"pages": [], "private_pages": []}
+            return {"pages": [], "private_pages": [], "unavailable": True}
         return fn()
     except Exception:
         frappe.log_error("solvronix_desk.api.get_workspaces failed")
-        return {"pages": [], "private_pages": []}
+        return {"pages": [], "private_pages": [], "unavailable": True}
 
 
 # ── 5. LANGUAGE PREFERENCE ─────────────────────────────────────────────────────

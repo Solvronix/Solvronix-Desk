@@ -193,6 +193,12 @@
 .sts-scene-switch { display: flex; gap: 2px; padding: 3px; border-radius: 8px; background: #e7e3dc; }
 .sts-scene-switch button { height: 27px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: #777d86; font-size: 8px; font-weight: 650; }
 .sts-scene-switch button.active { background: #fff; color: #232b37; box-shadow: 0 1px 4px rgba(37,31,25,.12); }
+.sts-workspace-picker { display: none; align-items: center; gap: 6px; min-width: 0; }
+.is-workspace-preview .sts-workspace-picker { display: flex; }
+.sts-workspace-picker label { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.sts-workspace-picker select { width: 150px; height: 33px; padding: 0 24px 0 9px; border: 1px solid #d6d1c9; border-radius: 7px; background: #fff; color: #303741; font-size: 9px; }
+.sts-workspace-picker select:focus-visible { outline: 2px solid #a95c3d; outline-offset: 2px; }
+.sts-workspace-picker select:disabled { color: #8a8e94; opacity: .7; }
 .sts-device-switch button, .sts-history button { width: 29px; height: 27px; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: #7a7f87; }
 .sts-device-switch button.active { background: #fff; color: #1f2732; box-shadow: 0 1px 4px rgba(37,31,25,.12); }
 .sts-toolbar svg, .sts-history svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
@@ -225,6 +231,19 @@
 .sts-browser-address b { color: #666; font-size: inherit; font-weight: 700; }
 .sts-browser-address small { color: #999; font-size: inherit; }
 .sts-app-shell { display: flex; height: 614px; color: var(--studio-text); background: var(--studio-page); font-family: var(--studio-font,'Segoe UI',sans-serif); font-size: var(--studio-base-font,14px); }
+.sts-workspace-preview { position: relative; display: none; width: 100%; height: calc(614px + var(--studio-header-height,36px)); overflow: hidden; background: var(--studio-page,#f5f6f8); }
+.sts-preview-frame[data-scene="workspace"] > .sts-preview-nav,
+.sts-preview-frame[data-scene="workspace"] > .sts-app-shell { display: none; }
+.sts-preview-frame[data-scene="workspace"] > .sts-workspace-preview { display: block; }
+.sts-workspace-preview iframe { width: 100%; height: 100%; border: 0; background: #fff; pointer-events: none; }
+.sts-workspace-shield { position: absolute; z-index: 2; inset: 0; cursor: ns-resize; touch-action: none; }
+.sts-workspace-status { position: absolute; z-index: 3; inset: 0; display: none; align-items: center; justify-content: center; gap: 9px; padding: 20px; background: color-mix(in srgb,var(--studio-page,#f5f6f8) 94%,transparent); color: var(--studio-muted,#697386); text-align: center; }
+.sts-workspace-status strong { font-size: 11px; font-weight: 650; }
+.sts-workspace-preview[data-state="loading"] [data-workspace-state="loading"],
+.sts-workspace-preview[data-state="empty"] [data-workspace-state="empty"],
+.sts-workspace-preview[data-state="error"] [data-workspace-state="error"] { display: flex; }
+.sts-workspace-preview[data-state="error"] [data-workspace-state="error"] { color: var(--studio-error,#c83d4a); }
+.is-workspace-preview .sts-context-inspector { display: none; }
 /* ── PREVIEW NAVIGATION SHELL ──────────────────────────────────────────────── */
 .sts-preview-sidebar {
 	width: 64px; min-width: 64px; display: flex; flex-direction: column; padding: 0 8px 10px;
