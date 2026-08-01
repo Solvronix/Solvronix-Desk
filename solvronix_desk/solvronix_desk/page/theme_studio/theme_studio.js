@@ -209,6 +209,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.published_profile = "";
 		this.selected_inspector = null;
 		this.selected_chart_id = null;
+		this.selected_chart_preview_kind = null;
+		this.selected_chart_preview_element = null;
 		this.chart_invalid = Object.create(null);
 		this.effective_visual_config = null;
 		this.preview_timer = null;
@@ -323,6 +325,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 						'<button data-preview-scene="table">' + __("Table") + "</button>" +
 						'<button data-preview-scene="login">' + __("Login") + "</button>" +
 						'<button data-preview-scene="workspace">' + __("Workspace") + "</button>" +
+						'<button data-preview-scene="charts">' + __("Charts") + "</button>" +
 					"</div>" +
 					this._workspace_selector_html(this.workspace_groups) +
 					'<div class="sts-toolbar-note"><i></i>' + __("Live preview") + "</div>" +
@@ -352,6 +355,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 									this._form_scene_html() +
 									this._table_scene_html() +
 									this._login_scene_html() +
+									this._charts_scene_html() +
 								"</div>" +
 							"</div>" +
 						"</div>" +
@@ -457,7 +461,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 
 	_render_inspector() {
 		if (!this.$inspector || !this.$inspector.length) return;
-		if (this.selected_inspector === "workspace.chart" && this.selected_chart_id) {
+		if ((this.selected_inspector === "workspace.chart" || this.selected_inspector === "charts.chart") &&
+			(this.selected_chart_id || this.selected_inspector === "charts.chart")) {
 			this._render_chart_inspector();
 			return;
 		}
@@ -489,14 +494,15 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		var entry = ((this.state && this.state.chart_registry) || []).find(function (item) { return item.id === self.selected_chart_id; }) || {};
 		var runtimeCapability = this.workspace_selection && this.workspace_selection.capabilities;
 		var capability = runtimeCapability || (entry.family === "number_card" ? "sparkline" : "full");
-		var label = entry.label || entry.title || this.selected_chart_id;
+		var individual = !!this.selected_chart_id;
+		var label = entry.label || entry.title || (individual ? this.selected_chart_id : __("Global chart preview"));
 		this.$inspector.addClass("is-open").html(
-			'<div class="sts-inspector-head"><div><small>' + __("Individual chart") + '</small><b>' + this._esc(label) +
+			'<div class="sts-inspector-head"><div><small>' + __(individual ? "Individual chart" : "Global chart defaults") + '</small><b>' + this._esc(label) +
 			'</b></div><button type="button" data-inspector-close title="' + __("Close inspector") + '">×</button></div>' +
 			'<p>' + __("Only explicit overrides are stored. Reset a property to inherit the global chart value.") + '</p><div class="sts-inspector-controls sts-chart-controls">' +
-			this._chart_controls_html("individual", this.selected_chart_id, capability) +
-			this._chart_series_controls_html(this.selected_chart_id, (this.workspace_selection && this.workspace_selection.series) || []) +
-			'</div><button type="button" class="sts-inspector-more" data-reset-chart="' + this._esc(this.selected_chart_id) + '">' + __("Reset this chart to global defaults") + "</button>"
+			this._chart_controls_html(individual ? "individual" : "global", this.selected_chart_id || "", capability) +
+			(individual ? this._chart_series_controls_html(this.selected_chart_id, (this.workspace_selection && this.workspace_selection.series) || []) : "") +
+			'</div>' + (individual ? '<button type="button" class="sts-inspector-more" data-reset-chart="' + this._esc(this.selected_chart_id) + '">' + __("Reset this chart to global defaults") + "</button>" : "")
 		);
 		this._restore_inspector_highlight();
 	}
@@ -531,8 +537,18 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 
 	_restore_inspector_highlight() {
 		if (!this.selected_inspector) return;
+		if (this.selected_inspector === "charts.chart") {
+			if (!this.$preview) return;
+			this.$preview.find(".is-inspected").removeClass("is-inspected");
+			var chartElement = this.$preview.find('[data-chart-preview-kind="' + (this.selected_chart_preview_kind || "line") + '"]:visible').first().addClass("is-inspected")[0];
+			this.selected_chart_preview_element = chartElement || null;
+			this._position_inspector(chartElement);
+			return;
+		}
 		if (String(this.selected_inspector).indexOf("workspace.") === 0) {
-			this._schedule_workspace_reanchor();
+			if (this.selected_inspector !== "workspace.chart" || (this.workspace_selection && this.workspace_selection.element)) {
+				this._schedule_workspace_reanchor();
+			}
 			return;
 		}
 		if (!this.$preview) return;
@@ -1143,6 +1159,171 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			'</label><select id="sts-workspace-select" aria-label="' + __("Workspace") + '" disabled>' + options + "</select></div>";
 	}
 
+	_charts_scene_html() {
+		var card = function (kind, title, family, svg) {
+			return '<button type="button" class="sts-chart-preview-card" data-chart-preview-card data-chart-preview-kind="' + kind + '" aria-label="' + __("Edit {0} preview").replace("{0}", title) + '">' +
+				'<span class="sts-chart-preview-head"><span><small data-chart-preview-family>' + family + '</small><b data-chart-preview-title>' + title + '</b></span>' +
+				'<em data-chart-sample-status>' + __("Sample data") + '</em></span><span class="sts-chart-preview-plot">' + svg +
+				'<i class="sts-chart-preview-tooltip"><b>Apr</b><span>42,800</span></i></span><span class="sts-chart-preview-legend"><i></i>' + __("Primary series") + '<i></i>' + __("Secondary series") + "</span></button>";
+		};
+		var line = '<svg viewBox="0 0 360 150" role="img" aria-label="' + __("Line chart sample") + '"><g class="sts-chart-grid"><path d="M34 22H344M34 62H344M34 102H344M34 142H344"/><path d="M34 12V142"/></g><path class="sts-chart-area" d="M34 122L86 92L138 105L190 54L242 72L294 30L344 48V142H34Z"/><path class="sts-chart-line" d="M34 122L86 92L138 105L190 54L242 72L294 30L344 48"/><g class="sts-chart-points"><circle cx="34" cy="122" r="4"/><circle cx="86" cy="92" r="4"/><circle cx="138" cy="105" r="4"/><circle cx="190" cy="54" r="4"/><circle cx="242" cy="72" r="4"/><circle cx="294" cy="30" r="4"/><circle cx="344" cy="48" r="4"/></g></svg>';
+		var bar = '<svg viewBox="0 0 360 150" role="img" aria-label="' + __("Bar chart sample") + '"><g class="sts-chart-grid"><path d="M30 22H348M30 62H348M30 102H348M30 142H348"/></g><g class="sts-chart-bars"><rect x="48" y="78" width="24" height="64"/><rect x="82" y="104" width="24" height="38"/><rect x="132" y="48" width="24" height="94"/><rect x="166" y="82" width="24" height="60"/><rect x="216" y="68" width="24" height="74"/><rect x="250" y="34" width="24" height="108"/><rect x="300" y="88" width="24" height="54"/><rect x="334" y="60" width="14" height="82"/></g></svg>';
+		var donut = '<svg viewBox="0 0 220 150" role="img" aria-label="' + __("Donut chart sample") + '"><g class="sts-chart-donut" transform="rotate(-90 110 75)"><circle cx="110" cy="75" r="49" pathLength="100"/><circle class="segment-one" cx="110" cy="75" r="49" pathLength="100"/><circle class="segment-two" cx="110" cy="75" r="49" pathLength="100"/></g><text x="110" y="71" text-anchor="middle">72%</text><text class="muted" x="110" y="90" text-anchor="middle">Total</text></svg>';
+		var sparkline = '<svg viewBox="0 0 360 120" role="img" aria-label="' + __("Number Card sparkline sample") + '"><text class="sts-spark-value" x="16" y="38">1,284</text><text class="sts-spark-label" x="16" y="58">Open orders</text><path class="sts-chart-area" d="M16 104L62 86L108 92L154 62L200 70L246 38L292 52L344 22V112H16Z"/><path class="sts-chart-line" d="M16 104L62 86L108 92L154 62L200 70L246 38L292 52L344 22"/></svg>';
+		return '<div class="sts-scene sts-charts-scene" data-scene="charts"><div class="sts-preview-heading"><div><small>' + __("CHART SYSTEM") + '</small><h3>' + __("Visual chart editor") + '</h3></div><span class="sts-chart-source-status" data-chart-source-status>' + __("Choose a sample or an Individual Chart") + '</span></div><div class="sts-charts-gallery">' +
+			card("line", __("Line & area"), __("Dashboard / Report"), line) + card("bar", __("Bars"), __("Dashboard / Report"), bar) +
+			card("donut", __("Donut"), __("Percentage / Pie"), donut) + card("sparkline", __("Number Card"), __("Sparkline"), sparkline) + "</div></div>";
+	}
+
+	_chart_registry_entry(chartId) {
+		return ((this.state && this.state.chart_registry) || []).find(function (entry) { return entry.id === chartId; }) || null;
+	}
+
+	_chart_preview_kind(entry, effective) {
+		if (entry && entry.family === "number_card") return "sparkline";
+		var type = effective && effective.chart && effective.chart.type;
+		var sourceType = String((entry && entry.context) || "").toLowerCase();
+		var chosen = type && type !== "source" ? type : sourceType;
+		if (chosen.indexOf("bar") !== -1) return "bar";
+		if (["pie", "donut", "percentage"].some(function (candidate) { return chosen.indexOf(candidate) !== -1; })) return "donut";
+		return "line";
+	}
+
+	_select_registry_chart(chartId) {
+		var entry = this._chart_registry_entry(chartId);
+		if (!entry || entry.available === false) {
+			if (frappe.show_alert) frappe.show_alert({ message: __("This chart is no longer available"), indicator: "orange" });
+			return false;
+		}
+		var kind = this._chart_preview_kind(entry, this._chart_effective_state(chartId).values);
+		this._activate_preview_scene("charts");
+		this.selected_chart_id = chartId;
+		this.selected_chart_preview_kind = kind;
+		this.selected_inspector = "charts.chart";
+		this._render_inspector();
+		this._restore_inspector_highlight();
+		this._apply_charts_preview();
+		return true;
+	}
+
+	_select_chart_preview(kind, element) {
+		this.selected_chart_preview_kind = kind || "line";
+		this.selected_chart_preview_element = element || null;
+		var boundKind = this.selected_chart_id ? this._chart_preview_kind(
+			this._chart_registry_entry(this.selected_chart_id), this._chart_effective_state(this.selected_chart_id).values
+		) : null;
+		if (boundKind !== this.selected_chart_preview_kind) this.selected_chart_id = null;
+		this.selected_inspector = "charts.chart";
+		this._render_inspector();
+		this._restore_inspector_highlight();
+	}
+
+	_chart_preview_model(kind) {
+		var bound = !!this.selected_chart_id && kind === this.selected_chart_preview_kind;
+		var chartId = bound ? this.selected_chart_id : "";
+		var entry = chartId ? this._chart_registry_entry(chartId) : null;
+		var effective = this._chart_effective_state(chartId).values;
+		var surface = effective.surface || {};
+		var series = effective.series_defaults || {};
+		var axes = effective.axes || {};
+		var legend = effective.legend || {};
+		var labels = effective.labels || {};
+		var tooltip = effective.tooltip || {};
+		var animation = effective.animation || {};
+		var interaction = effective.interaction || {};
+		var chart = effective.chart || {};
+		var palette = Array.isArray(series.palette) && series.palette.length ? series.palette : ["#1B3F7E", "#F57C00"];
+		var titles = { line: __("Line & area"), bar: __("Bars"), donut: __("Donut"), sparkline: __("Number Card") };
+		return {
+			chart_id: chartId,
+			title: (entry && (entry.label || entry.title)) || titles[kind] || __("Chart"),
+			family: (entry && (entry.context || entry.family)) || (kind === "sparkline" ? __("Sparkline") : __("Sample chart")),
+			status: __("Sample data"),
+			styles: {
+				"--sts-chart-surface": surface.background || "#FFFFFF",
+				"--sts-chart-card": surface.card_background || surface.background || "#FFFFFF",
+				"--sts-chart-border": surface.border_color || "#E1E5EA",
+				"--sts-chart-border-width": (surface.border_width == null ? 1 : surface.border_width) + "px",
+				"--sts-chart-radius": (surface.radius == null ? 10 : surface.radius) + "px",
+				"--sts-chart-padding": (surface.padding == null ? 16 : surface.padding) + "px",
+				"--sts-chart-series-1": series.color || palette[0] || "#1B3F7E",
+				"--sts-chart-series-2": palette[1] || palette[0] || "#F57C00",
+				"--sts-chart-series-3": palette[2] || palette[0] || "#238A57",
+				"--sts-chart-fill": series.fill_color || series.color || palette[0] || "#1B3F7E",
+				"--sts-chart-series-opacity": String((series.opacity == null ? 100 : series.opacity) / 100),
+				"--sts-chart-fill-opacity": String((series.fill_opacity == null ? 28 : series.fill_opacity) / 100),
+				"--sts-chart-line-width": (series.line_width == null ? 2 : series.line_width) + "px",
+				"--sts-chart-point-size": (series.point_size == null ? 4 : series.point_size) + "px",
+				"--sts-chart-bar-radius": (series.bar_radius == null ? 4 : series.bar_radius) + "px",
+				"--sts-chart-bar-gap": (series.bar_gap == null ? 10 : series.bar_gap) + "%",
+				"--sts-chart-axis": axes.axis_color || "#A8B0BC",
+				"--sts-chart-grid": axes.grid_color || "#E4E7EB",
+				"--sts-chart-grid-width": (axes.grid_width == null ? 1 : axes.grid_width) + "px",
+				"--sts-chart-label": labels.text_color || axes.label_color || "#697386",
+				"--sts-chart-label-size": (labels.font_size || axes.label_size || 12) + "px",
+				"--sts-chart-legend": legend.text_color || "#697386",
+				"--sts-chart-tooltip-bg": tooltip.background || "#FFFFFF",
+				"--sts-chart-tooltip-text": tooltip.text_color || "#19202D",
+				"--sts-chart-tooltip-border": tooltip.border_color || "#E1E5EA",
+				"--sts-chart-duration": (animation.enabled === false ? 0 : (animation.duration == null ? 400 : animation.duration)) + "ms",
+				"--sts-chart-easing": animation.easing || "ease",
+			},
+			attributes: {
+				"data-chart-id": chartId,
+				"data-chart-height": String(chart.height == null ? 240 : chart.height),
+				"data-chart-type": String(chart.type || "source"),
+				"data-chart-line-style": String(series.line_style || "solid"),
+				"data-chart-smooth": String(!!series.smooth),
+				"data-chart-legend": String(legend.visible !== false),
+				"data-chart-tooltip": String(tooltip.visible !== false),
+				"data-chart-hover": String(interaction.hover_emphasis !== false),
+			},
+		};
+	}
+
+	_apply_charts_preview() {
+		if (!this.$preview || !this.$preview.find) return false;
+		var self = this;
+		var $cards = this.$preview.find("[data-chart-preview-card]");
+		if (!$cards || typeof $cards.each !== "function") return false;
+		$cards.each(function () {
+			var $card = $(this), kind = $card.data("chart-preview-kind");
+			var model = self._chart_preview_model(kind);
+			$card.css(model.styles).attr(model.attributes);
+			$card.find("[data-chart-preview-title]").text(model.title);
+			$card.find("[data-chart-preview-family]").text(model.family);
+			$card.find("[data-chart-sample-status]").text(model.status);
+		});
+		var entry = this.selected_chart_id && this._chart_registry_entry(this.selected_chart_id);
+		this.$preview.find("[data-chart-source-status]").text(entry ?
+			__((entry.label || entry.title || "Chart") + " · Sample data") : __("Choose a sample or an Individual Chart"));
+		return true;
+	}
+
+	_activate_preview_scene(scene) {
+		this._clear_workspace_selection();
+		this.$root.find("[data-preview-scene]").removeClass("active").filter('[data-preview-scene="' + scene + '"]').addClass("active");
+		this.$preview.attr("data-scene", scene);
+		this.$root.toggleClass("is-workspace-preview", scene === "workspace");
+		this.$preview.find(".sts-scene").removeClass("active").filter('[data-scene="' + scene + '"]').addClass("active");
+		if (scene === "workspace") {
+			this.selected_inspector = null;
+			this._render_inspector();
+			return;
+		}
+		if (scene === "charts") {
+			if (!this.selected_chart_preview_kind) this.selected_chart_preview_kind = "line";
+			return;
+		}
+		if (this.selected_inspector === "charts.chart") {
+			this.selected_inspector = null;
+			this.selected_chart_preview_element = null;
+		}
+		var defaults = { dashboard: "dashboard.heading", form: "form.card", table: "table.grid", login: "login.background" };
+		var element = this.$preview.find('[data-inspector="' + defaults[scene] + '"]:visible').first()[0];
+		if (element) this._select_inspector(defaults[scene], element);
+	}
+
 	_workspace_scene_html() {
 		return '<div class="sts-workspace-preview" data-scene="workspace" data-state="loading">' +
 			'<div class="sts-workspace-status" data-workspace-state="loading"><span class="sts-loader"></span><strong>' + __("Loading workspace preview…") + "</strong></div>" +
@@ -1743,9 +1924,10 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			self._refresh_chart_editor();
 		});
 		this.$root.on("click", "[data-select-chart]", function () {
-			self.selected_chart_id = $(this).data("select-chart");
-			self.selected_inspector = "workspace.chart";
-			self._render_inspector();
+			self._select_registry_chart($(this).data("select-chart"));
+		});
+		this.$root.on("click", "[data-chart-preview-card]", function () {
+			self._select_chart_preview($(this).data("chart-preview-kind"), this);
 		});
 		this.$root.on("input", "[data-chart-search]", function () {
 			var query = String(this.value || "").trim().toLowerCase();
@@ -1842,22 +2024,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			setTimeout(function () { self._restore_inspector_highlight(); }, 340);
 		});
 		this.$root.on("click", "[data-preview-scene]", function () {
-			self._clear_workspace_selection();
-			var scene = $(this).data("preview-scene");
-			self.$root.find("[data-preview-scene]").removeClass("active");
-			$(this).addClass("active");
-			self.$preview.attr("data-scene", scene);
-			self.$root.toggleClass("is-workspace-preview", scene === "workspace");
-			self.$preview.find(".sts-scene").removeClass("active")
-				.filter('[data-scene="' + scene + '"]').addClass("active");
-			if (scene === "workspace") {
-				self.selected_inspector = null;
-				self._render_inspector();
-				return;
-			}
-			var defaults = { dashboard: "dashboard.heading", form: "form.card", table: "table.grid", login: "login.background" };
-			var element = self.$preview.find('[data-inspector="' + defaults[scene] + '"]:visible').first()[0];
-			if (element) self._select_inspector(defaults[scene], element);
+			self._activate_preview_scene($(this).data("preview-scene"));
+			if ($(this).data("preview-scene") === "charts") self._select_chart_preview(self.selected_chart_preview_kind || "line");
 		});
 		this.$root.on("change", "#sts-workspace-select", function () {
 			self._select_workspace(this.value);
@@ -2421,6 +2589,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.workspace_preview_theme = previewDark ? "dark" : "light";
 		this._sync_effective_color_inputs(visual);
 		this._apply_preview_vars(this.$preview, visual, c);
+		this._apply_charts_preview();
 		this.$preview.attr("data-theme", previewDark ? "dark" : "light");
 		this.$preview.attr("data-density", String(c.density || "Comfortable").toLowerCase());
 		this.$preview.attr("data-shortcuts", String(c.shortcut_style || "Soft").toLowerCase());

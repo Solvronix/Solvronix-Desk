@@ -1,6 +1,6 @@
 # Theme Studio visual guide
 
-Theme Studio is the visual control centre for Solvronix Desk. This guide shows the complete editor, every settings group, responsive preview modes, publishing workflow, and the contextual property inspector used by the Dashboard, Form, Table, and Login previews.
+Theme Studio is the visual control centre for Solvronix Desk. This guide shows the complete editor, every settings group, responsive preview modes, publishing workflow, and the contextual property inspector used by the Dashboard, Form, Table, Login, Workspace, and Charts previews.
 
 Open Theme Studio from `Ctrl+K` or visit `/desk/theme-studio` as a System Manager.
 
@@ -184,3 +184,11 @@ In the live Workspace scene, click a surface to open the existing Theme Studio c
 For a **Workspace shortcut**, the inspector exposes brand colour, shortcut style, card background, radius, and shadow. For a **Number card**, it exposes number-card colour, text, muted text, border, radius, and shadow. Generic cards and buttons retain their standard contextual controls, so these subtypes do not add extra inspector groups.
 
 Generic Workspace controls remain styling-only. Supported charts additionally expose compatible visual, structural, and behavioral chart properties, but their data and actions remain read-only. Workspace content, links, buttons, forms, routes, and actions cannot be activated. Scrolling and the Workspace picker continue to work.
+
+### Charts (hybrid visual preview)
+
+The **Charts** scene appears immediately after **Workspace** in the preview toolbar. It provides four deterministic sample families—line/area, bar, donut, and Number Card sparkline—so global chart styling can be edited visually even when no live ERPNext dataset is available. Every sample is clearly marked **Sample data** and never exposes report results or other business data.
+
+Click any sample to open its chart inspector. An unbound sample edits global chart defaults and does not create an individual override. Selecting an entry under **Individual charts** automatically switches to the Charts scene, highlights the matching preview family, keeps the chart's stable registry identity, and opens its individual inspector. The sample visual then represents that chart's effective system, global, and individual settings while continuing to use safe sample data.
+
+Changes to chart type, colours, fill, line width and style, points, bar radius, surface, axes, grid, legend, labels, tooltip, animation, interaction, and supported sizing update the gallery immediately. **Reset this chart** falls back to the current global values; **Reset global charts** falls back to built-in defaults without deleting individual overrides.

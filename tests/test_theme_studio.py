@@ -246,7 +246,7 @@ class ThemeStudioTest(unittest.TestCase):
 
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=14", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=15", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=7", hooks)
@@ -288,6 +288,32 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("if (config && Object.keys(config).length)", runtime)
         self.assertIn("runtime.preview", runtime)
         self.assertIn("if (!Array.isArray(route)) route = [];", runtime)
+
+    def test_hybrid_charts_preview_scene_is_declared_after_workspace(self):
+        source = PAGE.read_text(encoding="utf-8")
+
+        workspace = source.index('data-preview-scene="workspace"')
+        charts = source.index('data-preview-scene="charts"')
+        self.assertGreater(charts, workspace)
+        self.assertIn("_charts_scene_html()", source)
+        for kind in ("line", "bar", "donut", "sparkline"):
+            self.assertIn(f'card("{kind}"', source)
+
+    def test_hybrid_charts_preview_is_responsive_theme_driven_and_motion_safe(self):
+        css = CSS.read_text(encoding="utf-8")
+
+        for token in (
+            ".sts-charts-gallery",
+            ".sts-chart-preview-card.is-inspected",
+            "--sts-chart-surface",
+            "--sts-chart-series-1",
+            "--sts-chart-line-width",
+            "--sts-chart-bar-radius",
+            ".sts-chart-donut",
+            "@media (prefers-reduced-motion: reduce)",
+        ):
+            self.assertIn(token, css)
+        self.assertRegex(css, r'\[data-device="(?:tablet|mobile)"\][^{]*\.sts-charts-gallery')
 
     def test_theme_settings_are_unified_into_studio(self):
         js = PAGE.read_text(encoding="utf-8")
