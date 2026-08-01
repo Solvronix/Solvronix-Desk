@@ -25,6 +25,14 @@ DARK_CSS = ROOT / "solvronix_desk" / "public" / "css" / "dark_mode.css"
 
 
 class ThemeStudioTest(unittest.TestCase):
+    def test_studio_state_exposes_canonical_chart_schema_and_safe_registry(self):
+        source = THEME_API.read_text(encoding="utf-8")
+
+        self.assertIn("from solvronix_desk import chart_config, chart_registry", source)
+        self.assertIn('"chart_schema": chart_config.load_schema()', source)
+        self.assertIn('"chart_registry": chart_registry.list_chart_sources(', source)
+        self.assertIn('published.get("chart_overrides", {}).keys()', source)
+
     def test_workspace_api_failures_expose_non_sensitive_unavailable_flag(self):
         source = API.read_text(encoding="utf-8")
         tree = ast.parse(source)

@@ -2,7 +2,7 @@
 
 import frappe
 
-from solvronix_desk import theme_engine
+from solvronix_desk import chart_config, chart_registry, theme_engine
 
 
 # ── 1. AUTHORIZATION / COMPLETE EDITOR STATE ──────────────────────────────────
@@ -35,6 +35,8 @@ def studio_state(settings=None):
         if frappe.db.exists("DocType", "Company")
         else []
     )
+    configured_chart_ids = set(published.get("chart_overrides", {}).keys())
+    configured_chart_ids.update(draft.get("chart_overrides", {}).keys())
     return {
         "config": draft,
         "published": published,
@@ -53,6 +55,11 @@ def studio_state(settings=None):
             "active_profile": getattr(settings, "active_profile", "") or "",
         },
         "options": {"users": users, "roles": roles, "companies": companies},
+        "chart_schema": chart_config.load_schema(),
+        "chart_registry": chart_registry.list_chart_sources(
+            getattr(frappe.session, "user", None),
+            configured_ids=sorted(configured_chart_ids),
+        ),
         "wcag_failures": theme_engine.wcag_failures(draft),
     }
 
