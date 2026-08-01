@@ -252,9 +252,6 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				'<h2>' + __("Make it unmistakably yours.") + "</h2>" +
 				'<p class="sts-intro">' + __("Every theme token, assignment, and deployment control in one place.") + "</p>" +
 				this._profile_bar_html() +
-				'<section class="sts-context-inspector is-empty" id="sts-context-inspector">' +
-					'<div class="sts-inspector-empty"><b>' + __("Visual properties") + '</b><span>' +
-						__("Click an item in any preview to edit its properties here.") + "</span></div></section>" +
 				'<div class="sts-control-search"><span>⌕</span><input type="search" id="sts-control-search" placeholder="' + __("Search theme controls…") + '"></div>' +
 				this._tabs_html() +
 				'<div class="sts-control-panels">' + this._sections_html() + "</div>" +
@@ -301,6 +298,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 						"</div>" +
 					"</div>" +
 				"</div>" +
+				'<section class="sts-context-inspector" id="sts-context-inspector" aria-live="polite"></section>' +
 			"</main>"
 		);
 		this.$preview = this.$root.find("#st-theme-studio-preview");
@@ -381,8 +379,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		var item = this._inspector_catalog()[this.selected_inspector];
 		if (!item) {
 			this.selected_inspector = null;
-			this.$inspector.addClass("is-empty").html('<div class="sts-inspector-empty"><b>' +
-				__("Visual properties") + '</b><span>' + __("Click an item in any preview to edit its properties here.") + "</span></div>");
+			this.$inspector.removeClass("is-open").empty().removeAttr("data-side style");
 			this.$preview && this.$preview.find(".is-inspected").removeClass("is-inspected");
 			return;
 		}
@@ -392,7 +389,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			return definition ? self._render_control(definition, "inspector") : "";
 		}).join("");
 		var section = this._section_for_key(item.keys[0]);
-		this.$inspector.removeClass("is-empty").html(
+		this.$inspector.addClass("is-open").html(
 			'<div class="sts-inspector-head"><div><small>' + __(item.scene) + '</small><b>' + __(item.title) +
 			'</b></div><button type="button" data-inspector-close title="' + __("Close inspector") + '">×</button></div>' +
 			'<p>' + __("Changes apply instantly to the preview and published theme.") + '</p><div class="sts-inspector-controls">' +
@@ -402,19 +399,39 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this._restore_inspector_highlight();
 	}
 
+	/* Keep the contextual editor beside its selected preview item. It prefers
+	   the right edge, falls back to the left, and stays inside the viewport. */
+	_position_inspector(element) {
+		if (!element || !this.$inspector || !this.$inspector.hasClass("is-open")) return;
+		var target = element.getBoundingClientRect();
+		var gap = 14;
+		var edge = 12;
+		var width = Math.min(330, window.innerWidth - edge * 2);
+		this.$inspector.css({ width: width + "px", visibility: "hidden" });
+		var height = this.$inspector.outerHeight();
+		var roomRight = window.innerWidth - target.right - gap;
+		var roomLeft = target.left - gap;
+		var side = roomRight >= width || roomRight >= roomLeft ? "right" : "left";
+		var left = side === "right" ? target.right + gap : target.left - width - gap;
+		left = Math.max(edge, Math.min(left, window.innerWidth - width - edge));
+		var top = Math.max(edge, Math.min(target.top, window.innerHeight - height - edge));
+		this.$inspector.attr("data-side", side).css({ left: left + "px", top: top + "px", visibility: "visible" });
+	}
+
 	_select_inspector(id, element) {
 		if (!this._inspector_catalog()[id]) return;
 		this.selected_inspector = id;
 		this.$preview.find(".is-inspected").removeClass("is-inspected");
 		$(element).addClass("is-inspected");
 		this._render_inspector();
-		if (this.$inspector[0]) this.$inspector[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
+		this._position_inspector(element);
 	}
 
 	_restore_inspector_highlight() {
 		if (!this.$preview || !this.selected_inspector) return;
 		this.$preview.find(".is-inspected").removeClass("is-inspected");
-		this.$preview.find('[data-inspector="' + this.selected_inspector + '"]:visible').first().addClass("is-inspected");
+		var element = this.$preview.find('[data-inspector="' + this.selected_inspector + '"]:visible').first().addClass("is-inspected")[0];
+		this._position_inspector(element);
 	}
 
 	_sync_setting_inputs(key, source) {
@@ -682,6 +699,12 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	   Delegation keeps the generated control surface cheap to re-render. */
 	bind() {
 		var self = this;
+		$(window).off("resize.stsInspector").on("resize.stsInspector", function () {
+			self._restore_inspector_highlight();
+		});
+		this.$root.find(".sts-stage,.sts-preview-page").on("scroll.stsInspector", function () {
+			self._restore_inspector_highlight();
+		});
 		this.$root.on("click", "[data-inspector]", function (event) {
 			var closest = $(event.target).closest("[data-inspector]")[0];
 			if (this !== closest) return;
@@ -775,6 +798,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			self.$root.find("[data-device]").removeClass("active");
 			$(this).addClass("active");
 			self.$preview.attr("data-device", $(this).data("device"));
+			self._restore_inspector_highlight();
+			setTimeout(function () { self._restore_inspector_highlight(); }, 340);
 		});
 		this.$root.on("click", "[data-preview-scene]", function () {
 			var scene = $(this).data("preview-scene");

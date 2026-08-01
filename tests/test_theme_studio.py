@@ -127,9 +127,12 @@ class ThemeStudioTest(unittest.TestCase):
             self.assertIn(f'"{inspector}"', js)
         self.assertIn("_inspector_catalog()", js)
         self.assertIn("_render_inspector()", js)
+        self.assertIn("_position_inspector(element)", js)
         self.assertIn("_sync_setting_inputs(key, this)", js)
         self.assertIn("data-open-control-section", js)
         self.assertIn(".sts-context-inspector", css)
+        self.assertIn('.sts-context-inspector[data-side="right"]', css)
+        self.assertIn('.sts-context-inspector[data-side="left"]', css)
         self.assertIn(".is-inspected", css)
 
     def test_published_navigation_tokens_reach_actual_desk_selectors(self):
@@ -149,7 +152,7 @@ class ThemeStudioTest(unittest.TestCase):
 
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=9", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=10", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=6", hooks)

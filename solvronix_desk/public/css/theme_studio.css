@@ -84,25 +84,27 @@
 .sts-profile-actions button:disabled { cursor: not-allowed; opacity: .42; filter: grayscale(.35); }
 
 /* ── CONTEXTUAL VISUAL INSPECTOR ────────────────────────────────────────────
-   Preview clicks expose a focused subset of the canonical schema controls. */
-.sts-context-inspector { margin: 0 0 15px; padding: 14px; border: 1px solid #d7c5b8; border-radius: 11px; background: #fff8f2; box-shadow: 0 8px 24px rgba(74,48,31,.07); }
-.sts-context-inspector.is-empty { border-style: dashed; background: #f7f4ed; box-shadow: none; }
-.sts-inspector-empty { display: grid; gap: 3px; color: #727882; }
-.sts-inspector-empty b { color: #283140; font-size: 13px; }
-.sts-inspector-empty span { font-size: 12px; line-height: 1.5; }
+   The property card follows the selected preview element instead of taking
+   permanent space from the main settings rail. */
+.sts-context-inspector { position: fixed; z-index: 1200; display: none; max-height: calc(100vh - 24px); padding: 15px; border: 1px solid #d7c5b8; border-radius: 12px; background: #fffaf6; box-shadow: 0 18px 54px rgba(36,29,24,.24); }
+.sts-context-inspector.is-open { display: flex; flex-direction: column; animation: sts-inspector-in .16s ease-out both; }
+.sts-context-inspector::before { content: ""; position: absolute; top: 22px; width: 12px; height: 12px; border: solid #d7c5b8; background: #fffaf6; transform: rotate(45deg); }
+.sts-context-inspector[data-side="right"]::before { left: -7px; border-width: 0 0 1px 1px; }
+.sts-context-inspector[data-side="left"]::before { right: -7px; border-width: 1px 1px 0 0; }
 .sts-inspector-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
 .sts-inspector-head > div { display: grid; gap: 1px; }
 .sts-inspector-head small { color: #b6512d; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .sts-inspector-head b { color: #202936; font: 700 18px/1.2 Georgia,serif; }
 .sts-inspector-head > button { width: 27px; height: 27px; border: 1px solid #ddcfc4; border-radius: 7px; background: #fff; color: #795947; font-size: 17px; line-height: 1; }
 .sts-context-inspector > p { margin: 0 0 13px; color: #7c726b; font-size: 11px; line-height: 1.45; }
-.sts-inspector-controls { max-height: 390px; padding-right: 4px; overflow-y: auto; scrollbar-width: thin; }
+.sts-inspector-controls { min-height: 0; max-height: min(390px,calc(100vh - 190px)); padding-right: 4px; overflow-y: auto; scrollbar-width: thin; }
 .sts-inspector-controls .sts-field,
 .sts-inspector-controls .sts-color-row,
 .sts-inspector-controls .sts-range-row,
 .sts-inspector-controls .sts-check { margin-bottom: 10px; }
 .sts-inspector-more { width: 100%; height: 34px; margin-top: 4px; border: 1px solid #d8c5b8; border-radius: 7px; background: #fff; color: #9b4b2e; font-size: 11px; font-weight: 700; }
 .sts-inspector-more:hover { border-color: #b6512d; background: #fffaf6; }
+@keyframes sts-inspector-in { from { opacity: 0; transform: translateY(5px) scale(.985); } to { opacity: 1; transform: none; } }
 .sts-control-search { position: relative; margin: 0 0 12px; }
 .sts-control-search span { position: absolute; top: 7px; left: 10px; color: #8c9198; font-size: 14px; }
 .sts-control-search input {
