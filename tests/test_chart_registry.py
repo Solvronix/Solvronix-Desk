@@ -12,7 +12,7 @@ class FakeFrappe(types.SimpleNamespace):
         self.session = types.SimpleNamespace(user="manager@example.com")
         self.rows = {
             "Dashboard Chart": [
-                {"name": "Allowed Chart", "chart_name": "Allowed Chart", "chart_type": "Bar"},
+                {"name": "Allowed Chart", "chart_name": "Allowed Chart", "chart_type": "Count", "type": "Bar"},
                 {"name": "Secret Chart", "chart_name": "Secret Chart", "chart_type": "Line"},
             ],
             "Dashboard": [{"name": "Sales Dashboard"}],
@@ -47,6 +47,8 @@ class ChartRegistryTest(unittest.TestCase):
         self.assertIn("Sales Analytics", labels)
         self.assertNotIn("Secret Chart", labels)
         self.assertNotIn("Secret Report", labels)
+        allowed_chart = next(entry for entry in entries if entry.get("label") == "Allowed Chart")
+        self.assertEqual(allowed_chart["context"], "Bar")
         for entry in entries:
             self.assertLessEqual(set(entry), chart_registry.SAFE_DESCRIPTOR_FIELDS)
             self.assertNotIn("query", entry)

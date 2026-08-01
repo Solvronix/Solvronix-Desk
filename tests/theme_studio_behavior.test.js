@@ -430,12 +430,124 @@ test("individual chart registry selection opens the Charts scene and keeps stabl
   studio._activate_preview_scene = (scene) => calls.push(["scene", scene]);
   studio._render_inspector = () => calls.push(["render", studio.selected_inspector]);
   studio._restore_inspector_highlight = () => calls.push(["restore"]);
+  studio._load_chart_preview = (id) => calls.push(["load", id]);
 
   assert.equal(studio._select_registry_chart("chart-1"), true);
   assert.equal(studio.selected_chart_id, "chart-1");
   assert.equal(studio.selected_chart_preview_kind, "line");
   assert.equal(studio.selected_inspector, "charts.chart");
-  assert.deepEqual(calls, [["scene", "charts"], ["render", "charts.chart"], ["restore"]]);
+  assert.deepEqual(calls, [["scene", "charts"], ["render", "charts.chart"], ["restore"], ["load", "chart-1"]]);
+});
+
+test("individual chart selection loads its real ERPNext preview data", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  const requests = [];
+  studio._context.frappe.call = (options) => requests.push(options);
+  studio._activate_preview_scene = () => {};
+  studio._render_inspector = () => {};
+  studio._restore_inspector_highlight = () => {};
+  studio._apply_charts_preview = () => {};
+
+  assert.equal(studio._select_registry_chart("chart-1"), true);
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].method, "solvronix_desk.theme_api.get_chart_preview");
+  assert.equal(requests[0].args.chart_id, "chart-1");
+  assert.equal(studio.selected_chart_preview_data.status, "loading");
+
+  requests[0].callback({
+    message: {
+      status: "ready",
+      kind: "bar",
+      labels: ["Jan", "Feb"],
+      datasets: [{ name: "Sales", values: [10, 20] }],
+    },
+  });
+
+  assert.equal(studio.selected_chart_preview_kind, "bar");
+  assert.equal(studio.selected_chart_preview_data.status, "ready");
+  assert.deepEqual(studio.selected_chart_preview_data.labels, ["Jan", "Feb"]);
+});
+
+test("older ERPNext chart response cannot replace the newest selection", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  studio.state.chart_registry.push({ id: "chart-2", family: "dashboard_chart", label: "Revenue", context: "Line", available: true });
+  const requests = [];
+  studio._context.frappe.call = (options) => requests.push(options);
+  studio._activate_preview_scene = () => {};
+  studio._render_inspector = () => {};
+  studio._restore_inspector_highlight = () => {};
+  studio._apply_charts_preview = () => {};
+
+  studio._select_registry_chart("chart-1");
+  studio._select_registry_chart("chart-2");
+  requests[0].callback({ message: { status: "ready", kind: "bar", labels: ["Old"], datasets: [] } });
+  requests[1].callback({ message: { status: "ready", kind: "line", labels: ["New"], datasets: [] } });
+
+  assert.equal(studio.selected_chart_id, "chart-2");
+  assert.deepEqual(studio.selected_chart_preview_data.labels, ["New"]);
+});
+
+test("real ERPNext values generate selected chart SVG geometry", () => {
+  const studio = loadThemeStudio();
+  const svg = studio._chart_data_svg("bar", {
+    status: "ready",
+    labels: ["Jan", "Feb"],
+    datasets: [{ name: "Sales", values: [10, 20] }],
+  });
+
+  assert.match(svg, /data-chart-point="0"/);
+  assert.match(svg, /data-chart-point="1"/);
+  assert.match(svg, /aria-label="Jan: 10"/);
+  assert.doesNotMatch(svg, /42,800/);
+});
+
+test("Charts preview restores its sample plot while a different source is loading", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  studio.selected_chart_id = "chart-1";
+  studio.selected_chart_preview_kind = "bar";
+  studio.selected_chart_preview_data = { status: "loading", kind: "bar" };
+  let plotHtml = "ORIGINAL SAMPLE";
+  const plot = {
+    data(name, value) {
+      if (value === undefined) return this[`_${name}`];
+      this[`_${name}`] = value;
+      return this;
+    },
+    html(value) {
+      if (value === undefined) return plotHtml;
+      plotHtml = value;
+      return this;
+    },
+  };
+  const empty = { text() { return this; } };
+  const cardNode = { kind: "bar" };
+  const card = {
+    data(name) { return name === "chart-preview-kind" ? "bar" : undefined; },
+    css() { return this; },
+    attr() { return this; },
+    find(selector) { return selector === ".sts-chart-preview-plot" ? plot : empty; },
+  };
+  studio._context.$ = (node) => node === cardNode ? card : node;
+  studio.$preview = {
+    find(selector) {
+      if (selector === "[data-chart-preview-card]") {
+        return { each(callback) { callback.call(cardNode); } };
+      }
+      return empty;
+    },
+  };
+
+  studio._apply_charts_preview();
+  studio.selected_chart_preview_data = { status: "ready", kind: "bar", labels: ["Jan"], datasets: [{ values: [5] }] };
+  studio._apply_charts_preview();
+  assert.match(plotHtml, /data-chart-point="0"/);
+  studio.selected_chart_preview_data = { status: "loading", kind: "bar" };
+  studio._apply_charts_preview();
+
+  assert.equal(plotHtml, "ORIGINAL SAMPLE");
 });
 
 test("Charts inspector uses a local preview card and never Workspace re-anchor", () => {

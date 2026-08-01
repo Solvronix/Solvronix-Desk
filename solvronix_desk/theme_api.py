@@ -3,6 +3,7 @@
 import frappe
 
 from solvronix_desk import chart_config, chart_registry, theme_engine
+from solvronix_desk import chart_preview
 
 
 # ── 1. AUTHORIZATION / COMPLETE EDITOR STATE ──────────────────────────────────
@@ -89,6 +90,13 @@ def studio_state(settings=None):
 def get_theme_studio_state():
     manager_only()
     return studio_state()
+
+
+@frappe.whitelist()
+def get_chart_preview(chart_id):
+    """Return permission-checked ERPNext values for one supported preview source."""
+    manager_only()
+    return chart_preview.get_preview(chart_id)
 
 
 # ── 2. LIVE PREVIEW / PRIVATE DRAFTS ──────────────────────────────────────────

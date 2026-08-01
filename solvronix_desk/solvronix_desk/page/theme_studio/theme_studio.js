@@ -211,6 +211,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.selected_chart_id = null;
 		this.selected_chart_preview_kind = null;
 		this.selected_chart_preview_element = null;
+		this.selected_chart_preview_data = null;
+		this.chart_preview_request_generation = 0;
 		this.chart_invalid = Object.create(null);
 		this.effective_visual_config = null;
 		this.preview_timer = null;
@@ -1199,20 +1201,52 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this._activate_preview_scene("charts");
 		this.selected_chart_id = chartId;
 		this.selected_chart_preview_kind = kind;
+		this.selected_chart_preview_data = { status: "loading", kind: kind };
 		this.selected_inspector = "charts.chart";
 		this._render_inspector();
 		this._restore_inspector_highlight();
 		this._apply_charts_preview();
+		this._load_chart_preview(chartId);
+		return true;
+	}
+
+	_load_chart_preview(chartId) {
+		var self = this;
+		var generation = (this.chart_preview_request_generation || 0) + 1;
+		this.chart_preview_request_generation = generation;
+		frappe.call({
+			method: "solvronix_desk.theme_api.get_chart_preview",
+			args: { chart_id: chartId },
+			callback: function (response) {
+				if (generation !== self.chart_preview_request_generation || self.selected_chart_id !== chartId) return;
+				var data = (response && response.message) || { status: "unavailable" };
+				self.selected_chart_preview_data = data;
+				if (["line", "bar", "donut", "sparkline"].indexOf(data.kind) !== -1) {
+					self.selected_chart_preview_kind = data.kind;
+				}
+				self._apply_charts_preview();
+				self._restore_inspector_highlight();
+			},
+			error: function () {
+				if (generation !== self.chart_preview_request_generation || self.selected_chart_id !== chartId) return;
+				self.selected_chart_preview_data = { status: "unavailable", kind: self.selected_chart_preview_kind || "line" };
+				self._apply_charts_preview();
+			},
+		});
 		return true;
 	}
 
 	_select_chart_preview(kind, element) {
+		this.chart_preview_request_generation = (this.chart_preview_request_generation || 0) + 1;
 		this.selected_chart_preview_kind = kind || "line";
 		this.selected_chart_preview_element = element || null;
 		var boundKind = this.selected_chart_id ? this._chart_preview_kind(
 			this._chart_registry_entry(this.selected_chart_id), this._chart_effective_state(this.selected_chart_id).values
 		) : null;
-		if (boundKind !== this.selected_chart_preview_kind) this.selected_chart_id = null;
+		if (boundKind !== this.selected_chart_preview_kind) {
+			this.selected_chart_id = null;
+			this.selected_chart_preview_data = null;
+		}
 		this.selected_inspector = "charts.chart";
 		this._render_inspector();
 		this._restore_inspector_highlight();
@@ -1234,11 +1268,20 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		var chart = effective.chart || {};
 		var palette = Array.isArray(series.palette) && series.palette.length ? series.palette : ["#1B3F7E", "#F57C00"];
 		var titles = { line: __("Line & area"), bar: __("Bars"), donut: __("Donut"), sparkline: __("Number Card") };
+		var previewData = bound ? this.selected_chart_preview_data : null;
+		var statuses = {
+			loading: __("Loading ERPNext data…"),
+			ready: __("ERPNext data"),
+			empty: __("No ERPNext data"),
+			runtime_required: __("Live Workspace required"),
+			unavailable: __("Preview unavailable"),
+		};
 		return {
 			chart_id: chartId,
+			data: previewData,
 			title: (entry && (entry.label || entry.title)) || titles[kind] || __("Chart"),
 			family: (entry && (entry.context || entry.family)) || (kind === "sparkline" ? __("Sparkline") : __("Sample chart")),
-			status: __("Sample data"),
+			status: (previewData && statuses[previewData.status]) || __("Sample data"),
 			styles: {
 				"--sts-chart-surface": surface.background || "#FFFFFF",
 				"--sts-chart-card": surface.card_background || surface.background || "#FFFFFF",
@@ -1281,6 +1324,58 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		};
 	}
 
+	_chart_data_svg(kind, data) {
+		if (!data || data.status !== "ready") return "";
+		var self = this;
+		var number = function (value) {
+			value = Number(value);
+			return Number.isFinite(value) ? value : 0;
+		};
+		var format = function (value) {
+			return number(value).toLocaleString(undefined, { maximumFractionDigits: 2 });
+		};
+		if (kind === "sparkline") {
+			return '<svg viewBox="0 0 360 120" role="img" aria-label="' + this._esc((data.label || "Value") + ": " + format(data.value)) + '">' +
+				'<text class="sts-spark-value" x="16" y="48">' + this._esc(format(data.value)) + '</text>' +
+				'<text class="sts-spark-label" x="16" y="72">' + this._esc(data.label || "") + "</text></svg>";
+		}
+		var labels = Array.isArray(data.labels) ? data.labels.slice(0, 24) : [];
+		var datasets = Array.isArray(data.datasets) ? data.datasets : [];
+		var values = datasets[0] && Array.isArray(datasets[0].values) ? datasets[0].values.slice(0, labels.length).map(number) : [];
+		if (!labels.length || !values.length) return "";
+		var maximum = Math.max.apply(Math, values.concat([0]));
+		var minimum = Math.min.apply(Math, values.concat([0]));
+		var span = maximum - minimum || 1;
+		var x = function (index) { return 34 + (labels.length === 1 ? 155 : index * 310 / (labels.length - 1)); };
+		var y = function (value) { return 138 - (number(value) - minimum) * 112 / span; };
+		var label = function (index) { return self._esc(String(labels[index] || "") + ": " + format(values[index])); };
+		if (kind === "bar") {
+			var width = Math.max(5, Math.min(34, 250 / labels.length));
+			return '<svg viewBox="0 0 360 150" role="img" aria-label="ERPNext bar chart"><g class="sts-chart-grid"><path d="M30 22H348M30 62H348M30 102H348M30 142H348"/></g><g class="sts-chart-bars">' +
+				values.map(function (value, index) {
+					var top = y(value), left = x(index) - width / 2;
+					return '<rect data-chart-point="' + index + '" aria-label="' + label(index) + '" x="' + left.toFixed(2) + '" y="' + top.toFixed(2) + '" width="' + width.toFixed(2) + '" height="' + Math.max(1, 142 - top).toFixed(2) + '"/>';
+				}).join("") + "</g></svg>";
+		}
+		if (kind === "donut") {
+			var positive = values.map(function (value) { return Math.max(0, value); });
+			var total = positive.reduce(function (sum, value) { return sum + value; }, 0) || 1;
+			var offset = 0;
+			return '<svg viewBox="0 0 220 150" role="img" aria-label="ERPNext donut chart"><g class="sts-chart-donut" transform="rotate(-90 110 75)"><circle cx="110" cy="75" r="49" pathLength="100"/>' +
+				positive.slice(0, 3).map(function (value, index) {
+					var percent = value / total * 100;
+					var segment = '<circle data-chart-point="' + index + '" aria-label="' + label(index) + '" cx="110" cy="75" r="49" pathLength="100" style="stroke:var(--sts-chart-series-' + (index + 1) + ')" stroke-dasharray="' + percent.toFixed(3) + ' ' + (100 - percent).toFixed(3) + '" stroke-dashoffset="' + (-offset).toFixed(3) + '"/>';
+					offset += percent;
+					return segment;
+				}).join("") + '</g><text x="110" y="78" text-anchor="middle">' + this._esc(format(total)) + "</text></svg>";
+		}
+		var points = values.map(function (value, index) { return x(index).toFixed(2) + " " + y(value).toFixed(2); });
+		var linePath = "M" + points.join("L");
+		var areaPath = linePath + "V142H34Z";
+		return '<svg viewBox="0 0 360 150" role="img" aria-label="ERPNext line chart"><g class="sts-chart-grid"><path d="M34 22H344M34 62H344M34 102H344M34 142H344"/><path d="M34 12V142"/></g><path class="sts-chart-area" d="' + areaPath + '"/><path class="sts-chart-line" d="' + linePath + '"/><g class="sts-chart-points">' +
+			values.map(function (value, index) { return '<circle data-chart-point="' + index + '" aria-label="' + label(index) + '" cx="' + x(index).toFixed(2) + '" cy="' + y(value).toFixed(2) + '" r="4"/>'; }).join("") + "</g></svg>";
+	}
+
 	_apply_charts_preview() {
 		if (!this.$preview || !this.$preview.find) return false;
 		var self = this;
@@ -1290,13 +1385,23 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			var $card = $(this), kind = $card.data("chart-preview-kind");
 			var model = self._chart_preview_model(kind);
 			$card.css(model.styles).attr(model.attributes);
+			var actualSvg = self._chart_data_svg(kind, model.data);
+			var $plot = $card.find(".sts-chart-preview-plot");
+			var sampleHtml = $plot.data("chart-sample-html");
+			if (sampleHtml === undefined) {
+				sampleHtml = $plot.html();
+				$plot.data("chart-sample-html", sampleHtml);
+			}
+			$plot.html(actualSvg || sampleHtml);
 			$card.find("[data-chart-preview-title]").text(model.title);
 			$card.find("[data-chart-preview-family]").text(model.family);
 			$card.find("[data-chart-sample-status]").text(model.status);
 		});
 		var entry = this.selected_chart_id && this._chart_registry_entry(this.selected_chart_id);
+		var sourceState = (this.selected_chart_preview_data || {}).status;
 		this.$preview.find("[data-chart-source-status]").text(entry ?
-			__((entry.label || entry.title || "Chart") + " · Sample data") : __("Choose a sample or an Individual Chart"));
+			((entry.label || entry.title || "Chart") + " · " + (sourceState === "ready" ? __("ERPNext data") : __("Preview fallback"))) :
+			__("Choose a sample or an Individual Chart"));
 		return true;
 	}
 

@@ -73,7 +73,7 @@ def _descriptor(family, name, label, context, preview_kind, **extra):
 
 def dashboard_chart_sources(user, client):
     entries = []
-    for row in _rows(client, "Dashboard Chart", ["name", "chart_name", "chart_type"]):
+    for row in _rows(client, "Dashboard Chart", ["name", "chart_name", "chart_type", "type"]):
         name = str(row.get("name") or "")
         if name and _allowed(client, "Dashboard Chart", name, user):
             entries.append(
@@ -81,7 +81,7 @@ def dashboard_chart_sources(user, client):
                     "dashboard_chart",
                     name,
                     row.get("chart_name") or name,
-                    row.get("chart_type") or "Dashboard Chart",
+                    row.get("type") or row.get("chart_type") or "Dashboard Chart",
                     "dashboard_chart",
                     requires_runtime_preview=False,
                 )
