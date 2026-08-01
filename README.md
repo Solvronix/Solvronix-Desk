@@ -33,6 +33,12 @@ Theme Studio includes Light, Dark, High Contrast, Frappe Default, Solvronix, and
 
 Every Studio token is rendered into the real Desk and login page, including the top toolbar and actual Frappe sidebar. Publishing creates a restorable backup and refreshes connected sessions without requiring an asset rebuild.
 
+#### Theme Studio visual guide
+
+See the [complete Theme Studio visual guide](docs/theme-studio.md) for every settings group, responsive preview mode, publishing workflow, and contextual property editor.
+
+[![Theme Studio contextual property editor](docs/screenshots/theme-studio/floating/05-dashboard-chart.png)](docs/theme-studio.md)
+
 #### Theme Studio capability map
 
 | Area | Included controls |
