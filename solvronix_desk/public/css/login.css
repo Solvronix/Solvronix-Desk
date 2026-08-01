@@ -219,6 +219,7 @@ body:has(.for-forgot) .page-header-wrapper {
 .for-signup .page-card-head,
 .for-email-login .page-card-head,
 .for-login-with-email-link .page-card-head {
+  box-sizing: border-box !important;
   width: 420px !important;
   max-width: 92vw !important;
   background: var(--st-card-bg, #FFFFFF) !important;
@@ -262,6 +263,7 @@ body:has(.for-forgot) .page-header-wrapper {
 .for-login .page-card,
 .for-forgot .page-card,
 .for-signup .page-card {
+  box-sizing: border-box !important;
   flex: none !important;
   width: 420px !important;
   max-width: 92vw !important;

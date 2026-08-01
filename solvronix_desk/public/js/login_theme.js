@@ -7,6 +7,21 @@
   /* Exit on non-authentication website pages where these selectors do not exist. */
   if (!document.querySelector('.for-login, .for-forgot, .for-signup, .for-email-login')) return;
 
+  /* Public pages do not run Desk's dark-mode runtime. Resolve the published
+     Light/Dark/Auto preference here so /login matches Theme Studio. */
+  function applyPreferredMode(mode) {
+    mode = String(mode || 'Light').toLowerCase();
+    var media = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    var dark = mode === 'dark' || (mode === 'auto' && media && media.matches);
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    if (mode === 'auto' && media && media.addEventListener && !media.__stLoginBound) {
+      media.__stLoginBound = true;
+      media.addEventListener('change', function (event) {
+        document.documentElement.setAttribute('data-theme', event.matches ? 'dark' : 'light');
+      });
+    }
+  }
+
   /* ── 1. LIVE THEME TOKENS ─────────────────────────────────────────────────
      Replace static fallbacks with the resolved site-wide login CSS. */
   fetch('/api/method/solvronix_desk.api.get_theme_css')
@@ -27,6 +42,7 @@
     .then(function (data) {
       var branding = data && data.message;
       if (!branding) return;
+      applyPreferredMode(branding.preferred_mode);
       if (branding.company_name) document.title = branding.company_name;
       if (branding.favicon) {
         document.querySelectorAll('link[rel="icon"],link[rel="shortcut icon"]').forEach(function (link) {

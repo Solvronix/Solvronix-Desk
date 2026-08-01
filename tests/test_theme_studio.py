@@ -97,10 +97,15 @@ class ThemeStudioTest(unittest.TestCase):
             "data-login-powered", "data-login-footer",
         ):
             self.assertIn(token, js + css)
-        self.assertIn("var login = loginConfig || c;", js)
+        self.assertIn("var loginSettings = loginConfig || c;", js)
         self.assertIn('"--studio-login-background": loginBackground', js)
         self.assertIn("background-image: var(--studio-login-background)", css)
         self.assertIn("image.addEventListener('error'", login_runtime)
+        self.assertIn("applyPreferredMode(branding.preferred_mode)", login_runtime)
+        self.assertIn('"preferred_mode": config.get("preferred_mode")', API.read_text(encoding="utf-8"))
+        self.assertIn('html[data-theme="dark"] .for-login .page-card', ENGINE.read_text(encoding="utf-8"))
+        login_css = (ROOT / "solvronix_desk" / "public" / "css" / "login.css").read_text(encoding="utf-8")
+        self.assertIn("box-sizing: border-box !important;", login_css)
 
     def test_published_navigation_tokens_reach_actual_desk_selectors(self):
         engine = ENGINE.read_text(encoding="utf-8")
@@ -123,7 +128,8 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=6", hooks)
-        self.assertIn("/assets/solvronix_desk/js/login_theme.js?v=5", hooks)
+        self.assertIn("/assets/solvronix_desk/css/login.css?v=8", hooks)
+        self.assertIn("/assets/solvronix_desk/js/login_theme.js?v=6", hooks)
         self.assertIn('"on_update": "solvronix_desk.events.theme_settings_on_update"', hooks)
 
     def test_complete_studio_feature_surfaces_exist(self):

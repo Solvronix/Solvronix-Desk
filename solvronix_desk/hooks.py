@@ -12,8 +12,8 @@ app_version = "2.0.0"
 required_apps = []
 
 # ── PUBLIC LOGIN ASSETS ────────────────────────────────────────────────────────
-web_include_css = ["/assets/solvronix_desk/css/login.css?v=7"]
-web_include_js = ["/assets/solvronix_desk/js/login_theme.js?v=5"]
+web_include_css = ["/assets/solvronix_desk/css/login.css?v=8"]
+web_include_js = ["/assets/solvronix_desk/js/login_theme.js?v=6"]
 
 # ── AUTHENTICATED DESK ASSETS ──────────────────────────────────────────────────
 # Query versions are bumped whenever an asset changes to invalidate browser cache.

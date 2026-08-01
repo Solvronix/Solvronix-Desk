@@ -9,6 +9,9 @@
 - Theme Studio now uses a readable control and preview typography scale instead of 6–10px interface text
 - Theme Studio's login scene now mirrors the public login card, branding, image background, fields, links, and light/dark token behavior
 
+### Fixed
+- Public login now applies Theme Studio's Light/Dark/Auto mode and uses equal border-box sizing for the card head and form body
+
 ## [2.0.0] — 2026-07-29 — Complete Theme Studio
 
 ### Added

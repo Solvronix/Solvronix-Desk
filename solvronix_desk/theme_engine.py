@@ -1130,6 +1130,24 @@ body:has(.for-login),body:has(.for-forgot),body:has(.for-email-login) {{
   background: color-mix(in srgb,var(--st-card-bg) var(--st-login-card-opacity),transparent) !important;
   backdrop-filter: blur(18px);
 }}
+/* Public login has no Desk runtime, so its explicit data-theme state receives
+   the same derived dark surfaces used by Theme Studio's Dark/Auto preview. */
+html[data-theme="dark"] .for-login .page-card-head,
+html[data-theme="dark"] .for-login .page-card,
+html[data-theme="dark"] .for-forgot .page-card-head,
+html[data-theme="dark"] .for-forgot .page-card {{
+  background: color-mix(in srgb,#1A1D27 var(--st-login-card-opacity),transparent) !important;
+  color: #E8EDF5 !important;
+}}
+html[data-theme="dark"] .for-login .page-card-head h4,
+html[data-theme="dark"] .for-login .page-card-head p,
+html[data-theme="dark"] .for-forgot .page-card-head h4 {{ color:#E8EDF5!important; }}
+html[data-theme="dark"] .for-login .form-control,
+html[data-theme="dark"] .for-forgot .form-control {{
+  background:#222734!important;border-color:#3B4354!important;color:#E8EDF5!important;
+}}
+html[data-theme="dark"] .for-login label,
+html[data-theme="dark"] .for-forgot label {{ color:#9AA7BA!important; }}
 html[data-st-shortcuts="solid"] .shortcut-widget-box {{
   background: var(--st-brand) !important; color: {contrast_text(config["brand_color"])} !important;
 }}

@@ -122,6 +122,7 @@ def get_branding():
             "login_description": config.get("login_description"),
             "footer_text": config.get("footer_text"),
             "hide_powered": config.get("hide_powered"),
+            "preferred_mode": config.get("preferred_mode") or "Light",
         }
     except Exception:
         frappe.log_error("solvronix_desk.api.get_branding failed")

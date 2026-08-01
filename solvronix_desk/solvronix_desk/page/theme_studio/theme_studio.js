@@ -1306,13 +1306,14 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	}
 
 	_apply_preview_vars($target, c, loginConfig) {
-		/* Public login does not receive Desk's client-derived dark surfaces. Use
-		   the raw published login palette so this scene matches /login. */
-		var login = loginConfig || c;
-		var safeLoginImage = String(login.login_bg_image || "").replace(/["\\\r\n]/g, "");
+		/* The public runtime now resolves the same Dark/Auto surfaces as Desk.
+		   Keep content/background settings raw, while visual surfaces use c. */
+		var login = c;
+		var loginSettings = loginConfig || c;
+		var safeLoginImage = String(loginSettings.login_bg_image || "").replace(/["\\\r\n]/g, "");
 		var loginBackground = safeLoginImage ?
 			'linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.12)),url("' + safeLoginImage + '")' :
-			"linear-gradient(" + login.login_gradient_angle + "deg," + login.login_background + "," + login.login_gradient_to + ")";
+			"linear-gradient(" + loginSettings.login_gradient_angle + "deg," + loginSettings.login_background + "," + loginSettings.login_gradient_to + ")";
 		var shadow = {
 			None: "none",
 			Soft: "0 10px 28px rgba(22,28,45,.09)",
@@ -1374,17 +1375,17 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"--studio-login-card-radius": (login.card_radius || 16) + "px",
 			"--studio-login-button-radius": (login.button_radius || 8) + "px",
 		});
-		$target.find("[data-login-heading]").text(login.login_heading || __("Welcome back"));
-		$target.find("[data-login-description]").text(login.login_description || "");
+		$target.find("[data-login-heading]").text(loginSettings.login_heading || __("Welcome back"));
+		$target.find("[data-login-description]").text(loginSettings.login_description || "");
 		var $companyLogo = $target.find("[data-login-company-logo]");
-		$companyLogo.attr("alt", login.app_title || "");
+		$companyLogo.attr("alt", loginSettings.app_title || "");
 		$companyLogo.off("error.sts load.sts")
 			.on("error.sts", function () { this.hidden = true; })
 			.on("load.sts", function () { this.hidden = false; });
-		if (login.company_logo) $companyLogo.attr("src", login.company_logo).prop("hidden", false);
+		if (loginSettings.company_logo) $companyLogo.attr("src", loginSettings.company_logo).prop("hidden", false);
 		else $companyLogo.removeAttr("src").prop("hidden", true);
-		$target.find("[data-login-powered]").prop("hidden", !!login.hide_powered);
-		$target.find("[data-login-footer]").text(login.footer_text || "").prop("hidden", !login.footer_text);
+		$target.find("[data-login-powered]").prop("hidden", !!loginSettings.hide_powered);
+		$target.find("[data-login-footer]").text(loginSettings.footer_text || "").prop("hidden", !loginSettings.footer_text);
 	}
 
 	/* Debounce server CSS generation and discard stale asynchronous responses. */
