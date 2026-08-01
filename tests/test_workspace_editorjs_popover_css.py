@@ -40,7 +40,7 @@ class WorkspaceEditorJSPopoverCSSTest(unittest.TestCase):
         hooks = HOOKS.read_text(encoding="utf-8")
 
         self.assertIn("/assets/solvronix_desk/css/solvronix_desk.css?v=51", hooks)
-        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=48", hooks)
+        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=49", hooks)
 
 
 if __name__ == "__main__":

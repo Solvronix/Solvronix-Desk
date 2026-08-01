@@ -31,15 +31,15 @@ app_include_css = [
     "/assets/solvronix_desk/css/theme_studio.css?v=15",
 ]
 app_include_js = [
-    "/assets/solvronix_desk/js/dark_mode.js?v=9",
+    "/assets/solvronix_desk/js/dark_mode.js?v=10",
     "/assets/solvronix_desk/js/personalization.js?v=1",
-    "/assets/solvronix_desk/js/solvronix_desk.js?v=48",
+    "/assets/solvronix_desk/js/solvronix_desk.js?v=49",
     "/assets/solvronix_desk/js/sidebar.js?v=3",
     "/assets/solvronix_desk/js/command_palette.js?v=9",
     "/assets/solvronix_desk/js/progressive_forms.js?v=4",
     "/assets/solvronix_desk/js/notification_center.js?v=4",
     "/assets/solvronix_desk/js/module_cards.js?v=9",
-    "/assets/solvronix_desk/js/theme_runtime.js?v=7",
+    "/assets/solvronix_desk/js/theme_runtime.js?v=8",
     "/assets/solvronix_desk/js/chart_runtime.js?v=3",
 ]
 

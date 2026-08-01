@@ -107,7 +107,7 @@ function workspaceTargetElement(matches = {}) {
 function bindThemeStudio(studio) {
   const rootHandlers = {};
   const frameHandlers = {};
-  const windowHandlers = {};
+  const windowHandlers = { off: [] };
   const stageHandlers = {};
   const chain = {
     length: 1,
@@ -143,7 +143,7 @@ function bindThemeStudio(studio) {
   studio._context.$ = (value) => {
     if (value === studio._context.window) {
       return {
-        off(event) { windowHandlers.off = event; return this; },
+        off(event) { windowHandlers.off.push(event); return this; },
         on(event, handler) { windowHandlers[event] = handler; return this; },
       };
     }
@@ -2818,7 +2818,10 @@ test("workspace reanchor sources include stage scroll window resize and device t
   bindings.rootHandlers["click|[data-device]"].call(device);
   delayed[0]();
 
-  assert.equal(bindings.windowHandlers.off, "resize.stsInspector");
+  assert.deepEqual(bindings.windowHandlers.off, [
+    "resize.stsInspector",
+    "st-theme-os-mode-change.stsThemeMode",
+  ]);
   assert.equal(schedules, 4);
 });
 

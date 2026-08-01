@@ -228,6 +228,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.workspace_request_active = false;
 		this.workspace_paused = false;
 		this.original_dark = document.documentElement.getAttribute("data-theme") === "dark";
+		this.original_mode = window.stGetAppliedThemeMode ? window.stGetAppliedThemeMode() : (this.original_dark ? "dark" : "light");
 	}
 
 	/* Load the resolved profile, published baseline, flags, and deployment data. */
@@ -1979,6 +1980,12 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		$(window).off("resize.stsInspector").on("resize.stsInspector", function () {
 			self._restore_inspector_highlight();
 		});
+		$(window).off("st-theme-os-mode-change.stsThemeMode")
+			.on("st-theme-os-mode-change.stsThemeMode", function () {
+				if (self.page_active && self.config && self.config.preferred_mode === "Auto") {
+					self.apply();
+				}
+			});
 		this.$root.find(".sts-stage,.sts-preview-page").on("scroll.stsInspector", function () {
 			self._restore_inspector_highlight();
 		});
@@ -2317,7 +2324,6 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			this.active_profile = profile.id;
 			this.render();
 			this.changed();
-			if (profile.config.preferred_mode === "Dark") this.$preview.attr("data-theme", "dark");
 			return;
 		}
 		if (action === "create") {
@@ -2704,9 +2710,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.$root.find('[data-action="undo"]').prop("disabled", !this.history.length);
 		this.$root.find('[data-action="redo"]').prop("disabled", !this.future.length);
 		this._update_wcag();
-		if (window.stApplyDark) {
-			stApplyDark(!!previewDark);
-		}
+		if (window.stApplyThemeMode) window.stApplyThemeMode(c.preferred_mode);
+		else if (window.stApplyDark) window.stApplyDark(!!previewDark);
 		this._apply_draft_to_desk(visual);
 		this._sync_workspace_document_state();
 		this._apply_chart_runtime_to_workspace();
@@ -3059,9 +3064,9 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 						schedule: self.state && self.state.schedule,
 					},
 				}));
-				self.original_dark = r.message.config.preferred_mode === "Dark" ||
-					(r.message.config.preferred_mode === "Auto" && window.matchMedia &&
-						window.matchMedia("(prefers-color-scheme: dark)").matches);
+				self.original_dark = document.documentElement.getAttribute("data-theme") === "dark";
+				self.original_mode = window.stGetAppliedThemeMode ?
+					window.stGetAppliedThemeMode() : (self.original_dark ? "dark" : "light");
 				self.remove_draft(false);
 				frappe.show_alert({ message: __("Theme published for everyone"), indicator: "green" }, 4);
 			},
@@ -3164,7 +3169,11 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 					detail: { config: this.saved, preview: true },
 				}));
 			}
-			if (window.stApplyDark) stApplyDark(this.original_dark);
+			if (window.stApplyThemeMode) {
+				window.stApplyThemeMode(this.original_mode || (this.original_dark ? "dark" : "light"));
+			} else if (window.stApplyDark) {
+				window.stApplyDark(this.original_dark);
+			}
 		}
 	}
 

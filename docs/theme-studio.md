@@ -4,6 +4,8 @@ Theme Studio is the visual control centre for Solvronix Desk. This guide shows t
 
 Open Theme Studio from `Ctrl+K` or visit `/desk/theme-studio` as a System Manager.
 
+Light, Dark, and Auto update the Desk and preview immediately without turning a preview into a saved user preference. Auto follows live operating-system colour-scheme changes. A user's explicit toolbar choice remains in force when a site theme or profile refreshes; leaving Theme Studio restores the mode that was active before editing.
+
 ## Editor and preview workflow
 
 | Main colours overview | Dashboard preview — desktop |

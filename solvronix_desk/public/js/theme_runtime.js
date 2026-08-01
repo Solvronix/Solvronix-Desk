@@ -170,14 +170,16 @@
     flags = runtime.flags || flags;
     profiles = runtime.profiles || profiles;
     var preferredMode = String(runtime.preferred_mode || "").toLowerCase();
-    if (runtime.preview && preferredMode && window.stApplyDark) {
-      stApplyDark(
+    if (runtime.preview && preferredMode && window.stApplyThemeMode) {
+      window.stApplyThemeMode(preferredMode);
+    } else if (preferredMode && window.stApplyResolvedThemeMode) {
+      window.stApplyResolvedThemeMode(preferredMode);
+    } else if (preferredMode && window.stApplyDark) {
+      window.stApplyDark(
         preferredMode === "dark" ||
         (preferredMode === "auto" && window.matchMedia &&
           window.matchMedia("(prefers-color-scheme: dark)").matches)
       );
-    } else if (preferredMode && window.stSetThemeMode) {
-      stSetThemeMode(preferredMode);
     }
     applyLayoutPreferences();
     applyClassMappings();

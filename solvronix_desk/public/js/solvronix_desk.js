@@ -1406,8 +1406,8 @@
             var refreshedCss = runtime && runtime.css;
             if (!runtime) return;
             window.stApplyThemeCss(refreshedCss);
-            if (runtime.preferred_mode && window.stSetThemeMode) {
-              stSetThemeMode(String(runtime.preferred_mode).toLowerCase());
+            if (runtime.preferred_mode && window.stApplyResolvedThemeMode) {
+              window.stApplyResolvedThemeMode(String(runtime.preferred_mode).toLowerCase());
             }
             window.dispatchEvent(new CustomEvent("st-theme-runtime-refresh", { detail: runtime }));
           },
