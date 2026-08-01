@@ -107,7 +107,7 @@ function workspaceTargetElement(matches = {}) {
 function bindThemeStudio(studio) {
   const rootHandlers = {};
   const frameHandlers = {};
-  const windowHandlers = {};
+  const windowHandlers = { off: [] };
   const stageHandlers = {};
   const chain = {
     length: 1,
@@ -143,7 +143,7 @@ function bindThemeStudio(studio) {
   studio._context.$ = (value) => {
     if (value === studio._context.window) {
       return {
-        off(event) { windowHandlers.off = event; return this; },
+        off(event) { windowHandlers.off.push(event); return this; },
         on(event, handler) { windowHandlers[event] = handler; return this; },
       };
     }
@@ -250,6 +250,417 @@ test("color-blind palette updates semantic preview colors", () => {
   assert.equal(resolved.warning_color, "#E69F00");
   assert.equal(resolved.error_color, "#D55E00");
   assert.equal(resolved.info_color, "#56B4E9");
+});
+
+function installChartState(studio) {
+  studio.state.chart_schema = {
+    version: 1,
+    groups: {
+      chart: {
+        type: { type: "enum", default: "source", values: ["source", "bar", "line", "area", "pie", "donut", "percentage"], applies_to: ["full"], label: "Chart type" },
+        height: { type: "integer", default: 240, min: 80, max: 900, unit: "px", applies_to: ["full", "sparkline"], label: "Height" },
+        responsive: { type: "boolean", default: true, applies_to: ["full", "sparkline"], label: "Responsive sizing" },
+      },
+      surface: {
+        background: { type: "color", default: "#FFFFFF", applies_to: ["full", "sparkline"], label: "Chart background" },
+      },
+      series_defaults: {
+        palette: { type: "palette", default: ["#1B3F7E", "#F57C00"], max_items: 8, applies_to: ["full", "sparkline"], label: "Chart palette" },
+      },
+    },
+  };
+  studio.state.chart_registry = [
+    { id: "chart-1", title: "Sales", family: "dashboard_chart", capability: "full" },
+    { id: "card-1", title: "Revenue", family: "number_card", capability: "sparkline" },
+  ];
+  studio.config = {
+    chart_system_version: 1,
+    chart_defaults: { chart: { height: 300 } },
+    chart_overrides: { "chart-1": { surface: { background: "#112233" } } },
+    chart_background: "#FFFFFF",
+    chart_palette: ["#1B3F7E", "#F57C00"],
+  };
+  studio.saved = JSON.parse(JSON.stringify(studio.config));
+  studio.history = [];
+  studio.future = [];
+  studio.$root = { toggleClass() {}, find() { return { val() {}, prop() {}, toggleClass() {}, text() {} }; } };
+  studio.page = {};
+  studio.apply = () => {};
+}
+
+test("chart editor resolves system then global then individual ownership", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+
+  const resolved = studio._chart_effective_state("chart-1");
+
+  assert.equal(resolved.values.chart.height, 300);
+  assert.equal(resolved.values.surface.background, "#112233");
+  assert.equal(resolved.values.chart.responsive, true);
+  assert.equal(resolved.ownership["chart.height"], "global");
+  assert.equal(resolved.ownership["surface.background"], "individual");
+  assert.equal(resolved.ownership["chart.responsive"], "system");
+});
+
+test("chart resets fall back from individual to global and global to system", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  studio._set_chart_value("individual", "chart-1", "chart.height", 420);
+  assert.equal(studio.config.chart_overrides["chart-1"].chart.height, 420);
+
+  studio._reset_chart_property("individual", "chart-1", "chart.height");
+  assert.equal(studio._chart_effective_state("chart-1").values.chart.height, 300);
+
+  studio._reset_chart("chart-1");
+  assert.equal(studio.config.chart_overrides["chart-1"], undefined);
+  studio._reset_global_charts();
+  assert.equal(Object.keys(studio.config.chart_defaults).length, 0);
+  assert.equal(studio._chart_effective_state("chart-1").values.chart.height, 240);
+});
+
+test("chart controls are generated from schema and filtered by capability", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+
+  const full = studio._chart_controls_html("individual", "chart-1", "full");
+  const sparkline = studio._chart_controls_html("individual", "card-1", "sparkline");
+
+  assert.match(full, /data-chart-path="chart\.height"/);
+  assert.match(full, /data-chart-path="surface\.background"/);
+  assert.match(full, /data-chart-reset-property="surface\.background"/);
+  assert.doesNotMatch(sparkline, /data-chart-path="axes\./);
+});
+
+test("workspace chart classification takes precedence and preserves runtime identity", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  const chartElement = { classList: { add() {}, remove() {} } };
+  const hit = workspaceTargetElement({ [workspaceTargetSelectors.card]: { name: "generic-card" } });
+  const frameDocument = {
+    defaultView: {
+      solvronixChartRuntime: {
+        describe(element) {
+          assert.equal(element, hit);
+          return { id: "chart-1", family: "dashboard_chart", capability: "full", element: chartElement };
+        },
+      },
+    },
+  };
+
+  const target = studio._classify_workspace_target(hit, frameDocument);
+
+  assert.equal(target.id, "workspace.chart");
+  assert.equal(target.chart_id, "chart-1");
+  assert.equal(target.element, chartElement);
+});
+
+test("chart editor panel exposes global controls and permission-filtered registry", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+
+  const html = studio._chart_system_html();
+
+  assert.match(html, /Global chart defaults/);
+  assert.match(html, /Sales/);
+  assert.match(html, /Revenue/);
+  assert.match(html, /data-select-chart="chart-1"/);
+  assert.match(html, /data-reset-global-charts/);
+});
+
+test("Theme Studio pushes chart config and schema into the workspace runtime", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  const calls = [];
+  studio.$workspace_iframe = {
+    length: 1,
+    0: { contentWindow: { solvronixChartRuntime: { setConfig(config, schema) { calls.push([config, schema]); } } } },
+  };
+
+  assert.equal(studio._apply_chart_runtime_to_workspace(), true);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][0], studio.config);
+  assert.equal(calls[0][1], studio.state.chart_schema);
+});
+
+test("invalid chart input blocks draft and publish requests", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  let calls = 0;
+  studio._context.frappe.call = () => { calls += 1; };
+  studio._context.frappe.show_alert = () => {};
+  studio.chart_invalid = { "global::chart.height": "invalid" };
+  studio.dirty = true;
+
+  assert.equal(studio.save_draft(), false);
+  assert.equal(studio.save(), false);
+  assert.equal(calls, 0);
+});
+
+test("chart mutation rejects unknown and prototype paths", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+
+  assert.equal(studio._set_chart_value("global", "", "__proto__.polluted", true), false);
+  assert.equal(studio._set_chart_value("global", "", "surface.unknown", "x"), false);
+  assert.equal({}.polluted, undefined);
+});
+
+test("selected runtime series expose individual line and bar overrides", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  studio.state.chart_schema.groups.series_defaults.line_width = {
+    type: "number", default: 2, min: 0, max: 12, step: 0.5, unit: "px", applies_to: ["line", "area"], label: "Line width",
+  };
+  studio.state.chart_schema.groups.series_defaults.bar_radius = {
+    type: "integer", default: 4, min: 0, max: 30, unit: "px", applies_to: ["bar"], label: "Bar radius",
+  };
+  const html = studio._chart_series_controls_html("chart-1", [
+    { key: "dataset:net_total", label: "Net Total" },
+  ]);
+
+  assert.match(html, /Net Total/);
+  assert.match(html, /data-chart-path="series\.dataset:net_total\.line_width"/);
+  assert.match(html, /data-chart-path="series\.dataset:net_total\.bar_radius"/);
+});
+
+test("individual chart registry selection opens the Charts scene and keeps stable identity", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  const calls = [];
+  studio._activate_preview_scene = (scene) => calls.push(["scene", scene]);
+  studio._render_inspector = () => calls.push(["render", studio.selected_inspector]);
+  studio._restore_inspector_highlight = () => calls.push(["restore"]);
+  studio._load_chart_preview = (id) => calls.push(["load", id]);
+
+  assert.equal(studio._select_registry_chart("chart-1"), true);
+  assert.equal(studio.selected_chart_id, "chart-1");
+  assert.equal(studio.selected_chart_preview_kind, "line");
+  assert.equal(studio.selected_inspector, "charts.chart");
+  assert.deepEqual(calls, [["scene", "charts"], ["render", "charts.chart"], ["restore"], ["load", "chart-1"]]);
+});
+
+test("individual chart selection loads its real ERPNext preview data", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  const requests = [];
+  studio._context.frappe.call = (options) => requests.push(options);
+  studio._activate_preview_scene = () => {};
+  studio._render_inspector = () => {};
+  studio._restore_inspector_highlight = () => {};
+  studio._apply_charts_preview = () => {};
+
+  assert.equal(studio._select_registry_chart("chart-1"), true);
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].method, "solvronix_desk.theme_api.get_chart_preview");
+  assert.equal(requests[0].args.chart_id, "chart-1");
+  assert.equal(studio.selected_chart_preview_data.status, "loading");
+
+  requests[0].callback({
+    message: {
+      status: "ready",
+      kind: "bar",
+      labels: ["Jan", "Feb"],
+      datasets: [{ name: "Sales", values: [10, 20] }],
+    },
+  });
+
+  assert.equal(studio.selected_chart_preview_kind, "bar");
+  assert.equal(studio.selected_chart_preview_data.status, "ready");
+  assert.deepEqual(studio.selected_chart_preview_data.labels, ["Jan", "Feb"]);
+});
+
+test("older ERPNext chart response cannot replace the newest selection", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  studio.state.chart_registry.push({ id: "chart-2", family: "dashboard_chart", label: "Revenue", context: "Line", available: true });
+  const requests = [];
+  studio._context.frappe.call = (options) => requests.push(options);
+  studio._activate_preview_scene = () => {};
+  studio._render_inspector = () => {};
+  studio._restore_inspector_highlight = () => {};
+  studio._apply_charts_preview = () => {};
+
+  studio._select_registry_chart("chart-1");
+  studio._select_registry_chart("chart-2");
+  requests[0].callback({ message: { status: "ready", kind: "bar", labels: ["Old"], datasets: [] } });
+  requests[1].callback({ message: { status: "ready", kind: "line", labels: ["New"], datasets: [] } });
+
+  assert.equal(studio.selected_chart_id, "chart-2");
+  assert.deepEqual(studio.selected_chart_preview_data.labels, ["New"]);
+});
+
+test("real ERPNext values generate selected chart SVG geometry", () => {
+  const studio = loadThemeStudio();
+  const svg = studio._chart_data_svg("bar", {
+    status: "ready",
+    labels: ["Jan", "Feb"],
+    datasets: [{ name: "Sales", values: [10, 20] }],
+  });
+
+  assert.match(svg, /data-chart-point="0"/);
+  assert.match(svg, /data-chart-point="1"/);
+  assert.match(svg, /aria-label="Jan: 10"/);
+  assert.doesNotMatch(svg, /42,800/);
+});
+
+test("Charts preview restores its sample plot while a different source is loading", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  studio.selected_chart_id = "chart-1";
+  studio.selected_chart_preview_kind = "bar";
+  studio.selected_chart_preview_data = { status: "loading", kind: "bar" };
+  let plotHtml = "ORIGINAL SAMPLE";
+  const plot = {
+    data(name, value) {
+      if (value === undefined) return this[`_${name}`];
+      this[`_${name}`] = value;
+      return this;
+    },
+    html(value) {
+      if (value === undefined) return plotHtml;
+      plotHtml = value;
+      return this;
+    },
+  };
+  const empty = { text() { return this; } };
+  const cardNode = { kind: "bar" };
+  const card = {
+    data(name) { return name === "chart-preview-kind" ? "bar" : undefined; },
+    css() { return this; },
+    attr() { return this; },
+    find(selector) { return selector === ".sts-chart-preview-plot" ? plot : empty; },
+  };
+  studio._context.$ = (node) => node === cardNode ? card : node;
+  studio.$preview = {
+    find(selector) {
+      if (selector === "[data-chart-preview-card]") {
+        return { each(callback) { callback.call(cardNode); } };
+      }
+      return empty;
+    },
+  };
+
+  studio._apply_charts_preview();
+  studio.selected_chart_preview_data = { status: "ready", kind: "bar", labels: ["Jan"], datasets: [{ values: [5] }] };
+  studio._apply_charts_preview();
+  assert.match(plotHtml, /data-chart-point="0"/);
+  studio.selected_chart_preview_data = { status: "loading", kind: "bar" };
+  studio._apply_charts_preview();
+
+  assert.equal(plotHtml, "ORIGINAL SAMPLE");
+});
+
+test("Charts inspector uses a local preview card and never Workspace re-anchor", () => {
+  const studio = loadThemeStudio();
+  const card = { name: "line-preview" };
+  let positioned = null;
+  studio.selected_inspector = "charts.chart";
+  studio.selected_chart_preview_kind = "line";
+  studio._schedule_workspace_reanchor = () => { throw new Error("must not use iframe re-anchor"); };
+  studio._position_inspector = (element) => { positioned = element; };
+  studio.$preview = {
+    find(selector) {
+      if (selector === ".is-inspected") return { removeClass() { return this; } };
+      assert.match(selector, /data-chart-preview-kind="line"/);
+      return {
+        removeClass() { return this; },
+        first() { return { addClass() { return { 0: card }; } }; },
+      };
+    },
+  };
+
+  studio._restore_inspector_highlight();
+
+  assert.equal(positioned, card);
+});
+
+test("Charts scene follows Workspace and renders four editable visual families", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  const source = fs.readFileSync(pagePath, "utf8");
+  const scene = studio._charts_scene_html();
+
+  assert.match(source, /data-preview-scene="workspace"[\s\S]{0,180}data-preview-scene="charts"/);
+  assert.match(scene, /data-scene="charts"/);
+  for (const kind of ["line", "bar", "donut", "sparkline"]) {
+    assert.match(scene, new RegExp(`data-chart-preview-kind="${kind}"`));
+  }
+  assert.match(scene, /<svg/);
+  assert.match(scene, /data-chart-sample-status/);
+  assert.match(scene, /Sample data/);
+});
+
+test("registry click delegates to the persistent Charts preview selector", () => {
+  const studio = loadThemeStudio();
+  const selected = [];
+  studio._select_registry_chart = (id) => selected.push(id);
+  const bindings = bindThemeStudio(studio);
+  const button = { __data: { "select-chart": "chart-1" } };
+  button.__query = Object.assign({}, bindings.chain, { 0: button });
+
+  bindings.rootHandlers["click|[data-select-chart]"].call(button);
+
+  assert.deepEqual(selected, ["chart-1"]);
+});
+
+test("hybrid preview model maps canonical individual and global chart values", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  studio.state.chart_schema.groups.series_defaults.line_width = { type: "number", default: 2, applies_to: ["line"], label: "Line width" };
+  studio.state.chart_schema.groups.series_defaults.fill_opacity = { type: "integer", default: 28, applies_to: ["line", "area"], label: "Fill opacity" };
+  studio.state.chart_schema.groups.axes = {
+    axis_color: { type: "color", default: "#A8B0BC", applies_to: ["axis"], label: "Axis color" },
+    grid_color: { type: "color", default: "#E4E7EB", applies_to: ["axis"], label: "Grid color" },
+  };
+  studio.selected_chart_id = "chart-1";
+  studio.selected_chart_preview_kind = "line";
+
+  const selected = studio._chart_preview_model("line");
+  const sample = studio._chart_preview_model("bar");
+
+  assert.equal(selected.chart_id, "chart-1");
+  assert.equal(selected.title, "Sales");
+  assert.equal(selected.status, "Sample data");
+  assert.equal(selected.styles["--sts-chart-surface"], "#112233");
+  assert.equal(selected.styles["--sts-chart-series-1"], "#1B3F7E");
+  assert.equal(selected.styles["--sts-chart-line-width"], "2px");
+  assert.equal(selected.styles["--sts-chart-grid"], "#E4E7EB");
+  assert.equal(selected.attributes["data-chart-height"], "300");
+  assert.equal(sample.chart_id, "");
+  assert.equal(sample.title, "Bars");
+  assert.equal(sample.styles["--sts-chart-surface"], "#FFFFFF");
+});
+
+test("registry source family chooses the matching sample unless type is explicitly overridden", () => {
+  const studio = loadThemeStudio();
+
+  assert.equal(studio._chart_preview_kind({ family: "dashboard_chart", context: "Bar" }, { chart: { type: "source" } }), "bar");
+  assert.equal(studio._chart_preview_kind({ family: "dashboard_chart", context: "Bar" }, { chart: { type: "donut" } }), "donut");
+  assert.equal(studio._chart_preview_kind({ family: "number_card" }, { chart: { type: "source" } }), "sparkline");
+});
+
+test("clicking an unbound sample edits globals without creating an override", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  studio.selected_chart_id = "chart-1";
+  studio.selected_chart_preview_kind = "line";
+  studio._render_inspector = () => {};
+  studio._restore_inspector_highlight = () => {};
+  const before = JSON.stringify(studio.config.chart_overrides);
+
+  studio._select_chart_preview("bar", {});
+
+  assert.equal(studio.selected_chart_id, null);
+  assert.equal(studio.selected_inspector, "charts.chart");
+  assert.equal(JSON.stringify(studio.config.chart_overrides), before);
+});
+
+test("apply refreshes the hybrid Charts gallery in the same preview cycle", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  const source = fs.readFileSync(pagePath, "utf8");
+
+  assert.match(source, /this\._apply_preview_vars\(this\.\$preview[\s\S]{0,500}this\._apply_charts_preview\(\)/);
 });
 
 test("dark preview derives each untouched token even with custom dark surfaces", () => {
@@ -2407,7 +2818,10 @@ test("workspace reanchor sources include stage scroll window resize and device t
   bindings.rootHandlers["click|[data-device]"].call(device);
   delayed[0]();
 
-  assert.equal(bindings.windowHandlers.off, "resize.stsInspector");
+  assert.deepEqual(bindings.windowHandlers.off, [
+    "resize.stsInspector",
+    "st-theme-os-mode-change.stsThemeMode",
+  ]);
   assert.equal(schedules, 4);
 });
 

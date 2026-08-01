@@ -22,9 +22,67 @@ CSS = ROOT / "solvronix_desk" / "public" / "css" / "theme_studio.css"
 DESK_CSS = ROOT / "solvronix_desk" / "public" / "css" / "solvronix_desk.css"
 SIDEBAR_CSS = ROOT / "solvronix_desk" / "public" / "css" / "sidebar.css"
 DARK_CSS = ROOT / "solvronix_desk" / "public" / "css" / "dark_mode.css"
+BOOT = ROOT / "solvronix_desk" / "boot.py"
 
 
 class ThemeStudioTest(unittest.TestCase):
+    def test_chart_runtime_is_bootstrapped_after_theme_runtime(self):
+        hooks = HOOKS.read_text(encoding="utf-8")
+        theme_index = hooks.index("/assets/solvronix_desk/js/theme_runtime.js")
+        chart_index = hooks.index("/assets/solvronix_desk/js/chart_runtime.js")
+
+        self.assertGreater(chart_index, theme_index)
+        self.assertRegex(hooks, r"chart_runtime\.js\?v=\d+")
+        self.assertIn("bootinfo.st_chart_schema = chart_config.load_schema()", BOOT.read_text(encoding="utf-8"))
+
+    def test_atomic_theme_runtime_refresh_includes_chart_schema(self):
+        api = THEME_API.read_text(encoding="utf-8")
+        runtime = (ROOT / "solvronix_desk" / "public" / "js" / "theme_runtime.js").read_text(encoding="utf-8")
+
+        self.assertIn('"chart_schema": chart_config.load_schema()', api)
+        self.assertIn("solvronixChartRuntime.setConfig(config, chartSchema)", runtime)
+        self.assertIn("runtime.chart_schema", runtime)
+    def test_studio_state_exposes_canonical_chart_schema_and_safe_registry(self):
+        source = THEME_API.read_text(encoding="utf-8")
+
+        self.assertIn("from solvronix_desk import chart_config, chart_registry", source)
+        self.assertIn('"chart_schema": chart_config.load_schema()', source)
+        self.assertIn('"chart_registry": chart_registry.list_chart_sources(', source)
+        self.assertIn('published.get("chart_overrides", {}).keys()', source)
+
+    def test_every_chart_config_persistence_path_uses_strict_validation(self):
+        source = THEME_API.read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        functions = {
+            node.name: ast.get_source_segment(source, node) or ""
+            for node in tree.body
+            if isinstance(node, ast.FunctionDef)
+        }
+
+        self.assertIn("strict_charts=True", functions["validate_persisted_config"])
+        for name in (
+            "save_theme_draft",
+            "publish_theme_config",
+            "manage_theme_profile",
+            "restore_theme_version",
+        ):
+            self.assertIn("validate_persisted_config", functions[name], name)
+        self.assertIn("validate_referenced_profiles", functions["save_theme_assignments"])
+        self.assertIn("validate_referenced_profiles", functions["save_theme_schedule"])
+
+    def test_legacy_sync_projects_canonical_chart_colors(self):
+        source = THEME_API.read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        function = next(
+            node
+            for node in tree.body
+            if isinstance(node, ast.FunctionDef) and node.name == "sync_legacy_fields"
+        )
+        segment = ast.get_source_segment(source, function) or ""
+
+        self.assertIn('"chart_background"', segment)
+        self.assertIn('"chart_palette"', segment)
+
     def test_workspace_api_failures_expose_non_sensitive_unavailable_flag(self):
         source = API.read_text(encoding="utf-8")
         tree = ast.parse(source)
@@ -188,10 +246,10 @@ class ThemeStudioTest(unittest.TestCase):
 
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=13", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=15", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
-        self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
-        self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=6", hooks)
+        self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=10", hooks)
+        self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=8", hooks)
         self.assertIn("/assets/solvronix_desk/css/login.css?v=11", hooks)
         self.assertIn("/assets/solvronix_desk/js/login_theme.js?v=8", hooks)
         self.assertIn('"on_update": "solvronix_desk.events.theme_settings_on_update"', hooks)
@@ -230,6 +288,32 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("if (config && Object.keys(config).length)", runtime)
         self.assertIn("runtime.preview", runtime)
         self.assertIn("if (!Array.isArray(route)) route = [];", runtime)
+
+    def test_hybrid_charts_preview_scene_is_declared_after_workspace(self):
+        source = PAGE.read_text(encoding="utf-8")
+
+        workspace = source.index('data-preview-scene="workspace"')
+        charts = source.index('data-preview-scene="charts"')
+        self.assertGreater(charts, workspace)
+        self.assertIn("_charts_scene_html()", source)
+        for kind in ("line", "bar", "donut", "sparkline"):
+            self.assertIn(f'card("{kind}"', source)
+
+    def test_hybrid_charts_preview_is_responsive_theme_driven_and_motion_safe(self):
+        css = CSS.read_text(encoding="utf-8")
+
+        for token in (
+            ".sts-charts-gallery",
+            ".sts-chart-preview-card.is-inspected",
+            "--sts-chart-surface",
+            "--sts-chart-series-1",
+            "--sts-chart-line-width",
+            "--sts-chart-bar-radius",
+            ".sts-chart-donut",
+            "@media (prefers-reduced-motion: reduce)",
+        ):
+            self.assertIn(token, css)
+        self.assertRegex(css, r'\[data-device="(?:tablet|mobile)"\][^{]*\.sts-charts-gallery')
 
     def test_theme_settings_are_unified_into_studio(self):
         js = PAGE.read_text(encoding="utf-8")

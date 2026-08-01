@@ -49,7 +49,7 @@ See the [complete Theme Studio visual guide](docs/theme-studio.md) for every set
 | Buttons and forms | Button sizing/shape, inputs, focus, checkbox/toggle, dropdown, read-only/disabled |
 | Typography | Font family or web font, base/heading/label/table sizes, weight, line height |
 | Cards, lists, and tables | Surface, shadow, radius, row height/states, density, report grid |
-| Workspace and dashboard | Cards, shortcuts, number cards, charts/palette, icons, width, empty states |
+| Workspace and dashboard | Cards, shortcuts, number cards, chart system, icons, width, empty states |
 | Login branding | Logo, image/gradient, card opacity, title, copy, favicon, footer, optional platform credit |
 | Layout | Full/boxed width, margins, gaps, spacing, global radius, header height, sticky regions |
 | Assignment and activation | Site/user/role/company profiles, user permission, admin lock, scheduled activation |
@@ -116,6 +116,8 @@ When a System Manager publishes Theme Studio, color, branding, layout, and featu
 
 ### Refined Data & Charts
 Tabular numerals keep columns of figures perfectly aligned in list views, report grids, and dashboard number cards. Charts get softer gridlines, hover focus on bars, and elevated tooltips that stay fully readable in dark mode.
+
+Theme Studio's **Chart System** can now edit global chart defaults and permission-visible individual ERPNext charts. Supported surfaces include Dashboard Charts, Dashboard Graphs, Query/Script Report charts, and Number Card sparklines. Controls cover chart structure, surfaces, series and palettes, axes, legends, labels, tooltips, animation, interaction, and the safe advanced allowlist. A selected runtime chart also exposes stable per-series line/bar/fill overrides. Resetting one property or one chart falls back to the global chart layer; resetting global charts falls back to the built-in system defaults.
 
 ### Details Everywhere
 Keycap-styled keyboard hints, thin floating scrollbars, brand-tinted text selection, shimmer on loading placeholders, and a brand accent on the selected command-palette row.

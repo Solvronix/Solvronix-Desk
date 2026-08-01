@@ -729,6 +729,19 @@ html[data-theme="dark"] .chart-container {
   --charts-stroke-width:      2px;
 }
 
+/* Explicit per-chart Theme Studio values remain authoritative in dark mode. */
+html[data-theme="dark"] [data-st-chart-id],
+html[data-theme="dark"] [data-st-chart-id] .chart-container,
+html[data-theme="dark"] [data-st-chart-id] .frappe-chart {
+  background: var(--st-chart-surface, var(--st-chart-bg)) !important;
+}
+html[data-theme="dark"] [data-st-chart-id] .x.axis text,
+html[data-theme="dark"] [data-st-chart-id] .y.axis text,
+html[data-theme="dark"] [data-st-chart-id] .chart-label {
+  fill: var(--st-chart-axis-label, var(--st-text-muted)) !important;
+  color: var(--st-chart-axis-label, var(--st-text-muted)) !important;
+}
+
 /* Belt and braces: style the tooltip element directly, so it stays
    correct even if Frappe changes how the vars are scoped. */
 html[data-theme="dark"] .graph-svg-tip {

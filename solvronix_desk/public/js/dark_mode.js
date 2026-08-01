@@ -19,15 +19,19 @@
     if (!mode && window.frappe && frappe.boot && frappe.boot.st_theme_mode_default) {
       mode = frappe.boot.st_theme_mode_default;
     }
+    mode = stNormalizeThemeMode(mode);
     var dark = mode === "dark" ||
       (mode === "auto" && window.matchMedia &&
        window.matchMedia("(prefers-color-scheme: dark)").matches);
+    var html = document.documentElement;
+    html.setAttribute("data-theme-mode", mode);
     if (dark) {
-      var html = document.documentElement;
       html.setAttribute("data-theme", "dark");
       /* Set background immediately — CSS hasn't loaded yet, so without this
          the page flashes white before dark_mode.css applies. */
       html.style.backgroundColor = "#0F1117";
+    } else {
+      html.setAttribute("data-theme", "light");
     }
   } catch (e) { /* storage blocked */ }
 }());
@@ -37,15 +41,33 @@ function stIsDark() {
   return document.documentElement.getAttribute("data-theme") === "dark";
 }
 
-function stGetThemeMode() {
+function stNormalizeThemeMode(mode) {
+  mode = String(mode || "light").toLowerCase();
+  if (mode === "automatic") mode = "auto";
+  return mode === "dark" || mode === "auto" ? mode : "light";
+}
+
+function stGetStoredThemeMode() {
   try {
-    var m = localStorage.getItem("st_theme_mode");
-    if (m === "light" || m === "dark" || m === "auto") return m;
+    var mode = localStorage.getItem("st_theme_mode");
+    if (mode === "light" || mode === "dark" || mode === "auto") return mode;
     var legacy = localStorage.getItem("st_dark_mode");
     if (legacy === "1") return "dark";
     if (legacy === "0") return "light";
   } catch (e) {}
-  return (window.frappe && frappe.boot && frappe.boot.st_theme_mode_default) || "light";
+  return null;
+}
+
+function stGetThemeMode() {
+  return stGetStoredThemeMode() || stNormalizeThemeMode(
+    (window.frappe && frappe.boot && frappe.boot.st_theme_mode_default) || "light"
+  );
+}
+
+function stGetAppliedThemeMode() {
+  return stNormalizeThemeMode(
+    document.documentElement.getAttribute("data-theme-mode") || stGetThemeMode()
+  );
 }
 
 function stResolveDark(mode) {
@@ -68,16 +90,31 @@ function stApplyDark(dark) {
   }
 }
 
+/* Apply a mode without changing the user's saved preference. Theme Studio uses
+   this for previews, and runtime refreshes use it after resolving precedence. */
+function stApplyThemeMode(mode) {
+  mode = stNormalizeThemeMode(mode);
+  document.documentElement.setAttribute("data-theme-mode", mode);
+  stApplyDark(stResolveDark(mode));
+  stUpdateToggleIcon();
+  return mode;
+}
+
+/* A site/profile refresh must preserve an explicit toolbar preference. */
+function stApplyResolvedThemeMode(mode) {
+  mode = stNormalizeThemeMode(mode);
+  if (window.frappe && frappe.boot) frappe.boot.st_theme_mode_default = mode;
+  return stApplyThemeMode(stGetStoredThemeMode() || mode);
+}
+
 function stSetThemeMode(mode) {
-  if (mode !== "light" && mode !== "dark" && mode !== "auto") mode = "light";
+  mode = stNormalizeThemeMode(mode);
   try {
     localStorage.setItem("st_theme_mode", mode);
     /* Keep the legacy key coherent for any old cached scripts */
     localStorage.setItem("st_dark_mode", stResolveDark(mode) ? "1" : "0");
   } catch (e) {}
-  document.documentElement.setAttribute("data-theme-mode", mode);
-  stApplyDark(stResolveDark(mode));
-  stUpdateToggleIcon();
+  stApplyThemeMode(mode);
 
   /* Persist to Frappe user preferences (non-blocking).
      Uses our own API (frappe.db.set_value) NOT frappe.client.set_value —
@@ -113,9 +150,14 @@ function stToggleDark() {
 if (window.matchMedia) {
   var stMq = window.matchMedia("(prefers-color-scheme: dark)");
   var stOnOsChange = function () {
-    if (stGetThemeMode() === "auto") {
+    if (stGetAppliedThemeMode() === "auto") {
       stApplyDark(stMq.matches);
       stUpdateToggleIcon();
+      try {
+        window.dispatchEvent(new CustomEvent("st-theme-os-mode-change", {
+          detail: { dark: !!stMq.matches }
+        }));
+      } catch (e) {}
     }
   };
   if (stMq.addEventListener) stMq.addEventListener("change", stOnOsChange);
@@ -135,7 +177,7 @@ var ST_THEME_ICONS = {
 function stUpdateToggleIcon() {
   var btn = document.getElementById("st-dark-toggle");
   if (!btn) return;
-  var mode = stGetThemeMode();
+  var mode = stGetAppliedThemeMode();
   btn.innerHTML = ST_THEME_ICONS[mode] || ST_THEME_ICONS.light;
   var titles = {
     light: "Theme: Light — click for Dark",
@@ -190,7 +232,7 @@ function stSyncDarkFromBoot() {
       if (mode) {
         localStorage.setItem("st_theme_mode", mode);
         localStorage.setItem("st_dark_mode", stResolveDark(mode) ? "1" : "0");
-        stApplyDark(stResolveDark(mode));
+        stApplyThemeMode(mode);
       }
     }
   } catch (e) {}

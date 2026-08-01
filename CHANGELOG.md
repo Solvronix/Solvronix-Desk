@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+- Theme Studio Chart System with schema-driven global defaults and permission-filtered individual editors for Dashboard Charts, Dashboard Graphs, Query/Script Report charts, and Number Card sparklines
+- Visual, structural, and behavioral chart controls for surfaces, palettes, individual series, axes, legends, labels, tooltips, animation, interaction, and safe advanced options
+- Layered chart reset behavior: property and chart resets inherit global values, while the global reset restores built-in system defaults
+
 ### Changed
 - Theme Studio is now the single user-facing configuration experience for visual themes, branding, Smart Home, and Command Palette settings
 - Opening Theme Settings redirects to Theme Studio; administrators retain an explicit raw-settings maintenance action
@@ -9,6 +14,7 @@
 - Theme Studio now uses a readable control and preview typography scale instead of 6–10px interface text
 - Theme Studio's login scene now mirrors the public login card, branding, image background, fields, links, and light/dark token behavior
 - Dashboard, Form, Table, and Login previews now support click-to-select property editing in a floating inspector beside the selected item
+- Published profile and realtime theme refreshes now update chart configuration atomically without changing chart data or callbacks
 
 ### Fixed
 - Public login now applies Theme Studio's Light/Dark/Auto mode and uses equal border-box sizing for the card head and form body

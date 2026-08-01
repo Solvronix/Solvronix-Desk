@@ -1,8 +1,10 @@
 # Theme Studio visual guide
 
-Theme Studio is the visual control centre for Solvronix Desk. This guide shows the complete editor, every settings group, responsive preview modes, publishing workflow, and the contextual property inspector used by the Dashboard, Form, Table, and Login previews.
+Theme Studio is the visual control centre for Solvronix Desk. This guide shows the complete editor, every settings group, responsive preview modes, publishing workflow, and the contextual property inspector used by the Dashboard, Form, Table, Login, Workspace, and Charts previews.
 
 Open Theme Studio from `Ctrl+K` or visit `/desk/theme-studio` as a System Manager.
+
+Light, Dark, and Auto update the Desk and preview immediately without turning a preview into a saved user preference. Auto follows live operating-system colour-scheme changes. A user's explicit toolbar choice remains in force when a site theme or profile refreshes; leaving Theme Studio restores the mode that was active before editing.
 
 ## Editor and preview workflow
 
@@ -63,6 +65,25 @@ Open Theme Studio from `Ctrl+K` or visit `/desk/theme-studio` as a System Manage
 | Workspace surfaces | Number cards, charts, and dashboard options |
 |:---:|:---:|
 | ![Workspace and dashboard controls part one](screenshots/theme-studio/controls/06-workspace-dashboard-part-01.png) | ![Workspace and dashboard controls part two](screenshots/theme-studio/controls/06-workspace-dashboard-part-02.png) |
+
+#### Chart System
+
+The Chart System appears in **Workspace & dashboard** and uses one server-supplied schema for both validation and controls. It has two editing layers:
+
+- **Global chart defaults** apply to every supported chart unless that chart owns an override.
+- **Individual charts** lists only sources the current System Manager can read. Selecting an entry opens its focused inspector; clicking a chart in the read-only live Workspace preview opens the same inspector and can expose stable per-series controls.
+
+Supported families are Dashboard Chart, Dashboard Graph, Query/Script Report chart, and Number Card sparkline. Full charts expose chart structure, surface, default and individual series, axes, legend, labels, tooltip, animation, interaction, and the allowlisted advanced options (`truncateLegends`, `maxLegendPoints`, and `maxSlices`). Sparklines show only controls their runtime adapter supports.
+
+Each field includes an ownership label:
+
+- **system** — the built-in default is active;
+- **global** — the Theme Studio global value is active;
+- **individual** — the selected chart or series explicitly owns the value.
+
+Use the reset button beside a property to remove only that explicit value. **Reset this chart** removes all overrides for the selected chart and falls back to global values. **Reset global charts** removes global ownership and falls back to built-in system defaults; individual overrides remain intact. Equal-valued overrides remain explicitly owned until reset.
+
+Chart editing changes presentation and supported constructor options only. It does not edit report queries, chart datasets, filters, callbacks, credentials, or business records. Dynamic or unavailable sources remain inert until a compatible chart is present in a permitted runtime preview. Invalid values stay out of the canonical draft and block Save Draft/Publish until corrected.
 
 ### Smart Home and features
 
@@ -154,13 +175,22 @@ Click a highlighted preview element to open its focused settings card beside the
 
 ### Workspace (live, styling-only)
 
-In the live Workspace scene, click a surface to open the existing Theme Studio contextual inspector. The inspector classifies selections into four groups:
+In the live Workspace scene, click a surface to open the existing Theme Studio contextual inspector. Chart hit testing has priority over generic cards, and the inspector classifies selections into five groups:
 
 - Workspace background
 - Card/widget (including number cards)
 - Text/link
 - Button/shortcut
+- Supported chart or Number Card sparkline
 
 For a **Workspace shortcut**, the inspector exposes brand colour, shortcut style, card background, radius, and shadow. For a **Number card**, it exposes number-card colour, text, muted text, border, radius, and shadow. Generic cards and buttons retain their standard contextual controls, so these subtypes do not add extra inspector groups.
 
-These controls are limited to styling: background, card, text, border, radius, shadow, and button colours are available only where appropriate for the selected group. Workspace content, links, buttons, forms, routes, and actions remain read-only and cannot be activated. Scrolling and the Workspace picker continue to work.
+Generic Workspace controls remain styling-only. Supported charts additionally expose compatible visual, structural, and behavioral chart properties, but their data and actions remain read-only. Workspace content, links, buttons, forms, routes, and actions cannot be activated. Scrolling and the Workspace picker continue to work.
+
+### Charts (hybrid visual preview)
+
+The **Charts** scene appears immediately after **Workspace** in the preview toolbar. It provides line/area, bar, donut, and Number Card preview families. Global editing starts with deterministic sample data; selecting a supported individual source loads its current, permission-checked ERPNext values and marks the card **ERPNext data**.
+
+Click any sample to open its chart inspector. An unbound sample edits global chart defaults and does not create an individual override. Selecting an entry under **Individual charts** automatically switches to the Charts scene, highlights the matching preview family, keeps the chart's stable registry identity, opens its individual inspector, and requests real data for ordinary Dashboard Charts and document-based Number Cards. Custom sources, report charts that need runtime filters, empty sources, and unavailable records show an explicit fallback status instead of presenting sample values as ERPNext data.
+
+Changes to chart type, colours, fill, line width and style, points, bar radius, surface, axes, grid, legend, labels, tooltip, animation, interaction, and supported sizing update the gallery immediately. **Reset this chart** falls back to the current global values; **Reset global charts** falls back to built-in defaults without deleting individual overrides.

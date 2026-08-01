@@ -2,13 +2,35 @@
 
 import frappe
 
-from solvronix_desk import theme_engine
+from solvronix_desk import chart_config, chart_registry, theme_engine
+from solvronix_desk import chart_preview
 
 
 # ── 1. AUTHORIZATION / COMPLETE EDITOR STATE ──────────────────────────────────
 # Every mutating Studio endpoint passes through the same System Manager gate.
 def manager_only():
     frappe.only_for("System Manager")
+
+
+def validate_persisted_config(config, base=None):
+    """Apply one strict chart contract to every persisted theme payload."""
+    try:
+        return theme_engine.sanitize_config(
+            config,
+            base,
+            strict_charts=True,
+        )
+    except chart_config.ChartConfigError as error:
+        frappe.throw(frappe.as_json({"chart_errors": error.errors}))
+
+
+def validate_referenced_profiles(settings, profile_ids):
+    """Revalidate chart payloads before assigning or scheduling profiles."""
+    for profile_id in sorted({value for value in profile_ids if value}):
+        profile = theme_engine.profile_by_id(settings, profile_id)
+        if not profile:
+            frappe.throw(f"Unknown theme profile: {profile_id}")
+        validate_persisted_config(profile["config"])
 
 
 def studio_state(settings=None):
@@ -35,6 +57,8 @@ def studio_state(settings=None):
         if frappe.db.exists("DocType", "Company")
         else []
     )
+    configured_chart_ids = set(published.get("chart_overrides", {}).keys())
+    configured_chart_ids.update(draft.get("chart_overrides", {}).keys())
     return {
         "config": draft,
         "published": published,
@@ -53,6 +77,11 @@ def studio_state(settings=None):
             "active_profile": getattr(settings, "active_profile", "") or "",
         },
         "options": {"users": users, "roles": roles, "companies": companies},
+        "chart_schema": chart_config.load_schema(),
+        "chart_registry": chart_registry.list_chart_sources(
+            getattr(frappe.session, "user", None),
+            configured_ids=sorted(configured_chart_ids),
+        ),
         "wcag_failures": theme_engine.wcag_failures(draft),
     }
 
@@ -61,6 +90,13 @@ def studio_state(settings=None):
 def get_theme_studio_state():
     manager_only()
     return studio_state()
+
+
+@frappe.whitelist()
+def get_chart_preview(chart_id):
+    """Return permission-checked ERPNext values for one supported preview source."""
+    manager_only()
+    return chart_preview.get_preview(chart_id)
 
 
 # ── 2. LIVE PREVIEW / PRIVATE DRAFTS ──────────────────────────────────────────
@@ -80,7 +116,7 @@ def preview_theme_css(config):
 def save_theme_draft(config):
     manager_only()
     settings = frappe.get_single("Theme Settings")
-    clean = theme_engine.sanitize_config(config)
+    clean = validate_persisted_config(config)
     frappe.db.set_single_value("Theme Settings", "theme_studio_draft", frappe.as_json(clean))
     return {"config": clean, "wcag_failures": theme_engine.wcag_failures(clean)}
 
@@ -90,7 +126,7 @@ def sync_legacy_fields(settings, config):
     for field in (
         "brand_color", "accent_color", "sidebar_background", "navbar_background",
         "page_background", "card_background", "text_color", "corner_radius",
-        "shadow_style", "sidebar_width",
+        "shadow_style", "sidebar_width", "chart_background", "chart_palette",
     ):
         settings.set(field, config[field])
     settings.studio_layout = frappe.as_json(config["layout"])
@@ -118,7 +154,7 @@ def sync_legacy_fields(settings, config):
 def publish_theme_config(config, label=None, profile_id=None):
     manager_only()
     settings = frappe.get_single("Theme Settings")
-    clean = theme_engine.sanitize_config(config)
+    clean = validate_persisted_config(config)
     versions = theme_engine.json_field(settings, "theme_versions", [])
     versions.insert(
         0,
@@ -165,7 +201,7 @@ def manage_theme_profile(action, profile_id=None, name=None, config=None, descri
                 "description": str(description or (source or {}).get("description", ""))[:300],
                 "created": now,
                 "modified": now,
-                "config": theme_engine.sanitize_config(source_config),
+                "config": validate_persisted_config(source_config),
             }
         )
     elif action == "update":
@@ -176,7 +212,7 @@ def manage_theme_profile(action, profile_id=None, name=None, config=None, descri
         target["description"] = str(
             description if description is not None else target.get("description", "")
         )[:300]
-        target["config"] = theme_engine.sanitize_config(config or target.get("config"))
+        target["config"] = validate_persisted_config(config or target.get("config"))
         target["modified"] = theme_engine.now_string()
     elif action == "rename":
         target = next((item for item in custom if item.get("id") == profile_id), None)
@@ -227,7 +263,7 @@ def restore_theme_version(version_id):
     version = next((item for item in versions if item.get("id") == version_id), None)
     if not version:
         frappe.throw("Theme version not found")
-    clean = theme_engine.sanitize_config(version.get("config"))
+    clean = validate_persisted_config(version.get("config"))
     frappe.db.set_single_value("Theme Settings", "theme_studio_draft", frappe.as_json(clean))
     return {"config": clean, "wcag_failures": theme_engine.wcag_failures(clean)}
 
@@ -263,6 +299,7 @@ def save_theme_assignments(data, flags=None):
     missing_profiles = sorted(profile for profile in referenced_profiles if profile and profile not in valid_profiles)
     if missing_profiles:
         frappe.throw("Unknown theme profile: " + ", ".join(missing_profiles))
+    validate_referenced_profiles(settings, referenced_profiles)
     settings.theme_assignments = frappe.as_json(clean)
     flag_data = theme_engine.parse_json(flags, {}) if flags else {}
     for field in ("theme_enabled", "allow_user_theme", "theme_lock", "preview_admin_only"):
@@ -286,6 +323,7 @@ def save_theme_schedule(data):
     }
     if clean["profile_id"] and not theme_engine.profile_by_id(settings, clean["profile_id"]):
         frappe.throw("Scheduled theme profile not found")
+    validate_referenced_profiles(settings, [clean["profile_id"]])
     try:
         activate_at = frappe.utils.get_datetime(clean["activate_at"]) if clean["activate_at"] else None
         deactivate_at = frappe.utils.get_datetime(clean["deactivate_at"]) if clean["deactivate_at"] else None
@@ -333,6 +371,7 @@ def set_user_theme_profile(profile_id):
         "preferred_mode": selected["preferred_mode"],
         "active_profile": theme_engine.resolve_profile_id(settings, user),
         "schedule": theme_engine.schedule(settings),
+        "chart_schema": chart_config.load_schema(),
     }
 
 
@@ -355,6 +394,7 @@ def get_resolved_theme_runtime():
         "preferred_mode": config["preferred_mode"],
         "active_profile": theme_engine.resolve_profile_id(settings, user),
         "schedule": theme_engine.schedule(settings),
+        "chart_schema": chart_config.load_schema(),
         "profiles": profile_list,
         "flags": {
             "enabled": int(getattr(settings, "theme_enabled", 1)),
