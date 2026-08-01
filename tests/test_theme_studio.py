@@ -34,6 +34,14 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertGreater(chart_index, theme_index)
         self.assertRegex(hooks, r"chart_runtime\.js\?v=\d+")
         self.assertIn("bootinfo.st_chart_schema = chart_config.load_schema()", BOOT.read_text(encoding="utf-8"))
+
+    def test_atomic_theme_runtime_refresh_includes_chart_schema(self):
+        api = THEME_API.read_text(encoding="utf-8")
+        runtime = (ROOT / "solvronix_desk" / "public" / "js" / "theme_runtime.js").read_text(encoding="utf-8")
+
+        self.assertIn('"chart_schema": chart_config.load_schema()', api)
+        self.assertIn("solvronixChartRuntime.setConfig(config, chartSchema)", runtime)
+        self.assertIn("runtime.chart_schema", runtime)
     def test_studio_state_exposes_canonical_chart_schema_and_safe_registry(self):
         source = THEME_API.read_text(encoding="utf-8")
 
@@ -238,10 +246,10 @@ class ThemeStudioTest(unittest.TestCase):
 
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=13", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=14", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
-        self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=6", hooks)
+        self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=7", hooks)
         self.assertIn("/assets/solvronix_desk/css/login.css?v=11", hooks)
         self.assertIn("/assets/solvronix_desk/js/login_theme.js?v=8", hooks)
         self.assertIn('"on_update": "solvronix_desk.events.theme_settings_on_update"', hooks)

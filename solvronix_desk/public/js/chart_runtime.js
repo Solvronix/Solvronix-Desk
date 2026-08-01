@@ -256,6 +256,7 @@
     record.capabilities = descriptor.capabilities || clone(
       (record.adapter && record.adapter.capabilities) || {}
     );
+    record.series = descriptor.series || record.series || seriesFromInstance(descriptor.instance);
     record.appliedRevision = 0;
     registrations.set(record.id, record);
     try {
@@ -310,7 +311,8 @@
         id: byId.id,
         family: byId.family,
         root: byId.root,
-        capabilities: clone(byId.capabilities || {})
+        capabilities: clone(byId.capabilities || {}),
+        series: clone(byId.series || [])
       } : null;
     }
     var found = null;
@@ -323,7 +325,8 @@
       id: found.id,
       family: found.family,
       root: found.root,
-      capabilities: clone(found.capabilities || {})
+      capabilities: clone(found.capabilities || {}),
+      series: clone(found.series || [])
     } : null;
   }
 
@@ -362,8 +365,11 @@
     var datasets = instance && instance.data && instance.data.datasets;
     if (!Array.isArray(datasets)) return [];
     return datasets.map(function (dataset, index) {
-      var source = dataset && (dataset.fieldname || dataset.key || dataset.name);
-      return { key: source ? "dataset:" + encodeURIComponent(String(source)) : "session:" + index };
+      var source = dataset && (dataset.fieldname || dataset.key || dataset.source_key || dataset.name);
+      return {
+        key: source ? "dataset:" + encodeURIComponent(String(source)) : "session:" + index,
+        label: String((dataset && (dataset.label || dataset.name)) || source || ("Series " + (index + 1)))
+      };
     });
   }
 

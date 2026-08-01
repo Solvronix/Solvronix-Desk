@@ -363,6 +363,7 @@ def set_user_theme_profile(profile_id):
         "preferred_mode": selected["preferred_mode"],
         "active_profile": theme_engine.resolve_profile_id(settings, user),
         "schedule": theme_engine.schedule(settings),
+        "chart_schema": chart_config.load_schema(),
     }
 
 
@@ -385,6 +386,7 @@ def get_resolved_theme_runtime():
         "preferred_mode": config["preferred_mode"],
         "active_profile": theme_engine.resolve_profile_id(settings, user),
         "schedule": theme_engine.schedule(settings),
+        "chart_schema": chart_config.load_schema(),
         "profiles": profile_list,
         "flags": {
             "enabled": int(getattr(settings, "theme_enabled", 1)),

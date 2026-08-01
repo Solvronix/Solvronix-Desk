@@ -264,6 +264,22 @@ test("number card adapter exposes a sparkline-only capability subset", () => {
   assert.equal(descriptor.capabilities.kind, "sparkline");
 });
 
+test("runtime description exposes stable editable series metadata", () => {
+  const { runtime } = loadRuntime();
+  const root = chartRoot();
+  runtime.register({
+    id: "v1|dashboard_chart|5:Sales",
+    family: "dashboard_chart",
+    root,
+    instance: { data: { datasets: [{ name: "Net Total", source_key: "net_total" }] } },
+  });
+
+  const descriptor = runtime.describe(root);
+
+  assert.equal(descriptor.series[0].key, "dataset:net_total");
+  assert.equal(descriptor.series[0].label, "Net Total");
+});
+
 test("scan auto-registers a workspace chart with stable source metadata", () => {
   const root = chartRoot();
   root.dataset.chartName = "Sales Overview";
