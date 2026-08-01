@@ -234,11 +234,11 @@ body:has(.for-forgot) .page-header-wrapper {
 .for-email-login .page-card-head,
 .for-login-with-email-link .page-card-head {
   box-sizing: border-box !important;
-  width: 420px !important;
-  max-width: 92vw !important;
-  background: var(--st-card-bg, #FFFFFF) !important;
-  border-radius: 16px 16px 0 0 !important;
-  padding: 40px 48px 20px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 40px 0 20px !important;
   text-align: center !important;
   box-shadow: none !important;
   border: none !important;
@@ -282,8 +282,9 @@ body:has(.for-forgot) .page-header-wrapper {
   width: 420px !important;
   max-width: 92vw !important;
   min-height: auto !important;
-  border-radius: 0 0 16px 16px !important;
-  padding: 8px 48px 40px !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+  padding: 0 48px 40px !important;
   background: var(--st-card-bg, #FFFFFF) !important;
   box-shadow: 0 32px 80px rgba(0,0,0,0.35) !important;
   border: none !important;
@@ -433,7 +434,7 @@ body:has(.for-forgot) .page-header-wrapper {
   .for-login .page-card-head,
   .for-forgot .page-card-head,
   .for-signup .page-card-head {
-    padding: 32px 24px 16px !important;
+	padding: 32px 0 16px !important;
   }
   .for-login .login-content.page-card,
   .for-forgot .login-content.page-card,

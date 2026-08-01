@@ -1153,6 +1153,10 @@ html[data-theme="dark"] .for-forgot .form-control {{
 }}
 html[data-theme="dark"] .for-login label,
 html[data-theme="dark"] .for-forgot label {{ color:#9AA7BA!important; }}
+html[data-theme="dark"] .for-login .page-card > .page-card-head,
+html[data-theme="dark"] .for-forgot .page-card > .page-card-head {{
+  background:transparent!important;
+}}
 html[data-st-shortcuts="solid"] .shortcut-widget-box {{
   background: var(--st-brand) !important; color: {contrast_text(config["brand_color"])} !important;
 }}

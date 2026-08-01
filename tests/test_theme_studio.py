@@ -109,6 +109,8 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn('html[data-theme="dark"] .for-login .page-card', ENGINE.read_text(encoding="utf-8"))
         login_css = (ROOT / "solvronix_desk" / "public" / "css" / "login.css").read_text(encoding="utf-8")
         self.assertIn("box-sizing: border-box !important;", login_css)
+        self.assertIn("width: 100% !important;", login_css)
+        self.assertIn("overflow: hidden !important;", login_css)
         self.assertIn(".st-login-company-fallback", login_css)
         self.assertIn(".st-hide-powered .for-login .page-card-actions::after", login_css)
 
@@ -133,8 +135,8 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=6", hooks)
-        self.assertIn("/assets/solvronix_desk/css/login.css?v=9", hooks)
-        self.assertIn("/assets/solvronix_desk/js/login_theme.js?v=7", hooks)
+        self.assertIn("/assets/solvronix_desk/css/login.css?v=10", hooks)
+        self.assertIn("/assets/solvronix_desk/js/login_theme.js?v=8", hooks)
         self.assertIn('"on_update": "solvronix_desk.events.theme_settings_on_update"', hooks)
 
     def test_complete_studio_feature_surfaces_exist(self):

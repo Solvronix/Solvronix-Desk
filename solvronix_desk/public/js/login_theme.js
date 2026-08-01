@@ -22,14 +22,13 @@
     }
   }
 
-  /* Frappe versions disagree on whether the card width includes padding.
-     Inline-important geometry keeps the visual head and form body identical. */
+  /* Frappe v16 nests .page-card-head inside .login-content.page-card. Size
+     only the outer card; the nested head must stay within its content box. */
   function normalizeCardGeometry() {
     var width = Math.min(420, Math.floor(window.innerWidth * 0.92)) + 'px';
     document.querySelectorAll(
-      '.for-login .page-card-head, .for-login .login-content.page-card, ' +
-      '.for-forgot .page-card-head, .for-forgot .login-content.page-card, ' +
-      '.for-signup .page-card-head, .for-signup .login-content.page-card'
+	  '.for-login .login-content.page-card, .for-forgot .login-content.page-card, ' +
+	  '.for-signup .login-content.page-card'
     ).forEach(function (element) {
       element.style.setProperty('box-sizing', 'border-box', 'important');
       element.style.setProperty('width', width, 'important');
@@ -37,6 +36,16 @@
       element.style.setProperty('margin-left', 'auto', 'important');
       element.style.setProperty('margin-right', 'auto', 'important');
     });
+    document.querySelectorAll(
+	  '.for-login .page-card-head, .for-forgot .page-card-head, .for-signup .page-card-head'
+    ).forEach(function (head) {
+	  head.style.setProperty('box-sizing', 'border-box', 'important');
+	  head.style.setProperty('width', '100%', 'important');
+	  head.style.setProperty('max-width', '100%', 'important');
+	  head.style.setProperty('margin', '0', 'important');
+	  head.style.setProperty('padding-left', '0', 'important');
+	  head.style.setProperty('padding-right', '0', 'important');
+	});
   }
 
   /* Replace Frappe's generic cube with the configured company identity. A
