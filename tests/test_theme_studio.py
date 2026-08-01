@@ -192,7 +192,7 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=6", hooks)
-        self.assertIn("/assets/solvronix_desk/css/login.css?v=10", hooks)
+        self.assertIn("/assets/solvronix_desk/css/login.css?v=11", hooks)
         self.assertIn("/assets/solvronix_desk/js/login_theme.js?v=8", hooks)
         self.assertIn('"on_update": "solvronix_desk.events.theme_settings_on_update"', hooks)
 

@@ -22,6 +22,16 @@ class NavigationRoutingTest(unittest.TestCase):
         self.assertIn('container.querySelector("#st-module-grid")', js)
         self.assertNotIn('cards[j].addEventListener("click"', js)
 
+    def test_apps_grid_preserves_workspace_dom_and_syncs_smart_home_route(self):
+        js = MODULE_CARDS.read_text(encoding="utf-8")
+
+        self.assertIn("hideRealWorkspaceContent(container)", js)
+        self.assertIn("restoreRealWorkspaceContent()", js)
+        self.assertIn("data-st-hidden-by-grid", js)
+        self.assertNotIn("container.innerHTML =", js)
+        self.assertIn("smartHomeOverrideActive()", js)
+        self.assertIn("frappe.set_route(frappe.boot.home_page)", js)
+
     def test_startup_does_not_override_frappe_deep_links(self):
         js = DESK_JS.read_text(encoding="utf-8")
 
@@ -37,9 +47,9 @@ class NavigationRoutingTest(unittest.TestCase):
     def test_navigation_assets_are_cache_busted(self):
         hooks = HOOKS.read_text(encoding="utf-8")
 
-        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=47", hooks)
+        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=48", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
-        self.assertIn("/assets/solvronix_desk/js/module_cards.js?v=6", hooks)
+        self.assertIn("/assets/solvronix_desk/js/module_cards.js?v=9", hooks)
 
 
 if __name__ == "__main__":

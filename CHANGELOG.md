@@ -63,6 +63,28 @@
 - Sidebar, expanded sidebar width, and visible top-toolbar colors now use the same tokens in Theme Studio and the real Desk
 - Theme Studio now live-previews draft navigation colors on the actual Desk chrome and removes unpublished drafts when leaving the page
 - Theme Studio preview now mirrors the real 36px toolbar and collapsed/expanded Frappe v16 sidebar instead of showing a generic dashboard shell
+## [1.3.5] — 2026-07-31
+
+### Fixed
+- The "All Options" panel had several strings never wrapped for translation (toolbar button, panel title, search placeholder, "Loading…", "No workspaces found.", the "All Workspaces"/"General" group headers, "Appearance"/"Density"/"Compact"/"Comfortable") — now wrapped in `frappe._()`. Searching the panel with a query that matched nothing left it silently blank with zero feedback; it now shows a "No results" message, reusing the same translatable string Command Palette already uses for its own search. While testing this fix in Arabic, found the same gap on the Today's View dashboard (greeting, KPI labels, Recent Documents/Quick Create/Needs Attention cards, empty states) and the Setup Guide banner — all now wrapped too. Added the app's first `translations/ar.csv` with Arabic entries for all of the above (43 strings). Reported as #11.
+
+## [1.3.4] — 2026-07-31
+
+### Fixed
+- Theme chrome (toolbar, branding, dynamic colors, sidebar extras) rendered on top of Frappe's Setup Wizard during first-run onboarding. `onDeskReady()` ran unconditionally on every desk page load with no check for setup state; it now skips entirely while `frappe.boot.setup_complete` is falsy, so Setup Wizard stays Frappe's clean, standalone flow. Reported as #9.
+
+## [1.3.3] — 2026-07-31
+
+### Fixed
+- Workspace dashboard widgets (metric cards/charts) failed to render after navigating Today's View → Home → any workspace, until "Reset Desktop Layout" was performed. The "All Apps" grid (`module_cards.js`) rendered itself via `container.innerHTML =` directly into `.layout-main-section` — the exact DOM node Frappe's `frappe.workspace` singleton owns for its EditorJS instance (`.editor-js-container` / `#editorjs`) across every workspace navigation, Home included. This destroyed those nodes with no teardown; the next workspace's widgets rendered into a re-created but never-reattached, detached editor holder — invisible to the user. The grid now hides (instead of destroys) the real workspace content and restores it when navigating away, so Frappe's singleton is never corrupted. Reported as #7.
+- Browser URL/breadcrumb could get stuck on "Today's View" (`smart-home`) while the actually-rendered page was something else entirely (e.g. a List View), most often right after a full page reload. Our boot-time safety-net redirect read `frappe.get_route()` synchronously inside `$(document).ready`, but Frappe's own router resolves the real route asynchronously — reading it too early could see an empty route and wrongly hijack the URL to `smart-home` while the real page's async render kept going underneath it. The check now runs inside a one-time `frappe.router.on("change", ...)` listener, which only fires once the real route is fully resolved.
+- Clicking the Home icon (to Today's View) could briefly flash the previous workspace's real dashboard content before Today's View settled in. The grid's restore logic re-looked-up the workspace container at restore time, which could still point at the outgoing page if Frappe hadn't finished switching pages yet. It now restores the exact container reference captured when the content was hidden, removing the timing dependency entirely.
+- Navigating to a bare `/desk` URL (e.g. clicking the breadcrumb Home icon) while "Enable Smart Home" is on could leave the URL/route empty while Today's View rendered anyway, with the previous workspace's sidebar stuck on screen. Frappe core silently substitutes an empty page name with `frappe.boot.home_page` at the content level only, without ever updating the route — a split-brain state Frappe's own sidebar logic isn't built to detect, and one that could make our own grid inject into the wrong, stale container. We now turn that silent substitution into a real navigation, so the route, the rendered page, and the sidebar all agree.
+
+## [1.3.2] — 2026-07-30
+
+### Fixed
+- Login page: decorative background card overflowed behind the login form. `.page-card-head` is nested inside `.login-content.page-card` on this Frappe version (not a sibling box, which the original CSS assumed) — both independently forced the same 420px width, and the parent's own horizontal padding left less room than the child demanded, so the child overflowed the parent's right edge. The child no longer sets its own width/background/shape; the parent is now the single real card box, with uniform rounded corners. Reported as #5.
 
 ## [1.3.1] — 2026-07-18
 
