@@ -64,6 +64,25 @@ Open Theme Studio from `Ctrl+K` or visit `/desk/theme-studio` as a System Manage
 |:---:|:---:|
 | ![Workspace and dashboard controls part one](screenshots/theme-studio/controls/06-workspace-dashboard-part-01.png) | ![Workspace and dashboard controls part two](screenshots/theme-studio/controls/06-workspace-dashboard-part-02.png) |
 
+#### Chart System
+
+The Chart System appears in **Workspace & dashboard** and uses one server-supplied schema for both validation and controls. It has two editing layers:
+
+- **Global chart defaults** apply to every supported chart unless that chart owns an override.
+- **Individual charts** lists only sources the current System Manager can read. Selecting an entry opens its focused inspector; clicking a chart in the read-only live Workspace preview opens the same inspector and can expose stable per-series controls.
+
+Supported families are Dashboard Chart, Dashboard Graph, Query/Script Report chart, and Number Card sparkline. Full charts expose chart structure, surface, default and individual series, axes, legend, labels, tooltip, animation, interaction, and the allowlisted advanced options (`truncateLegends`, `maxLegendPoints`, and `maxSlices`). Sparklines show only controls their runtime adapter supports.
+
+Each field includes an ownership label:
+
+- **system** — the built-in default is active;
+- **global** — the Theme Studio global value is active;
+- **individual** — the selected chart or series explicitly owns the value.
+
+Use the reset button beside a property to remove only that explicit value. **Reset this chart** removes all overrides for the selected chart and falls back to global values. **Reset global charts** removes global ownership and falls back to built-in system defaults; individual overrides remain intact. Equal-valued overrides remain explicitly owned until reset.
+
+Chart editing changes presentation and supported constructor options only. It does not edit report queries, chart datasets, filters, callbacks, credentials, or business records. Dynamic or unavailable sources remain inert until a compatible chart is present in a permitted runtime preview. Invalid values stay out of the canonical draft and block Save Draft/Publish until corrected.
+
 ### Smart Home and features
 
 ![Smart Home and feature controls](screenshots/theme-studio/controls/07-smart-home-features-part-01.png)
@@ -154,13 +173,14 @@ Click a highlighted preview element to open its focused settings card beside the
 
 ### Workspace (live, styling-only)
 
-In the live Workspace scene, click a surface to open the existing Theme Studio contextual inspector. The inspector classifies selections into four groups:
+In the live Workspace scene, click a surface to open the existing Theme Studio contextual inspector. Chart hit testing has priority over generic cards, and the inspector classifies selections into five groups:
 
 - Workspace background
 - Card/widget (including number cards)
 - Text/link
 - Button/shortcut
+- Supported chart or Number Card sparkline
 
 For a **Workspace shortcut**, the inspector exposes brand colour, shortcut style, card background, radius, and shadow. For a **Number card**, it exposes number-card colour, text, muted text, border, radius, and shadow. Generic cards and buttons retain their standard contextual controls, so these subtypes do not add extra inspector groups.
 
-These controls are limited to styling: background, card, text, border, radius, shadow, and button colours are available only where appropriate for the selected group. Workspace content, links, buttons, forms, routes, and actions remain read-only and cannot be activated. Scrolling and the Workspace picker continue to work.
+Generic Workspace controls remain styling-only. Supported charts additionally expose compatible visual, structural, and behavioral chart properties, but their data and actions remain read-only. Workspace content, links, buttons, forms, routes, and actions cannot be activated. Scrolling and the Workspace picker continue to work.
