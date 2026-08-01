@@ -78,6 +78,13 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("_mix_hex", js)
         self.assertIn("this._apply_draft_to_desk(visual)", js)
 
+    def test_editor_typography_stays_readable(self):
+        css = CSS.read_text(encoding="utf-8")
+        self.assertIn("READABLE TYPOGRAPHY SCALE", css)
+        self.assertIn(".sts-field > label { font-size: 13px; }", css)
+        self.assertIn(".sts-field textarea { font-size: 13px;", css)
+        self.assertIn(".sts-table-row { font-size: 11px; }", css)
+
     def test_published_navigation_tokens_reach_actual_desk_selectors(self):
         engine = ENGINE.read_text(encoding="utf-8")
         desk_css = DESK_CSS.read_text(encoding="utf-8")
@@ -95,7 +102,7 @@ class ThemeStudioTest(unittest.TestCase):
 
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=6", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=7", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=6", hooks)

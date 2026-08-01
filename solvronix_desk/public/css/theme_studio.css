@@ -17,7 +17,7 @@
 	--muted: #70798b;
 	--line: #e3e5e8;
 	display: grid;
-	grid-template-columns: 380px minmax(0, 1fr);
+	grid-template-columns: 420px minmax(0, 1fr);
 	min-height: calc(100vh - 108px);
 	background: #f2f0eb;
 	color: var(--ink);
@@ -316,6 +316,93 @@
 .sts-login-card button { width: 100%; margin-top: 4px; }
 .sts-login-card small { display: block; margin-top: 14px; color: var(--studio-muted); font-size: 6px; text-align: center; }
 
+/* ── READABLE TYPOGRAPHY SCALE ──────────────────────────────────────────────
+   Keep the editor comfortably legible at 100% browser zoom. The preview stays
+   proportionally compact, but no longer relies on 6–9px interface text. */
+.st-theme-studio { font-size: 14px; line-height: 1.5; }
+.sts-eyebrow { font-size: 11px; }
+.sts-intro { font-size: 14px; }
+.sts-label,
+.sts-color-row > label,
+.sts-range-row label,
+.sts-field > label { font-size: 13px; }
+.sts-preset { height: 40px; font-size: 12px; }
+.sts-section-title { font-size: 13px; }
+.sts-section-title span { font-size: 14px; }
+.sts-hex,
+.sts-range-row output { font-size: 12px; }
+.sts-segments button { height: 34px; font-size: 12px; }
+.sts-profile-select-row select,
+.sts-field select,
+.sts-field input[type="text"] { height: 38px; font-size: 13px; }
+.sts-profile-select-row button,
+.sts-profile-actions button,
+.sts-attach-field > div > button,
+.sts-code-field > button { font-size: 12px; }
+.sts-profile-actions button { height: 32px; }
+.sts-control-search input { height: 40px; font-size: 13px; }
+.sts-control-search span { top: 9px; }
+.sts-tabs button { min-height: 42px; height: auto; padding-block: 6px; font-size: 11px; }
+.sts-tabs button b { font-size: 12px; }
+.sts-section-title > button { font-size: 11px; }
+.sts-section-copy { font-size: 12px; line-height: 1.6; }
+.sts-field textarea { font-size: 13px; line-height: 1.55; }
+.sts-code-field textarea { font-size: 12px; }
+.sts-check { min-height: 42px; font-size: 13px; }
+.sts-operation-grid > button span { font-size: 11px; }
+.sts-wcag-card strong { font-size: 12px; }
+.sts-wcag-card p { font-size: 11px; }
+.sts-compare-btn,
+.sts-draft-btn { height: 34px; font-size: 11px; }
+.sts-compare-label { font-size: 10px; }
+.sts-version-list small,
+.sts-assignment-reference { font-size: 12px; }
+.sts-assignment-reference code { font-size: 11px; }
+.sts-scene-switch button { height: 32px; font-size: 11px; }
+.sts-toolbar-note { font-size: 12px; }
+
+/* Preview copy remains smaller than the editor chrome to preserve the device
+   simulation, while reaching a readable minimum size for labels and values. */
+.sts-browser-bar > div { font-size: 10px; }
+.sts-preview-sidebar nav small { font-size: 10px; }
+.sts-preview-sidebar nav a { font-size: 11px; }
+.sts-preview-collapse { font-size: 10px; }
+.sts-toolbar-left { font-size: 10px; }
+.sts-search { font-size: 11px; }
+.sts-search kbd { font-size: 10px; }
+.sts-nav-actions button,
+.sts-avatar { font-size: 10px; }
+.sts-preview-heading small { font-size: 10px; }
+.sts-preview-heading h3 { font-size: 22px; }
+.sts-preview-heading button { font-size: 11px; }
+.sts-drop-hint { font-size: 10px; }
+.sts-metrics small,
+.sts-metrics em { font-size: 10px; }
+.sts-metrics strong { font-size: 17px; }
+.sts-card-head { font-size: 12px; }
+.sts-card-head small { font-size: 10px; }
+.sts-card-head button,
+.sts-card-head a { font-size: 10px; }
+.sts-chart-labels { font-size: 10px; }
+.sts-activity-row { font-size: 11px; }
+.sts-activity-row small { font-size: 10px; }
+.sts-quick-actions > div:last-child button { height: 32px; font-size: 10px; }
+.sts-form-section-title { font-size: 12px; }
+.sts-form-grid label { font-size: 11px; }
+.sts-form-grid input,
+.sts-form-grid select,
+.sts-form-grid textarea,
+.sts-login-card input { font-size: 12px; }
+.sts-form-actions button,
+.sts-login-card button { font-size: 11px; }
+.sts-table-head,
+.sts-table-row { font-size: 11px; }
+.sts-table-head { font-size: 10px; }
+.sts-table-row i { font-size: 10px; }
+.sts-login-card > p { font-size: 11px; line-height: 1.5; }
+.sts-login-card label { font-size: 11px; }
+.sts-login-card small { font-size: 10px; }
+
 /* ── PREVIEW DEVICE ADAPTATION ─────────────────────────────────────────────── */
 .sts-preview-frame[data-device="mobile"] .sts-preview-sidebar,
 .sts-preview-frame[data-device="mobile"] .sts-preview-sidebar.is-expanded { width: 48px; min-width: 48px; padding-inline: 7px; }
@@ -335,7 +422,7 @@
 
 /* ── EDITOR RESPONSIVENESS / REDUCED MOTION ───────────────────────────────── */
 @media (max-width: 1050px) {
-	.st-theme-studio { grid-template-columns: 330px minmax(0, 1fr); }
+	.st-theme-studio { grid-template-columns: 360px minmax(0, 1fr); }
 	.sts-controls { padding-inline: 18px; }
 	.sts-stage { place-items: start; }
 }
