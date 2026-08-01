@@ -33,6 +33,39 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn('"chart_registry": chart_registry.list_chart_sources(', source)
         self.assertIn('published.get("chart_overrides", {}).keys()', source)
 
+    def test_every_chart_config_persistence_path_uses_strict_validation(self):
+        source = THEME_API.read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        functions = {
+            node.name: ast.get_source_segment(source, node) or ""
+            for node in tree.body
+            if isinstance(node, ast.FunctionDef)
+        }
+
+        self.assertIn("strict_charts=True", functions["validate_persisted_config"])
+        for name in (
+            "save_theme_draft",
+            "publish_theme_config",
+            "manage_theme_profile",
+            "restore_theme_version",
+        ):
+            self.assertIn("validate_persisted_config", functions[name], name)
+        self.assertIn("validate_referenced_profiles", functions["save_theme_assignments"])
+        self.assertIn("validate_referenced_profiles", functions["save_theme_schedule"])
+
+    def test_legacy_sync_projects_canonical_chart_colors(self):
+        source = THEME_API.read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        function = next(
+            node
+            for node in tree.body
+            if isinstance(node, ast.FunctionDef) and node.name == "sync_legacy_fields"
+        )
+        segment = ast.get_source_segment(source, function) or ""
+
+        self.assertIn('"chart_background"', segment)
+        self.assertIn('"chart_palette"', segment)
+
     def test_workspace_api_failures_expose_non_sensitive_unavailable_flag(self):
         source = API.read_text(encoding="utf-8")
         tree = ast.parse(source)
