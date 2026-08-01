@@ -36,7 +36,7 @@ def add_boot_data(bootinfo):
             "company_name": config.get("app_title") or s.company_name or "",
             "logo":         config.get("company_logo") or s.logo or "",
             "favicon":      config.get("favicon") or s.favicon or "",
-            "tagline":      s.tagline      or "",
+            "tagline":      config.get("tagline") or "",
         }
         bootinfo.st_theme_config = config
         bootinfo.st_theme_profiles = [
@@ -57,7 +57,10 @@ def add_boot_data(bootinfo):
         # becomes invalid after reinstall and the setup guide shows again.
         creation = frappe.db.get_single_value("Theme Settings", "creation") or ""
         bootinfo.st_install_key = str(creation)[:10].replace("-", "")
-        bootinfo.enable_command_palette = int(s.enable_command_palette or 1)
+        # Feature flags must preserve an explicit zero; ``or 1`` would silently
+        # re-enable a feature that an administrator switched off in Theme Studio.
+        bootinfo.enable_command_palette = int(getattr(s, "enable_command_palette", 1))
+        bootinfo.enable_smart_home = int(getattr(s, "enable_smart_home", 1))
     except Exception:
         # Fail soft: Desk must remain usable even if settings are mid-migration.
         frappe.log_error("solvronix_desk: boot data failed")
@@ -73,4 +76,6 @@ def add_boot_data(bootinfo):
         bootinfo.st_theme_profiles = []
         bootinfo.st_theme_flags = {"enabled": 1, "allow_user_theme": 0, "locked": 1}
         bootinfo.st_theme_schedule = {"enabled": False}
+        bootinfo.enable_command_palette = 1
+        bootinfo.enable_smart_home = 1
         bootinfo.st_active_theme_profile = ""

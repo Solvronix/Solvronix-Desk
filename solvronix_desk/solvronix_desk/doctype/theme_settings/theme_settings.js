@@ -131,7 +131,26 @@ function st_render_presets(frm) {
 /* ── 4. THEME SETTINGS FORM LIFECYCLE ─────────────────────────────────────── */
 frappe.ui.form.on("Theme Settings", {
 	refresh(frm) {
-		frm.add_custom_button(__("Open Theme Studio"), function () {
+		/* Theme Studio is the canonical settings UI. A one-session bypass is set
+		   only by its explicit "Open raw Theme Settings" maintenance action. */
+		let allow_raw = !!frm.__st_allow_raw_settings;
+		try {
+			allow_raw = allow_raw || sessionStorage.getItem("st_allow_raw_theme_settings") === "1";
+			sessionStorage.removeItem("st_allow_raw_theme_settings");
+		} catch (e) {}
+		if (!allow_raw) {
+			frappe.set_route("theme-studio");
+			return;
+		}
+		frm.__st_allow_raw_settings = true;
+
+		if (frm.dashboard && typeof frm.dashboard.set_headline_alert === "function") {
+			frm.dashboard.set_headline_alert(
+				__("Advanced storage view. Use Theme Studio for normal theme and feature configuration."),
+				"blue"
+			);
+		}
+		frm.add_custom_button(__("Back to Theme Studio"), function () {
 			frappe.set_route("theme-studio");
 		}, __("Actions"));
 

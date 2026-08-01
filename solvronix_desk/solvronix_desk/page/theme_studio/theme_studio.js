@@ -86,11 +86,20 @@ solvronix_desk.theme_studio_sections = [
 		],
 	},
 	{
-		id: "branding", title: "Login & branding", index: "07",
+		id: "features", title: "Smart Home & features", index: "07",
+		description: "Choose the optional Desk experiences available across the site.",
+		controls: [
+			["enable_smart_home", "Enable Smart Home as the default Desk page", "check"],
+			["enable_command_palette", "Enable Command Palette (Ctrl+K)", "check"],
+		],
+	},
+	{
+		id: "branding", title: "Login & branding", index: "08",
 		description: "Company identity, login artwork, messages, favicon, footer, and platform credit.",
 		controls: [
-			["company_logo", "Company logo URL", "text"], ["favicon", "Favicon URL", "text"],
-			["app_title", "App title", "text"], ["login_bg_image", "Login background image URL", "text"],
+			["company_logo", "Company logo", "attach-image"], ["favicon", "Favicon", "attach-image"],
+			["app_title", "Company / app name", "text"], ["tagline", "Tagline", "text"],
+			["login_bg_image", "Login background image", "attach-image"],
 			["login_background", "Login background", "color"], ["login_gradient_to", "Gradient end", "color"],
 			["login_gradient_angle", "Gradient angle", "range", 0, 360, "°"],
 			["login_card_opacity", "Login card opacity", "range", 55, 100, "%"],
@@ -99,7 +108,7 @@ solvronix_desk.theme_studio_sections = [
 		],
 	},
 	{
-		id: "layout", title: "Layout", index: "08",
+		id: "layout", title: "Layout", index: "09",
 		description: "Page width, spacing, global shape, sticky regions, and compact forms.",
 		controls: [
 			["layout_mode", "Page layout", "select", ["Full Width", "Boxed"]],
@@ -113,7 +122,7 @@ solvronix_desk.theme_studio_sections = [
 		],
 	},
 	{
-		id: "accessibility", title: "Accessibility", index: "09",
+		id: "accessibility", title: "Accessibility", index: "10",
 		description: "WCAG checks, high contrast, large text, focus visibility, and colour-blind palettes.",
 		controls: [
 			["high_contrast", "High-contrast mode", "check"], ["large_text", "Large text mode", "check"],
@@ -123,7 +132,7 @@ solvronix_desk.theme_studio_sections = [
 		],
 	},
 	{
-		id: "advanced", title: "Developer options", index: "10",
+		id: "advanced", title: "Developer options", index: "11",
 		description: "Power tools for trusted administrators. Invalid rules can affect Desk functionality.",
 		controls: [
 			["custom_css", "Custom CSS", "code-css"], ["enable_custom_js", "Enable custom JavaScript", "check"],
@@ -133,7 +142,7 @@ solvronix_desk.theme_studio_sections = [
 		],
 	},
 	{
-		id: "operations", title: "Profiles & deployment", index: "11",
+		id: "operations", title: "Profiles & deployment", index: "12",
 		description: "Presets, drafts, assignments, versions, import/export, scheduling, and cache controls.",
 		controls: [["operations", "Operations", "operations"]],
 	},
@@ -188,7 +197,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	load() {
 		var self = this;
 		this.page.set_primary_action(__("Publish theme"), function () { self.save(); }, "check");
-		this.page.add_menu_item(__("Open Theme Settings"), function () {
+		this.page.add_menu_item(__("Open raw Theme Settings"), function () {
+			try { sessionStorage.setItem("st_allow_raw_theme_settings", "1"); } catch (e) {}
 			frappe.set_route("Form", "Theme Settings");
 		});
 		this.page.add_menu_item(__("Reset to saved"), function () { self.reset(); });
@@ -360,6 +370,12 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		if (type === "text") {
 			return '<div class="sts-field"><label for="sts-' + key + '">' + label + '</label><input id="sts-' + key +
 				'" type="text" data-setting="' + key + '" value="' + this._esc(this.config[key] || "") + '"></div>';
+		}
+		if (type === "attach-image") {
+			return '<div class="sts-field sts-attach-field"><label for="sts-' + key + '">' + label + '</label><div>' +
+				'<input id="sts-' + key + '" type="text" data-setting="' + key + '" value="' +
+				this._esc(this.config[key] || "") + '" placeholder="/files/..."><button type="button" data-upload-setting="' +
+				key + '" data-upload-label="' + this._esc(label) + '">' + __("Choose file") + '</button></div></div>';
 		}
 		if (type === "textarea") {
 			return '<div class="sts-field"><label for="sts-' + key + '">' + label + '</label><textarea id="sts-' + key +
@@ -588,6 +604,23 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			self.config[key] = "";
 			self.$root.find('[data-hex="' + key + '"]').val("");
 			self.changed();
+		});
+		/* Frappe's Attach Image prompt provides upload, library, and URL support
+		   without coupling Theme Studio to the FileUploader implementation. */
+		this.$root.on("click", "[data-upload-setting]", function () {
+			var key = $(this).data("upload-setting");
+			var label = $(this).data("upload-label") || __("Choose image");
+			frappe.prompt(
+				{ fieldname: "file_url", fieldtype: "Attach Image", label: label, default: self.config[key] || "" },
+				function (values) {
+					self._checkpoint();
+					self.config[key] = values.file_url || "";
+					self.$root.find('#sts-' + key).val(self.config[key]);
+					self.changed();
+				},
+				label,
+				__("Use file")
+			);
 		});
 		this.$root.on("click", ".sts-preset", function () {
 			self._checkpoint();

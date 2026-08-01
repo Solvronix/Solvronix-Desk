@@ -95,10 +95,10 @@ class ThemeStudioTest(unittest.TestCase):
 
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=5", hooks)
-        self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=8", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=6", hooks)
+        self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
-        self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=5", hooks)
+        self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=6", hooks)
         self.assertIn('"on_update": "solvronix_desk.events.theme_settings_on_update"', hooks)
 
     def test_complete_studio_feature_surfaces_exist(self):
@@ -108,7 +108,7 @@ class ThemeStudioTest(unittest.TestCase):
         for token in (
             "Main colours", "Navbar & sidebar", "Buttons & fields", "Typography",
             "Cards, lists & tables", "Workspace & dashboard", "Login & branding",
-            "Layout", "Accessibility", "Developer options", "Profiles & deployment",
+            "Layout", "Smart Home & features", "Accessibility", "Developer options", "Profiles & deployment",
         ):
             self.assertIn(token, js)
         for endpoint in (
@@ -135,6 +135,26 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("if (config && Object.keys(config).length)", runtime)
         self.assertIn("runtime.preview", runtime)
         self.assertIn("if (!Array.isArray(route)) route = [];", runtime)
+
+    def test_theme_settings_are_unified_into_studio(self):
+        js = PAGE.read_text(encoding="utf-8")
+        engine = ENGINE.read_text(encoding="utf-8")
+        api = THEME_API.read_text(encoding="utf-8")
+        settings_js = (
+            ROOT / "solvronix_desk" / "solvronix_desk" / "doctype" /
+            "theme_settings" / "theme_settings.js"
+        ).read_text(encoding="utf-8")
+        desk_js = (ROOT / "solvronix_desk" / "public" / "js" / "solvronix_desk.js").read_text(encoding="utf-8")
+
+        for key in ("tagline", "enable_command_palette", "enable_smart_home"):
+            self.assertIn(f'"{key}"', js)
+            self.assertIn(f'"{key}"', engine)
+            self.assertIn(f'config["{key}"]', api)
+        self.assertIn('"attach-image"', js)
+        self.assertIn("st_allow_raw_theme_settings", js)
+        self.assertIn("st_allow_raw_theme_settings", settings_js)
+        self.assertIn('frappe.set_route("theme-studio")', settings_js)
+        self.assertIn('/desk/theme-studio', desk_js)
 
 
 if __name__ == "__main__":

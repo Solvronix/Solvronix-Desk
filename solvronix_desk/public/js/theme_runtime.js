@@ -80,6 +80,19 @@
       String(config.empty_state_style || "Illustrated").toLowerCase()
     );
 
+    /* Feature controls share the same runtime channel as visual preferences so
+       publishing Theme Studio updates every open Desk session immediately. */
+    var commandPaletteEnabled = config.enable_command_palette !== false;
+    var smartHomeEnabled = config.enable_smart_home !== false;
+    if (window.frappe && frappe.boot) {
+      frappe.boot.enable_command_palette = commandPaletteEnabled ? 1 : 0;
+      frappe.boot.enable_smart_home = smartHomeEnabled ? 1 : 0;
+    }
+    var searchTrigger = document.getElementById("st-tb-search");
+    var smartHomeLink = document.getElementById("st-sh-link");
+    if (searchTrigger) searchTrigger.hidden = !commandPaletteEnabled;
+    if (smartHomeLink) smartHomeLink.hidden = !smartHomeEnabled;
+
     var sidebar = document.querySelector(".body-sidebar-container");
     if (sidebar && sidebar.dataset.stThemeMode !== config.sidebar_mode) {
       sidebar.classList.toggle("expanded", config.sidebar_mode === "Expanded");

@@ -106,8 +106,12 @@ DEFAULT_CONFIG = {
     "login_description": "Sign in to continue to your workspace.",
     "favicon": "",
     "app_title": "",
+    "tagline": "",
     "footer_text": "",
     "hide_powered": False,
+    # Optional Desk features (stored in the same published Studio payload)
+    "enable_command_palette": True,
+    "enable_smart_home": True,
     # Layout
     "layout_mode": "Full Width",
     "page_margin": 24,
@@ -156,7 +160,8 @@ OPTIONAL_COLOR_FIELDS = {
 BOOL_FIELDS = {
     "sidebar_auto_collapse", "sticky_navbar", "sticky_form_toolbar",
     "compact_forms", "hide_powered", "high_contrast", "large_text",
-    "enforce_wcag", "enable_custom_js",
+    "enforce_wcag", "enable_custom_js", "enable_command_palette",
+    "enable_smart_home",
 }
 INT_RANGES = {
     "sidebar_width": (200, 360),
@@ -204,6 +209,7 @@ TEXT_LIMITS = {
     "login_description": 500,
     "favicon": 500,
     "app_title": 160,
+    "tagline": 240,
     "footer_text": 300,
     "custom_css": 50000,
     "custom_js": 30000,
@@ -542,6 +548,11 @@ def legacy_config(settings):
     config["company_logo"] = clean_url(getattr(settings, "logo", ""))
     config["favicon"] = clean_url(getattr(settings, "favicon", ""))
     config["app_title"] = str(getattr(settings, "company_name", "") or "")
+    config["tagline"] = str(getattr(settings, "tagline", "") or "")
+    config["enable_command_palette"] = bool_value(
+        getattr(settings, "enable_command_palette", 1)
+    )
+    config["enable_smart_home"] = bool_value(getattr(settings, "enable_smart_home", 1))
     return sanitize_config(config, validate_contrast=False)
 
 

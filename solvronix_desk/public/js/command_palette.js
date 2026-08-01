@@ -25,6 +25,7 @@
       var self = this;
       document.addEventListener("keydown", function (e) {
         if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+          if (frappe.boot && frappe.boot.enable_command_palette === 0) return;
           e.preventDefault();
           e.stopImmediatePropagation();
           self.overlay ? self.close() : self.open();
@@ -60,6 +61,8 @@
 
       // ── DocTypes (all readable, no slice cap) ─────────────────────────────
       can_read.forEach(function (dt) {
+        // Theme Studio is the canonical UI; keep the storage DocType out of search.
+        if (dt === "Theme Settings") return;
         var creatable = can_create.indexOf(dt) !== -1;
         items.push({
           label:    dt,
@@ -98,6 +101,7 @@
 
     /* ── 3. OPEN / CLOSE LIFECYCLE ────────────────────────────────────────── */
     open: function () {
+      if (frappe.boot && frappe.boot.enable_command_palette === 0) return;
       if (this.overlay) return;
       this._rebuild_if_needed();
       var self = this;
@@ -166,11 +170,9 @@
         { label: __("New Purchase Order"), sub: __("Create document"), type: "create", action: function () { frappe.new_doc("Purchase Order"); } },
         { label: __("New Customer"),       sub: __("Create document"), type: "create", action: function () { frappe.new_doc("Customer"); } },
         { label: __("Theme Studio"),       sub: __("Visual theme editor"), type: "action", action: function () { frappe.set_route("theme-studio"); } },
-        { label: __("Theme Settings"),     sub: "Solvronix Desk",      type: "action", action: function () { frappe.set_route("Form", "Theme Settings"); } },
         { label: __("Home"),               sub: __("Workspace"),        type: "workspace", action: function () { frappe.set_route(""); } },
       ] : [
         { label: __("Theme Studio"),       sub: __("Visual theme editor"), type: "action", action: function () { frappe.set_route("theme-studio"); } },
-        { label: __("Theme Settings"),     sub: "Solvronix Desk",      type: "action", action: function () { frappe.set_route("Form", "Theme Settings"); } },
         { label: __("Home"),               sub: __("Workspace"),        type: "workspace", action: function () { frappe.set_route(""); } },
       ];
       var rpt_count = Object.keys((frappe.boot && frappe.boot.allowed_reports) || {}).length;

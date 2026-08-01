@@ -98,12 +98,15 @@ def sync_legacy_fields(settings, config):
         else "Large" if config["base_font_px"] >= 16
         else "Default"
     )
-    if config["company_logo"]:
-        settings.logo = config["company_logo"]
-    if config["favicon"]:
-        settings.favicon = config["favicon"]
-    if config["app_title"]:
-        settings.company_name = config["app_title"]
+    # Theme Studio is canonical, so empty values must also clear legacy fields.
+    settings.logo = config["company_logo"]
+    settings.favicon = config["favicon"]
+    settings.company_name = config["app_title"]
+    settings.tagline = config["tagline"]
+    settings.enable_command_palette = int(config["enable_command_palette"])
+    settings.enable_smart_home = int(config["enable_smart_home"])
+    # Keep the deprecated field coherent for older clients that still read it.
+    settings.dark_mode_default = int(config["preferred_mode"] == "Dark")
 
 
 # ── 3. ATOMIC PUBLISH ──────────────────────────────────────────────────────────

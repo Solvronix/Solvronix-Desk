@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- Theme Studio is now the single user-facing configuration experience for visual themes, branding, Smart Home, and Command Palette settings
+- Opening Theme Settings redirects to Theme Studio; administrators retain an explicit raw-settings maintenance action
+- Branding image controls in Theme Studio now use Frappe attachment fields instead of requiring manually entered URLs
+
 ## [2.0.0] — 2026-07-29 — Complete Theme Studio
 
 ### Added

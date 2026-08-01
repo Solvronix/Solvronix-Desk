@@ -506,7 +506,7 @@
         stepHtml(step2done, "Choose a brand color") +
         stepHtml(step3done, "Upload your logo") +
         '<div class="st-sg-actions">' +
-          '<a href="/desk/theme-settings" class="st-sg-open-btn">Open Theme Settings &rarr;</a>' +
+          '<a href="/desk/theme-studio" class="st-sg-open-btn">Open Theme Studio &rarr;</a>' +
         "</div>" +
       "</div>";
 
