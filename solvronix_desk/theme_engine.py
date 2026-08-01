@@ -899,7 +899,12 @@ def render_css(config, enabled=True):
         if config["high_contrast"] else ""
     )
     large_text = "html{font-size:max(var(--st-base-font),16px)!important}" if config["large_text"] else ""
-    hide_powered = ".for-login .powered-by,.page-card .powered-by{display:none!important}" if config["hide_powered"] else ""
+    hide_powered = (
+        ".for-login .powered-by,.page-card .powered-by{display:none!important}"
+        ".for-login .page-card-actions::after,.for-forgot .page-card-actions::after"
+        "{content:none!important;display:none!important}"
+        if config["hide_powered"] else ""
+    )
     light_mode_override = ""
     if has_dark_surfaces:
         light_mode_override = f"""

@@ -24,6 +24,20 @@
   object-fit: contain;
 }
 
+.st-login-company-fallback {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 18px;
+  border-radius: 14px;
+  background: var(--st-brand);
+  color: #FFFFFF;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 .st-login-custom-footer {
   position: fixed;
   z-index: 5;
@@ -382,6 +396,14 @@ body:has(.for-forgot) .page-header-wrapper {
   margin-top: 22px;
   letter-spacing: 0.04em;
   opacity: 0.65;
+}
+
+/* Generated content cannot be removed with querySelector; the public runtime
+   toggles this root class from Theme Studio's Hide powered setting. */
+.st-hide-powered .for-login .page-card-actions::after,
+.st-hide-powered .for-forgot .page-card-actions::after {
+  content: none !important;
+  display: none !important;
 }
 
 /* ── DARK MODE ───────────────────────────────────────────────────────────── */

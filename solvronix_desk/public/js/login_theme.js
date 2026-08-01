@@ -22,6 +22,54 @@
     }
   }
 
+  /* Frappe versions disagree on whether the card width includes padding.
+     Inline-important geometry keeps the visual head and form body identical. */
+  function normalizeCardGeometry() {
+    var width = Math.min(420, Math.floor(window.innerWidth * 0.92)) + 'px';
+    document.querySelectorAll(
+      '.for-login .page-card-head, .for-login .login-content.page-card, ' +
+      '.for-forgot .page-card-head, .for-forgot .login-content.page-card, ' +
+      '.for-signup .page-card-head, .for-signup .login-content.page-card'
+    ).forEach(function (element) {
+      element.style.setProperty('box-sizing', 'border-box', 'important');
+      element.style.setProperty('width', width, 'important');
+      element.style.setProperty('max-width', width, 'important');
+      element.style.setProperty('margin-left', 'auto', 'important');
+      element.style.setProperty('margin-right', 'auto', 'important');
+    });
+  }
+
+  /* Replace Frappe's generic cube with the configured company identity. A
+     clean initials mark is used only when the saved File URL cannot load. */
+  function installCompanyLogo(head, branding) {
+    head.querySelectorAll('.app-logo, .st-login-company-logo, .st-login-company-fallback')
+      .forEach(function (element) { element.remove(); });
+    var initials = String(branding.company_name || 'Company').trim().split(/\s+/)
+      .slice(0, 2).map(function (word) { return word.charAt(0); }).join('').toUpperCase();
+    function fallback() {
+      var mark = document.createElement('div');
+      mark.className = 'st-login-company-fallback';
+      mark.textContent = initials || 'C';
+      head.insertBefore(mark, head.firstChild);
+    }
+    if (!branding.logo) {
+      fallback();
+      return;
+    }
+    var image = document.createElement('img');
+    image.className = 'st-login-company-logo';
+    image.src = branding.logo;
+    image.alt = branding.company_name || '';
+    image.addEventListener('error', function () {
+      image.remove();
+      fallback();
+    }, { once: true });
+    head.insertBefore(image, head.firstChild);
+  }
+
+  normalizeCardGeometry();
+  window.addEventListener('resize', normalizeCardGeometry);
+
   /* ── 1. LIVE THEME TOKENS ─────────────────────────────────────────────────
      Replace static fallbacks with the resolved site-wide login CSS. */
   fetch('/api/method/solvronix_desk.api.get_theme_css')
@@ -51,16 +99,7 @@
       }
       var head = document.querySelector('.for-login .page-card-head, .for-login .page-card .page-card-head');
       if (head) {
-        if (branding.logo && !head.querySelector('.st-login-company-logo')) {
-          var image = document.createElement('img');
-          image.className = 'st-login-company-logo';
-          image.src = branding.logo;
-          image.alt = branding.company_name || '';
-          /* Invalid or moved File URLs should not leave a broken-image label
-             above the app logo; Theme Studio preview follows the same rule. */
-          image.addEventListener('error', function () { image.remove(); });
-          head.insertBefore(image, head.firstChild);
-        }
+        installCompanyLogo(head, branding);
         var title = head.querySelector('h4, h3, h2');
         if (title && branding.login_heading) title.textContent = branding.login_heading;
         var description = head.querySelector('p, .text-muted');
@@ -73,10 +112,14 @@
         document.body.appendChild(footer);
       }
       if (branding.hide_powered) {
+		document.documentElement.classList.add('st-hide-powered');
         document.querySelectorAll('.powered-by, .page-card .powered-by').forEach(function (element) {
           element.remove();
         });
+	  } else {
+		document.documentElement.classList.remove('st-hide-powered');
       }
+	  normalizeCardGeometry();
     })
     .catch(function () {});
 

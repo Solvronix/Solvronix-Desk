@@ -11,6 +11,7 @@
 
 ### Fixed
 - Public login now applies Theme Studio's Light/Dark/Auto mode and uses equal border-box sizing for the card head and form body
+- Hide-powered now removes generated footer content; login branding replaces Frappe's cube and enforces symmetric card geometry across Frappe versions
 
 ## [2.0.0] — 2026-07-29 — Complete Theme Studio
 
