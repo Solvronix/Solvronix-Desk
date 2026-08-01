@@ -63,7 +63,7 @@ function stApplyDark(dark) {
     html.setAttribute("data-theme", "dark");
     html.style.backgroundColor = "#0F1117";
   } else {
-    html.removeAttribute("data-theme");
+    html.setAttribute("data-theme", "light");
     html.style.backgroundColor = "";
   }
 }
@@ -75,6 +75,7 @@ function stSetThemeMode(mode) {
     /* Keep the legacy key coherent for any old cached scripts */
     localStorage.setItem("st_dark_mode", stResolveDark(mode) ? "1" : "0");
   } catch (e) {}
+  document.documentElement.setAttribute("data-theme-mode", mode);
   stApplyDark(stResolveDark(mode));
   stUpdateToggleIcon();
 

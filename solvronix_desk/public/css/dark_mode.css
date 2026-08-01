@@ -86,7 +86,25 @@ html[data-theme="dark"] .body-sidebar-container.expanded .body-sidebar,
 html[data-theme="dark"] .body-sidebar-container .body-sidebar-placeholder {
   background: var(--st-sidebar-bg) !important;
   background-color: var(--st-sidebar-bg) !important;
-  border-right-color: rgba(255,255,255,0.06) !important;
+  border-right-color: var(--st-sidebar-border, rgba(255,255,255,0.06)) !important;
+}
+
+html[data-theme="dark"] .st-company-name,
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item .item-anchor {
+  color: var(--st-sidebar-text, rgba(255,255,255,0.82)) !important;
+}
+
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover {
+  background: var(--st-sidebar-hover, rgba(255,255,255,0.1)) !important;
+  color: var(--st-sidebar-text, #fff) !important;
+}
+
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item:not(.active-sidebar) .sidebar-item-icon,
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item:not(.active-sidebar) .sidebar-item-icon svg,
+html[data-theme="dark"] .body-sidebar .standard-sidebar-item:not(.active-sidebar) .sidebar-item-icon svg use {
+  color: var(--st-sidebar-text-muted, rgba(255,255,255,0.7)) !important;
+  stroke: var(--st-sidebar-text-muted, rgba(255,255,255,0.7)) !important;
+  fill: var(--st-sidebar-text-muted, rgba(255,255,255,0.7)) !important;
 }
 
 /* ── Form & Card Surfaces ────────────────────────────────────── */
@@ -993,9 +1011,9 @@ html:not([data-theme="dark"]) .body-sidebar-container > .body-sidebar,
 html:not([data-theme="dark"]) .body-sidebar-container.expanded .body-sidebar,
 html:not([data-theme="dark"]) .body-sidebar-container .body-sidebar-placeholder,
 html:not([data-theme="dark"]) .desk-sidebar {
-  background: var(--fg-color, #fff) !important;
-  background-color: var(--fg-color, #fff) !important;
-  border-right: 1px solid rgba(0,0,0,0.08) !important;
+  background: var(--st-sidebar-bg, var(--fg-color, #fff)) !important;
+  background-color: var(--st-sidebar-bg, var(--fg-color, #fff)) !important;
+  border-right: 1px solid var(--st-sidebar-border, rgba(0,0,0,0.08)) !important;
 }
 
 /* ── Company header border ───────────────────────────────────── */
@@ -1005,7 +1023,7 @@ html:not([data-theme="dark"]) #st-company-header {
 
 /* ── Company name → dark text ────────────────────────────────── */
 html:not([data-theme="dark"]) .st-company-name {
-  color: var(--text-color, #1A1A2E) !important;
+  color: var(--st-sidebar-text, var(--text-color, #1A1A2E)) !important;
 }
 
 /* ── Sidebar item links → dark text ─────────────────────────── */
@@ -1014,7 +1032,7 @@ html:not([data-theme="dark"]) .desk-sidebar .sidebar-item,
 html:not([data-theme="dark"]) .desk-sidebar .standard-sidebar-item,
 html:not([data-theme="dark"]) .desk-sidebar .sidebar-item a,
 html:not([data-theme="dark"]) .desk-sidebar .standard-sidebar-item a {
-  color: var(--text-color, #333) !important;
+  color: var(--st-sidebar-text, var(--text-color, #333)) !important;
 }
 
 /* ── Hover → light gray ──────────────────────────────────────── */
@@ -1022,8 +1040,8 @@ html:not([data-theme="dark"]) .body-sidebar .standard-sidebar-item:not(.active-s
 html:not([data-theme="dark"]) .body-sidebar .standard-sidebar-item:not(.active-sidebar):has(a:not(.section-break)):hover,
 html:not([data-theme="dark"]) .desk-sidebar .sidebar-item:hover,
 html:not([data-theme="dark"]) .desk-sidebar .standard-sidebar-item:hover {
-  background: rgba(0,0,0,0.05) !important;
-  color: var(--text-color, #1A1A2E) !important;
+  background: var(--st-sidebar-hover, rgba(0,0,0,0.05)) !important;
+  color: var(--st-sidebar-text, var(--text-color, #1A1A2E)) !important;
   transform: none !important;
 }
 
@@ -1036,9 +1054,9 @@ html:not([data-theme="dark"]) .body-sidebar .sidebar-item-icon .icon,
 html:not([data-theme="dark"]) .desk-sidebar .sidebar-item-icon,
 html:not([data-theme="dark"]) .desk-sidebar .standard-sidebar-item svg,
 html:not([data-theme="dark"]) .desk-sidebar .standard-sidebar-item .icon {
-  color: var(--text-muted, #6B7280) !important;
-  stroke: var(--text-muted, #6B7280) !important;
-  fill: var(--text-muted, #6B7280) !important;
+  color: var(--st-sidebar-text-muted, var(--text-muted, #6B7280)) !important;
+  stroke: var(--st-sidebar-text-muted, var(--text-muted, #6B7280)) !important;
+  fill: var(--st-sidebar-text-muted, var(--text-muted, #6B7280)) !important;
   opacity: 1 !important;
 }
 
@@ -1055,7 +1073,7 @@ html:not([data-theme="dark"]) .body-sidebar .section-break .sidebar-item-label,
 html:not([data-theme="dark"]) .desk-sidebar .sidebar-group-title,
 html:not([data-theme="dark"]) .desk-sidebar .sidebar-section-head,
 html:not([data-theme="dark"]) .desk-sidebar .standard-sidebar-section > .standard-sidebar-label {
-  color: rgba(0,0,0,0.40) !important;
+  color: var(--st-sidebar-text-muted, rgba(0,0,0,0.40)) !important;
 }
 
 /* ── Dividers ────────────────────────────────────────────────── */

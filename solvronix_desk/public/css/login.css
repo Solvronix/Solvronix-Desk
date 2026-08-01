@@ -16,6 +16,39 @@
   --st-card-bg:      #FFFFFF;
 }
 
+.st-login-company-logo {
+  display: block;
+  max-width: min(190px, 72%);
+  max-height: 72px;
+  margin: 0 auto 18px;
+  object-fit: contain;
+}
+
+.st-login-company-fallback {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 18px;
+  border-radius: 14px;
+  background: var(--st-brand);
+  color: #FFFFFF;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.st-login-custom-footer {
+  position: fixed;
+  z-index: 5;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: color-mix(in srgb, white 72%, transparent);
+  font-size: 12px;
+  text-align: center;
+}
+
 /* ── GRADIENT ANIMATION ─────────────────────────────────────────────────── */
 @keyframes st-login-gradient {
   0%   { background-position: 0% 50%; }
@@ -200,11 +233,12 @@ body:has(.for-forgot) .page-header-wrapper {
 .for-signup .page-card-head,
 .for-email-login .page-card-head,
 .for-login-with-email-link .page-card-head {
-  width: 420px !important;
-  max-width: 92vw !important;
-  background: var(--st-card-bg, #FFFFFF) !important;
-  border-radius: 16px 16px 0 0 !important;
-  padding: 40px 48px 20px !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 40px 0 20px !important;
   text-align: center !important;
   box-shadow: none !important;
   border: none !important;
@@ -243,12 +277,14 @@ body:has(.for-forgot) .page-header-wrapper {
 .for-login .page-card,
 .for-forgot .page-card,
 .for-signup .page-card {
+  box-sizing: border-box !important;
   flex: none !important;
   width: 420px !important;
   max-width: 92vw !important;
   min-height: auto !important;
-  border-radius: 0 0 16px 16px !important;
-  padding: 8px 48px 40px !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+  padding: 0 48px 40px !important;
   background: var(--st-card-bg, #FFFFFF) !important;
   box-shadow: 0 32px 80px rgba(0,0,0,0.35) !important;
   border: none !important;
@@ -363,6 +399,14 @@ body:has(.for-forgot) .page-header-wrapper {
   opacity: 0.65;
 }
 
+/* Generated content cannot be removed with querySelector; the public runtime
+   toggles this root class from Theme Studio's Hide powered setting. */
+.st-hide-powered .for-login .page-card-actions::after,
+.st-hide-powered .for-forgot .page-card-actions::after {
+  content: none !important;
+  display: none !important;
+}
+
 /* ── DARK MODE ───────────────────────────────────────────────────────────── */
 [data-theme="dark"] .for-login .page-card-head,
 [data-theme="dark"] .for-forgot .page-card-head {
@@ -390,7 +434,7 @@ body:has(.for-forgot) .page-header-wrapper {
   .for-login .page-card-head,
   .for-forgot .page-card-head,
   .for-signup .page-card-head {
-    padding: 32px 24px 16px !important;
+	padding: 32px 0 16px !important;
   }
   .for-login .login-content.page-card,
   .for-forgot .login-content.page-card,

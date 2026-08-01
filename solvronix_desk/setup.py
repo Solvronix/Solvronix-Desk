@@ -1,6 +1,8 @@
 import frappe
 
 
+# ── INSTALL / MIGRATION DEFAULTS ───────────────────────────────────────────────
+# The same idempotent seed path supports both fresh installs and later upgrades.
 def after_install():
     """Seed default values into Theme Settings after app install."""
     try:
@@ -15,10 +17,19 @@ def after_install():
             "default_theme_mode":     "Light",
             "base_font_size":         "Default",
             "default_density":        "Comfortable",
+            "corner_radius":          8,
+            "shadow_style":           "Soft",
+            "sidebar_width":          240,
+            "studio_layout":          '["metrics","chart","activity","quick_actions"]',
+            "theme_enabled":          1,
+            "allow_user_theme":       1,
+            "theme_lock":             0,
+            "preview_admin_only":     1,
         }
         for field, val in defaults.items():
             existing = frappe.db.get_single_value("Theme Settings", field)
-            if not existing:
+            # Only NULL means uninitialized; preserve deliberate false/blank choices.
+            if existing is None:
                 frappe.db.set_single_value("Theme Settings", field, val)
         frappe.db.commit()
         print("\n✅ Solvronix Desk installed!")

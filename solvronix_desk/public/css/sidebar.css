@@ -8,7 +8,7 @@
 
 /* Override Frappe's sidebar width variables */
 :root {
-  --sidebar-width: 240px;           /* expanded width */
+  --sidebar-width: var(--st-sidebar-width, 240px); /* expanded width */
   --sidebar-border-color: rgba(0,0,0,0.08);
   --sidebar-hover-color:  rgba(0,0,0,0.05);
   --sidebar-active-color: var(--st-sidebar-active);
@@ -71,7 +71,7 @@
 
 /* ── EXPANDED: overlay at 240px (set by :root --sidebar-width) ── */
 .body-sidebar-container.expanded .body-sidebar {
-  width: var(--sidebar-width) !important;
+  width: var(--st-sidebar-width, var(--sidebar-width)) !important;
 }
 
 /* ── BACKGROUND: white in light mode, brand-colored in dark mode ── */
@@ -126,7 +126,7 @@
 
 /* Placeholder that reserves layout space when sidebar is expanded */
 .body-sidebar-placeholder {
-  width: var(--sidebar-width) !important;
+  width: var(--st-sidebar-width, var(--sidebar-width)) !important;
   transition: width 0.25s ease !important;
 }
 
@@ -135,7 +135,7 @@
 .body-sidebar-container .body-sidebar .standard-sidebar-item .item-anchor,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item .item-anchor,
 .body-sidebar-container .body-sidebar .standard-sidebar-item.indent .item-anchor {
-  color: #374151 !important;
+  color: var(--st-sidebar-text, #374151) !important;
   border-radius: 8px !important;
   padding: 2px 4px !important;
 }
@@ -143,63 +143,63 @@
 .body-sidebar-container .body-sidebar .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover,
 .body-sidebar-container .body-sidebar .standard-sidebar-item:not(.active-sidebar):has(a:not(.section-break)):hover,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover {
-  background-color: rgba(0,0,0,0.05) !important;
-  color: #111827 !important;
+  background-color: var(--st-sidebar-hover, rgba(0,0,0,0.05)) !important;
+  color: var(--st-sidebar-hover-text, var(--st-sidebar-text, #111827)) !important;
   border-radius: 8px !important;
   text-decoration: none !important;
 }
 
-/* Active/selected item — solid accent pill with white text */
+/* Active/selected item — solid accent pill with contrast-aware text */
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .item-anchor {
-  background: var(--st-accent) !important;
-  color: #ffffff !important;
+  background: var(--st-sidebar-active, var(--st-accent)) !important;
+  color: var(--st-sidebar-active-text, #ffffff) !important;
   font-weight: 600 !important;
   border-radius: 8px !important;
   border-left: none !important;
 }
 
-/* Force white on every child of the active anchor */
+/* Keep every child readable against the configured active background */
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor .sidebar-item-label,
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor span,
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor a,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .item-anchor .sidebar-item-label,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .item-anchor span {
-  color: #ffffff !important;
+  color: var(--st-sidebar-active-text, #ffffff) !important;
 }
 
 /* ---- Icons ---- */
 .body-sidebar-container .body-sidebar .standard-sidebar-item .sidebar-item-icon,
 .body-sidebar-container .body-sidebar .standard-sidebar-item .sidebar-item-icon.text-ink-gray-7 {
-  color: #6B7280 !important;
+  color: var(--st-sidebar-icon, var(--st-sidebar-text-muted, #6B7280)) !important;
 }
 
 .body-sidebar-container .body-sidebar .standard-sidebar-item .sidebar-item-icon svg use,
 .body-sidebar-container .body-sidebar .standard-sidebar-item .sidebar-item-icon svg {
-  color: #6B7280 !important;
-  stroke: #6B7280 !important;
+  color: var(--st-sidebar-icon, var(--st-sidebar-text-muted, #6B7280)) !important;
+  stroke: currentColor !important;
 }
 
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon,
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon.text-ink-gray-7,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .sidebar-item-icon {
-  color: #ffffff !important;
+  color: var(--st-sidebar-active-text, #ffffff) !important;
 }
 
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg use,
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .sidebar-item-icon svg {
-  color: #ffffff !important;
-  stroke: #ffffff !important;
+  color: var(--st-sidebar-active-text, #ffffff) !important;
+  stroke: currentColor !important;
 }
 
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .es-icon,
 .body-sidebar-container .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .icon,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .sidebar-item-icon .es-icon,
 .body-sidebar-container .body-sidebar .nested-container .standard-sidebar-item.active-sidebar .sidebar-item-icon .icon {
-  color: #ffffff !important;
-  fill: #ffffff !important;
-  stroke: #ffffff !important;
+  color: var(--st-sidebar-active-text, #ffffff) !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
 }
 
 /* ---- Labels ---- */
@@ -210,7 +210,7 @@
 /* Section break / group labels */
 .body-sidebar .sidebar-item-container.section-item .item-anchor .sidebar-item-label,
 .body-sidebar .section-break .sidebar-item-label {
-  color: #9CA3AF !important;
+  color: var(--st-sidebar-text-muted, #9CA3AF) !important;
   font-size: 10px !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
@@ -314,6 +314,126 @@
   opacity: 1;
 }
 
+/* ---- Today / New / Workspaces start rail ---- */
+#st-workspace-rail {
+  margin: 8px 8px 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--st-sidebar-text, #374151) 12%, transparent);
+}
+
+.st-rail-primary,
+.st-rail-workspaces {
+  display: grid;
+  gap: 3px;
+}
+
+.st-rail-link,
+.st-rail-workspace {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--st-sidebar-text, #374151);
+  font-size: 12px;
+  font-weight: 550;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.st-rail-link:hover,
+.st-rail-workspace:hover {
+  background: var(--st-sidebar-hover, rgba(0,0,0,.05));
+  color: var(--st-sidebar-hover-text, #111827);
+  text-decoration: none;
+}
+
+.st-rail-today {
+  background: color-mix(in srgb, var(--st-accent, #e8610a) 10%, transparent);
+  color: var(--st-accent, #e8610a);
+}
+
+.st-rail-icon {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  flex: 0 0 18px;
+}
+.st-rail-icon svg { width: 16px; height: 16px; }
+.st-rail-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.st-rail-new-plus { margin-left: auto; color: var(--st-accent, #e8610a); font-size: 17px; }
+
+.st-rail-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 9px 5px;
+  color: var(--st-sidebar-text-muted, #9ca3af);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.st-rail-section-title a { color: inherit; font-size: 14px; text-decoration: none; }
+
+.st-rail-dot {
+  width: 7px;
+  height: 7px;
+  margin-left: 5px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: #e8610a;
+}
+.st-rail-dot-1 { background: #2563eb; }
+.st-rail-dot-2 { background: #15915e; }
+.st-rail-dot-3 { background: #d97706; }
+.st-rail-dot-4 { background: #d64f4f; }
+
+.st-rail-create {
+  margin: 5px 0 8px 28px;
+  padding: 6px;
+  border: 1px solid color-mix(in srgb, var(--st-sidebar-text, #374151) 12%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--st-sidebar-bg, #fff) 92%, var(--st-sidebar-text, #374151));
+}
+.st-rail-create[hidden] { display: none; }
+.st-rail-create button {
+  display: flex;
+  gap: 7px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--st-sidebar-text, #374151);
+  font-size: 11px;
+  text-align: left;
+}
+.st-rail-create button:hover { background: var(--st-sidebar-hover, rgba(0,0,0,.05)); }
+.st-rail-create button span { color: var(--st-accent, #e8610a); }
+.st-rail-create small { display: block; padding: 7px; color: var(--st-sidebar-text-muted, #9ca3af); }
+
+.body-sidebar-container:not(.expanded) #st-workspace-rail {
+  margin-inline: 6px;
+}
+.body-sidebar-container:not(.expanded) .st-rail-link,
+.body-sidebar-container:not(.expanded) .st-rail-workspace {
+  justify-content: center;
+  padding-inline: 0;
+}
+.body-sidebar-container:not(.expanded) .st-rail-label,
+.body-sidebar-container:not(.expanded) .st-rail-new-plus,
+.body-sidebar-container:not(.expanded) .st-rail-section-title,
+.body-sidebar-container:not(.expanded) .st-rail-create {
+  display: none !important;
+}
+.body-sidebar-container:not(.expanded) .st-rail-dot { margin-left: 0; width: 9px; height: 9px; flex-basis: 9px; }
+
 /* ---- Chevron toggle button rotation ---- */
 .body-sidebar .collapse-sidebar-link svg,
 .body-sidebar .collapse-sidebar-link .icon {
@@ -338,34 +458,34 @@ html[data-theme="dark"] .st-company-name {
   color: rgba(255,255,255,0.92) !important;
 }
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item .item-anchor {
-  color: rgba(255,255,255,0.75) !important;
+  color: var(--st-sidebar-text, rgba(255,255,255,0.75)) !important;
 }
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item:not(.active-sidebar) .item-anchor:hover {
-  background-color: rgba(255,255,255,0.1) !important;
-  color: #fff !important;
+  background-color: var(--st-sidebar-hover, rgba(255,255,255,0.1)) !important;
+  color: var(--st-sidebar-hover-text, #fff) !important;
 }
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .item-anchor {
-  background: color-mix(in srgb, var(--st-accent) 15%, transparent) !important;
-  color: var(--st-accent) !important;
-  border-left: 3px solid var(--st-accent) !important;
+  background: var(--st-sidebar-active, color-mix(in srgb, var(--st-accent) 15%, transparent)) !important;
+  color: var(--st-sidebar-active-text, var(--st-accent)) !important;
+  border-left: 3px solid var(--st-sidebar-active, var(--st-accent)) !important;
   padding-left: 5px !important;
 }
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item .sidebar-item-icon {
-  color: rgba(255,255,255,0.7) !important;
+  color: var(--st-sidebar-icon, rgba(255,255,255,0.7)) !important;
 }
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item .sidebar-item-icon svg use,
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item .sidebar-item-icon svg {
-  color: rgba(255,255,255,0.7) !important;
-  stroke: rgba(255,255,255,0.7) !important;
+  color: var(--st-sidebar-icon, rgba(255,255,255,0.7)) !important;
+  stroke: currentColor !important;
 }
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg use,
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon svg {
-  color: var(--st-accent) !important;
-  stroke: var(--st-accent) !important;
+  color: var(--st-sidebar-active-text, var(--st-accent)) !important;
+  stroke: currentColor !important;
 }
 html[data-theme="dark"] .body-sidebar .sidebar-item-container.section-item .item-anchor .sidebar-item-label,
 html[data-theme="dark"] .body-sidebar .section-break .sidebar-item-label {
-  color: rgba(255,255,255,0.35) !important;
+  color: var(--st-sidebar-text-muted, rgba(255,255,255,0.35)) !important;
 }
 html[data-theme="dark"] .body-sidebar .divider {
   border-color: rgba(255,255,255,0.08) !important;

@@ -34,16 +34,43 @@
 		   This block is in <head> — applied before any JS or DOM content renders.
 		   Zero flash even on first load or cleared cache. #}
 		<style id="st-inline-theme">
+{% set studio = boot.st_theme_config or {} %}
 :root {
   --st-brand:   {{ boot.st_brand  or '#1B1D26' }};
   --st-primary: {{ boot.st_brand  or '#1B1D26' }};
   --st-accent:  {{ boot.st_accent or '#6B3E66' }};
   --st-font-size: {{ boot.st_font_size_default or '100%' }};
+  --st-radius: {{ studio.corner_radius or 8 }}px;
+  --st-radius-sm: {{ (studio.corner_radius or 8) - 2 if (studio.corner_radius or 8) >= 2 else 0 }}px;
+  --st-radius-lg: {{ (studio.corner_radius or 8) + 4 }}px;
+  --st-sidebar-width: {{ studio.sidebar_width or 240 }}px;
+  --sidebar-width: {{ studio.sidebar_width or 240 }}px;
+{% if studio.sidebar_background %}  --st-sidebar-bg: {{ studio.sidebar_background }};
+  --st-sidebar-text: {{ studio.sidebar_text or '#19202D' }};
+  --st-sidebar-text-muted: color-mix(in srgb, {{ studio.sidebar_text or '#19202D' }} 62%, transparent);
+  --st-sidebar-hover: color-mix(in srgb, {{ studio.sidebar_text or '#19202D' }} 9%, transparent);
+  --st-sidebar-border: color-mix(in srgb, {{ studio.sidebar_text or '#19202D' }} 12%, transparent);
+{% endif %}{% if studio.navbar_background %}  --st-navbar-bg: {{ studio.navbar_background }};
+  --st-toolbar-bg: {{ studio.navbar_background }};
+  --st-toolbar-text: {{ studio.toolbar_text or '#FFFFFF' }};
+{% endif %}{% if studio.page_background %}  --st-page-bg: {{ studio.page_background }};
+{% endif %}{% if studio.card_background %}  --st-card-bg: {{ studio.card_background }};
+{% endif %}{% if studio.text_color %}  --st-text: {{ studio.text_color }};
+  --st-text-primary: {{ studio.text_color }};
+{% endif %}{% if studio.shadow_style == "None" %}  --st-shadow-sm: none;
+  --st-shadow-md: none;
+  --st-shadow-lg: none;
+{% elif studio.shadow_style == "Elevated" %}  --st-shadow-sm: 0 2px 8px rgba(15,23,42,0.10);
+  --st-shadow-md: 0 10px 24px rgba(15,23,42,0.14);
+  --st-shadow-lg: 0 20px 48px rgba(15,23,42,0.18);
+{% endif %}
   font-size: {{ boot.st_font_size_default or '100%' }};
 }
 {% if desk_theme.lower() == 'dark' %}
 /* Flash-prevention: sidebar/navbar = brand; content area = fixed neutral dark. */
 html[data-theme="dark"] {
+  --st-sidebar-bg: {{ studio.sidebar_background or boot.st_brand or '#1B1D26' }};
+  --st-navbar-bg: {{ studio.navbar_background or boot.st_brand or '#1B1D26' }};
   --st-page-bg:  #0F1117;
   --st-card-bg:  #1A1D27;
   --st-input-bg: #252836;
@@ -75,10 +102,11 @@ html[data-theme="dark"] .form-page {
 }
 html[data-theme="dark"] .body-sidebar,
 html[data-theme="dark"] .desk-sidebar {
-  background-color: {{ boot.st_brand or '#1B1D26' }} !important;
+  background-color: {{ studio.sidebar_background or boot.st_brand or '#1B1D26' }} !important;
 }
 {% endif %}
 		</style>
+		<style id="st-dynamic-theme">{{ st_theme_css | safe }}</style>
 
 		{% if lang == "eo" %}
 		<script type="text/javascript">

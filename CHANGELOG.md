@@ -1,5 +1,69 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- Theme Studio is now the single user-facing configuration experience for visual themes, branding, Smart Home, and Command Palette settings
+- Opening Theme Settings redirects to Theme Studio; administrators retain an explicit raw-settings maintenance action
+- Branding image controls in Theme Studio now use Frappe attachment fields instead of requiring manually entered URLs
+- Theme Studio now uses a readable control and preview typography scale instead of 6–10px interface text
+- Theme Studio's login scene now mirrors the public login card, branding, image background, fields, links, and light/dark token behavior
+- Dashboard, Form, Table, and Login previews now support click-to-select property editing in a floating inspector beside the selected item
+
+### Fixed
+- Public login now applies Theme Studio's Light/Dark/Auto mode and uses equal border-box sizing for the card head and form body
+- Hide-powered now removes generated footer content; login branding replaces Frappe's cube and enforces symmetric card geometry across Frappe versions
+- Frappe v16's nested login card head now stays inside one clipped, rounded outer card instead of extending past its right edge
+
+## [2.0.0] — 2026-07-29 — Complete Theme Studio
+
+### Added
+- A complete searchable visual editor spanning colours, navigation, form controls, typography, cards, tables, dashboards, login branding, layout, accessibility, and advanced overrides
+- Frappe Default, Light, Dark, High Contrast, Solvronix, and Forest profiles, plus custom profile create, update, duplicate, rename, delete, import, and export workflows
+- Live Dashboard, Form, Table, and Login preview scenes with desktop/tablet/mobile modes, Frappe comparison, drag-and-drop layout, undo/redo, draft saving, and section reset
+- Site, user, role, and company theme assignment; optional user profile selection; administrator locking; and scheduled profile activation
+- WCAG AA contrast feedback and optional publish enforcement, high-contrast and large-text modes, stronger focus outlines, and colour-blind-friendly status palettes
+- Theme version backups and restore-as-draft, JSON transfer, cache/reload controls, and enable/disable controls
+- Opt-in custom CSS and JavaScript, custom CSS variables, DocType/page/workspace-scoped rules, class mappings, and raw theme JSON editing
+- A `Theme Preference` DocType for persistent per-user profile choice
+
+### Changed
+- The full theme is resolved per request, so scheduled, user, role, and company profiles can produce different Desk CSS on the same site
+- Theme settings now drive the real Frappe navbar, sidebar, controls, data views, workspaces, login page, branding, typography, and layout
+- Theme publishing preserves legacy Theme Settings fields, broadcasts a refresh to connected users, and generates flash-free first-paint CSS
+
+### Fixed
+- Actual sidebar and top-toolbar colours now match Theme Studio preview tokens, including readable automatic foreground colours for active items
+- Sticky toolbar settings no longer turn the toolbar into a body flex item or split the Desk into a large blank column
+- Profile action buttons now reflect the selected profile, explain unavailable actions, and can duplicate the current unsaved theme instead of failing silently
+- Theme CSS now uses one authoritative runtime style element, removes stale cached duplicates, and applies profile/layout changes without requiring a reload
+- Publishing from Theme Studio automatically enables the published theme and preserves the newly selected colour mode
+- Theme runtime initialization now handles an empty initial Frappe route, allowing Light, Dark, High Contrast, density, and profile state to initialize reliably
+- Sidebar hover/active labels, icons, and primary buttons now use theme-aware automatic contrast colours so controls remain visible with light, dark, or custom palettes
+- List-view reload/menu controls retain their icon width and current theme colour, while EditorJS workspace section headings inherit the active text token
+- Selecting Dark or Auto in Theme Studio now derives a complete mode-appropriate surface palette instead of treating a light custom palette as already dark
+- Light and Dark modes now receive complete independent surface palettes, while High Contrast emits its dedicated colour and focus treatment consistently
+- Bundled profiles pass the Studio's WCAG contrast checks
+- Scheduled activation refreshes runtime CSS, preferred colour mode, layout settings, and advanced mappings without a manual reload
+
+## [1.4.0] — 2026-07-29 — Theme Studio
+
+### Added
+- A System Manager-only visual Theme Studio with a responsive live desk preview, desktop/tablet/mobile views, presets, undo/redo, and publish workflow
+- Drag-and-drop preview blocks for quickly testing visual hierarchy and composition
+- Fine-grained theme tokens for sidebar, navbar, page, card, and text colors, plus corner radius, shadow depth, and expanded sidebar width
+- Validated server APIs for loading and publishing theme configurations
+
+### Changed
+- Theme Studio is available from `Ctrl+K` and the Theme Settings Actions menu
+- Advanced theme tokens are included in boot-time CSS to keep the first paint flash-free
+- Theme changes continue to publish through the existing realtime sync for all connected desk users
+
+### Fixed
+- Sidebar, expanded sidebar width, and visible top-toolbar colors now use the same tokens in Theme Studio and the real Desk
+- Theme Studio now live-previews draft navigation colors on the actual Desk chrome and removes unpublished drafts when leaving the page
+- Theme Studio preview now mirrors the real 36px toolbar and collapsed/expanded Frappe v16 sidebar instead of showing a generic dashboard shell
+
 ## [1.3.1] — 2026-07-18
 
 ### Fixed
