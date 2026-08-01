@@ -706,6 +706,53 @@ def css_attr(value):
     return str(value).replace("\\", "\\\\").replace('"', '\\"')
 
 
+def resolve_mode_surface(config, dark):
+    """Derive untouched mode defaults without replacing administrator edits."""
+    resolved = deepcopy(config)
+    dark_defaults = {
+        "navbar_background": f'color-mix(in srgb, {config["brand_color"]} 38%, #090D16)',
+        "sidebar_background": f'color-mix(in srgb, {config["brand_color"]} 32%, #121826)',
+        "sidebar_hover_color": "#242A37",
+        "page_background": "#0F1117",
+        "card_background": "#1A1D27",
+        "text_color": "#E8EDF5",
+        "muted_text_color": "#9AA7BA",
+        "link_color": "#6DB4F2",
+        "border_color": "#303746",
+        "secondary_button_color": "#242A37",
+        "secondary_button_text": "#E8EDF5",
+        "input_background": "#222734",
+        "input_border_color": "#3B4354",
+        "dropdown_background": "#202531",
+        "readonly_background": "#252A36",
+        "alternate_row_color": "#181C25",
+        "table_header_color": "#222734",
+        "selected_row_color": "#3B2D21",
+        "row_hover_color": "#242A37",
+        "report_grid_color": "#303746",
+        "workspace_card_color": "#1A1D27",
+        "number_card_color": "#1A1D27",
+        "chart_background": "#1A1D27",
+    }
+    if dark:
+        for key, value in dark_defaults.items():
+            current = resolved.get(key)
+            legacy_default = key == "sidebar_hover_color" and current == "#F4F7FB"
+            if current == DEFAULT_CONFIG.get(key) or legacy_default:
+                resolved[key] = value
+        return resolved
+
+    canonical_dark = {
+        **dark_defaults,
+        "navbar_background": "#090D16",
+        "sidebar_background": "#121826",
+    }
+    for key, value in DEFAULT_CONFIG.items():
+        if key in canonical_dark and resolved.get(key) == canonical_dark[key]:
+            resolved[key] = value
+    return resolved
+
+
 def render_css(config, enabled=True):
     """Render one sanitized configuration into the complete Desk token sheet."""
     if not enabled:
@@ -718,70 +765,25 @@ def render_css(config, enabled=True):
         relative_luminance(config["page_background"]) < 0.18
         and relative_luminance(config["card_background"]) < 0.22
     )
-    dark_surface = (
-        config
-        if has_dark_surfaces
-        else {
-            **config,
-            "navbar_background": f'color-mix(in srgb, {config["brand_color"]} 38%, #090D16)',
-            "sidebar_background": f'color-mix(in srgb, {config["brand_color"]} 32%, #121826)',
-            "sidebar_hover_color": "#242A37",
-            "page_background": "#0F1117",
-            "card_background": "#1A1D27",
-            "text_color": "#E8EDF5",
-            "muted_text_color": "#9AA7BA",
-            "link_color": "#6DB4F2",
-            "border_color": "#303746",
-            "secondary_button_color": "#242A37",
-            "secondary_button_text": "#E8EDF5",
-            "input_background": "#222734",
-            "input_border_color": "#3B4354",
-            "dropdown_background": "#202531",
-            "readonly_background": "#252A36",
-            "alternate_row_color": "#181C25",
-            "table_header_color": "#222734",
-            "selected_row_color": "#3B2D21",
-            "row_hover_color": "#242A37",
-            "report_grid_color": "#303746",
-            "workspace_card_color": "#1A1D27",
-            "number_card_color": "#1A1D27",
-            "chart_background": "#1A1D27",
-        }
-    )
-    light_surface = (
-        {
-            **config,
-            "navbar_background": DEFAULT_CONFIG["navbar_background"],
-            "sidebar_background": "#FFFFFF",
-            "sidebar_hover_color": "#F1F3F6",
-            "page_background": "#F5F6F8",
-            "card_background": "#FFFFFF",
-            "text_color": "#19202D",
-            "muted_text_color": "#697386",
-            "link_color": "#1B5EA7",
-            "border_color": "#E1E5EA",
-            "secondary_button_color": "#FFFFFF",
-            "secondary_button_text": "#273142",
-            "input_background": "#FFFFFF",
-            "input_border_color": "#C9CDD4",
-            "dropdown_background": "#FFFFFF",
-            "readonly_background": "#F3F5F7",
-            "alternate_row_color": "#FAFBFC",
-            "table_header_color": "#F1F3F6",
-            "selected_row_color": "#FFF1E4",
-            "row_hover_color": "#F7F8FA",
-            "report_grid_color": "#E4E7EB",
-            "workspace_card_color": "#FFFFFF",
-            "number_card_color": "#FFFFFF",
-            "chart_background": "#FFFFFF",
-        }
-        if has_dark_surfaces
-        else config
-    )
+    dark_surface = resolve_mode_surface(config, dark=True)
+    light_surface = resolve_mode_surface(config, dark=False)
     sidebar_text = config["sidebar_text_color"] or contrast_text(config["sidebar_background"])
     sidebar_icon = config["sidebar_icon_color"] or sidebar_text
     sidebar_active_text = config["sidebar_active_text_color"] or contrast_text(config["sidebar_active_color"])
     toolbar_text = config["toolbar_text_color"] or contrast_text(config["navbar_background"])
+    dark_sidebar_auto = (
+        contrast_text(dark_surface["sidebar_background"])
+        if HEX_COLOR.fullmatch(dark_surface["sidebar_background"])
+        else "#FFFFFF"
+    )
+    dark_toolbar_auto = (
+        contrast_text(dark_surface["navbar_background"])
+        if HEX_COLOR.fullmatch(dark_surface["navbar_background"])
+        else "#FFFFFF"
+    )
+    dark_sidebar_text = dark_surface["sidebar_text_color"] or dark_sidebar_auto
+    dark_sidebar_icon = dark_surface["sidebar_icon_color"] or dark_sidebar_text
+    dark_toolbar_text = dark_surface["toolbar_text_color"] or dark_toolbar_auto
     shadows = shadow_values(config["shadow_style"])
     palette = config["chart_palette"]
     font_family = config["font_family"].replace('"', "").replace("'", "")
@@ -965,14 +967,14 @@ html:not([data-theme="dark"]) {{
 {light_mode_override}
 html[data-theme="dark"] {{
   --st-sidebar-bg: {dark_surface["sidebar_background"]};
-  --st-sidebar-text: #FFFFFF;
-  --st-sidebar-icon: rgba(255,255,255,.72);
-  --st-sidebar-text-muted: rgba(255,255,255,.62);
+  --st-sidebar-text: {dark_sidebar_text};
+  --st-sidebar-icon: {dark_sidebar_icon};
+  --st-sidebar-text-muted: color-mix(in srgb, {dark_sidebar_icon} 62%, transparent);
   --st-sidebar-hover: {dark_surface["sidebar_hover_color"]};
   --st-sidebar-hover-text: {contrast_text(dark_surface["sidebar_hover_color"])};
   --st-navbar-bg: {dark_surface["navbar_background"]};
   --st-toolbar-bg: {dark_surface["navbar_background"]};
-  --st-toolbar-text: #FFFFFF;
+  --st-toolbar-text: {dark_toolbar_text};
   --st-page-bg: {dark_surface["page_background"]};
   --st-card-bg: {dark_surface["card_background"]};
   --st-text: {dark_surface["text_color"]};

@@ -279,7 +279,9 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				"</div>" +
 				'<div class="sts-stage">' +
 					'<div class="sts-preview-frame" id="st-theme-studio-preview">' +
-						'<div class="sts-browser-bar"><span></span><span></span><span></span><div>desk.solvronix.local</div></div>' +
+						'<div class="sts-browser-bar"><span></span><span></span><span></span><div class="sts-browser-address">' +
+							'<img data-favicon-preview alt="" hidden><span><b data-app-title>Solvronix Desk</b>' +
+							'<small data-app-tagline>desk.solvronix.local</small></span></div></div>' +
 						this._navbar_html() +
 						'<div class="sts-app-shell">' +
 							this._sidebar_html() +
@@ -288,6 +290,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 									'<div class="sts-scene active" data-scene="dashboard">' +
 										'<div class="sts-preview-heading" data-inspector="dashboard.heading"><div><small>' + __("WORKSPACE") + '</small><h3>' + __("Good morning, Ayesha") + '</h3></div><button>' + __("Create new") + "</button></div>" +
 										'<div class="sts-drop-hint">' + this._icon("move") + __("Drag cards to rearrange your layout") + "</div>" +
+										'<div class="sts-empty-state"><i>◇</i><span>' + __("No pending approvals") + "</span></div>" +
 										'<div class="sts-canvas" id="sts-canvas"></div>' +
 									"</div>" +
 									this._form_scene_html() +
@@ -587,7 +590,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 
 	_sidebar_html() {
 		return '<aside class="sts-preview-sidebar" data-inspector="navigation.sidebar">' +
-			'<button type="button" class="sts-preview-logo sts-sidebar-toggle" title="' + __("Expand or collapse sidebar") + '"><b>S</b><span>Solvronix</span></button>' +
+			'<button type="button" class="sts-preview-logo sts-sidebar-toggle" title="' + __("Expand or collapse sidebar") + '"><b>S</b><span data-app-title>Solvronix Desk</span></button>' +
 			'<nav><small>' + __("MAIN") + '</small><a class="active">' + this._icon("home") + "<span>" + __("Overview") + "</span></a>" +
 			'<a>' + this._icon("chart") + "<span>" + __("Analytics") + "</span></a>" +
 			'<a>' + this._icon("invoice") + "<span>" + __("Invoices") + "</span></a>" +
@@ -611,6 +614,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			'<label data-inspector="form.fields"><span>' + __("Customer group") + '</span><select><option>Commercial</option></select></label>' +
 			'<label data-inspector="form.fields"><span>' + __("Email address") + '</span><input value="hello@northstar.example"></label>' +
 			'<label data-inspector="form.fields"><span>' + __("Read-only field") + '</span><input readonly value="CUST-00084"></label>' +
+			'<label class="sts-preview-check" data-inspector="form.fields"><input type="checkbox" checked><i>✓</i><span>' + __("Email notifications") + '</span></label>' +
+			'<label class="sts-preview-disabled" data-inspector="form.fields"><span>' + __("Disabled field") + '</span><input disabled value="Unavailable"></label>' +
 			'<label class="sts-form-wide" data-inspector="form.fields"><span>' + __("Notes") + '</span><textarea>Priority account with quarterly review.</textarea></label>' +
 			'</div><div class="sts-form-actions" data-inspector="form.actions"><button class="secondary">' + __("Cancel") + '</button><button>' + __("Save changes") +
 			'</button></div></div></div>';
@@ -818,6 +823,11 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			self.config.sidebar_mode = expanded ? "Expanded" : "Compact";
 			self._sync_setting_inputs("sidebar_mode");
 			self.changed();
+		});
+		this.$root.on("mouseenter mouseleave", ".sts-preview-sidebar", function (event) {
+			if (!self.config.sidebar_auto_collapse) return;
+			$(this).toggleClass("is-expanded", event.type === "mouseenter");
+			self._restore_inspector_highlight();
 		});
 		this.$root.on("click", "[data-section-tab]", function () {
 			self.active_section = $(this).data("section-tab");
@@ -1363,20 +1373,16 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	   overwriting the administrator's stored light palette. */
 	_resolved_visual_config(config, forceDark) {
 		var c = this._clone(config || {});
+		var defaults = (this.state && this.state.defaults) || {};
 		var dark = forceDark;
 		if (dark === undefined) {
 			dark = c.preferred_mode === "Dark" ||
 				(c.preferred_mode === "Auto" && window.matchMedia &&
 					window.matchMedia("(prefers-color-scheme: dark)").matches);
 		}
-		var hasDarkSurfaces = this._is_dark_palette(c);
-		if (dark && !hasDarkSurfaces) {
-			Object.assign(c, {
+		var darkDefaults = {
 				navbar_background: this._mix_hex(c.brand_color, "#090D16", 0.38),
 				sidebar_background: this._mix_hex(c.brand_color, "#121826", 0.32),
-				sidebar_text_color: "",
-				sidebar_icon_color: "",
-				toolbar_text_color: "",
 				sidebar_hover_color: "#242A37",
 				page_background: "#0F1117",
 				card_background: "#1A1D27",
@@ -1398,37 +1404,34 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				workspace_card_color: "#1A1D27",
 				number_card_color: "#1A1D27",
 				chart_background: "#1A1D27",
+		};
+		if (dark) {
+			Object.keys(darkDefaults).forEach(function (key) {
+				var current = c[key];
+				var legacyDefault = key === "sidebar_hover_color" && current === "#F4F7FB";
+				if (current === defaults[key] || legacyDefault) c[key] = darkDefaults[key];
 			});
-		} else if (!dark && hasDarkSurfaces) {
-			Object.assign(c, {
-				navbar_background: "#102750",
-				sidebar_background: "#FFFFFF",
-				sidebar_text_color: "",
-				sidebar_icon_color: "",
-				toolbar_text_color: "",
-				sidebar_hover_color: "#F1F3F6",
-				page_background: "#F5F6F8",
-				card_background: "#FFFFFF",
-				text_color: "#19202D",
-				muted_text_color: "#697386",
-				link_color: "#1B5EA7",
-				border_color: "#E1E5EA",
-				secondary_button_color: "#FFFFFF",
-				secondary_button_text: "#273142",
-				input_background: "#FFFFFF",
-				input_border_color: "#C9CDD4",
-				dropdown_background: "#FFFFFF",
-				readonly_background: "#F3F5F7",
-				alternate_row_color: "#FAFBFC",
-				table_header_color: "#F1F3F6",
-				selected_row_color: "#FFF1E4",
-				row_hover_color: "#F7F8FA",
-				report_grid_color: "#E4E7EB",
-				workspace_card_color: "#FFFFFF",
-				number_card_color: "#FFFFFF",
-				chart_background: "#FFFFFF",
+		} else {
+			var canonicalDark = Object.assign({}, darkDefaults, {
+				navbar_background: "#090D16",
+				sidebar_background: "#121826",
+			});
+			Object.keys(canonicalDark).forEach(function (key) {
+				if (c[key] === canonicalDark[key] && defaults[key] !== undefined) c[key] = defaults[key];
 			});
 		}
+		var palettes = {
+			Deuteranopia: {
+				success_color: "#0072B2", warning_color: "#E69F00", error_color: "#D55E00", info_color: "#56B4E9",
+			},
+			Protanopia: {
+				success_color: "#0072B2", warning_color: "#F0E442", error_color: "#CC79A7", info_color: "#56B4E9",
+			},
+			Tritanopia: {
+				success_color: "#009E73", warning_color: "#E69F00", error_color: "#D55E00", info_color: "#0072B2",
+			},
+		};
+		if (palettes[c.colorblind_palette]) Object.assign(c, palettes[c.colorblind_palette]);
 		return c;
 	}
 
@@ -1501,7 +1504,11 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"--studio-input-bg": c.input_background,
 			"--studio-input-border": c.input_border_color,
 			"--studio-focus": c.focus_color,
+			"--studio-focus-width": c.focus_outline_width + "px",
+			"--studio-checkbox": c.checkbox_color,
+			"--studio-dropdown-bg": c.dropdown_background,
 			"--studio-readonly": c.readonly_background,
+			"--studio-disabled-opacity": String(c.disabled_opacity / 100),
 			"--studio-card-radius": c.card_radius + "px",
 			"--studio-section-spacing": c.section_spacing + "px",
 			"--studio-form-gap": c.form_column_gap + "px",
@@ -1510,17 +1517,23 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"--studio-row-alt": c.alternate_row_color,
 			"--studio-row-selected": c.selected_row_color,
 			"--studio-row-hover": c.row_hover_color,
+			"--studio-report-grid": c.report_grid_color,
 			"--studio-success": c.success_color,
 			"--studio-warning": c.warning_color,
 			"--studio-error": c.error_color,
 			"--studio-info": c.info_color,
 			"--studio-font": '"' + (c.font_family || "Aptos").replace(/["']/g, "") + '", sans-serif',
 			"--studio-base-font": c.base_font_px + "px",
+			"--studio-font-weight": String(c.font_weight),
+			"--studio-line-height": String(c.line_height / 100),
 			"--studio-heading-size": (20 * c.heading_scale / 100) + "px",
 			"--studio-label-size": c.label_font_size + "px",
 			"--studio-table-font": c.table_font_size + "px",
 			"--studio-radius": c.corner_radius + "px",
 			"--studio-sidebar-width": c.sidebar_width + "px",
+			"--studio-logo-size": c.logo_size + "px",
+			"--studio-workspace-width": c.workspace_width + "px",
+			"--studio-page-margin": c.page_margin + "px",
 			"--studio-shadow": shadow,
 			"--studio-sidebar-text": c.sidebar_text_color || this._contrast(c.sidebar_background || "#FFFFFF"),
 			"--studio-sidebar-icon": c.sidebar_icon_color || c.sidebar_text_color || this._contrast(c.sidebar_background || "#FFFFFF"),
@@ -1545,6 +1558,23 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"--studio-login-card-radius": (login.card_radius || 16) + "px",
 			"--studio-login-button-radius": (login.button_radius || 8) + "px",
 		});
+		$target.attr("data-layout", String(c.layout_mode || "Full Width").toLowerCase().replace(/\s+/g, "-"));
+		$target.attr("data-logo-position", String(c.logo_position || "Left").toLowerCase());
+		$target.attr("data-module-icons", String(c.module_icon_style || "Tinted").toLowerCase());
+		$target.attr("data-empty-state", String(c.empty_state_style || "Minimal").toLowerCase());
+		$target.attr("data-compact-forms", String(!!c.compact_forms));
+		$target.attr("data-high-contrast", String(!!c.high_contrast));
+		$target.attr("data-large-text", String(!!c.large_text));
+		$target.attr("data-sticky-navbar", String(!!c.sticky_navbar));
+		$target.attr("data-sticky-form-toolbar", String(!!c.sticky_form_toolbar));
+		$target.find("[data-app-title]").text(loginSettings.app_title || "Solvronix Desk");
+		$target.find("[data-app-tagline]").text(loginSettings.tagline || "desk.solvronix.local");
+		var $favicon = $target.find("[data-favicon-preview]");
+		$favicon.off("error.sts load.sts")
+			.on("error.sts", function () { this.hidden = true; })
+			.on("load.sts", function () { this.hidden = false; });
+		if (loginSettings.favicon) $favicon.attr("src", loginSettings.favicon).prop("hidden", false);
+		else $favicon.removeAttr("src").prop("hidden", true);
 		$target.find("[data-login-heading]").text(loginSettings.login_heading || __("Welcome back"));
 		$target.find("[data-login-description]").text(loginSettings.login_description || "");
 		var $companyLogo = $target.find("[data-login-company-logo]");

@@ -38,6 +38,9 @@ def studio_state(settings=None):
     return {
         "config": draft,
         "published": published,
+        "defaults": theme_engine.sanitize_config(
+            theme_engine.DEFAULT_CONFIG, validate_contrast=False
+        ),
         "profiles": theme_engine.profiles(settings),
         "versions": versions,
         "assignments": theme_engine.assignments(settings),
