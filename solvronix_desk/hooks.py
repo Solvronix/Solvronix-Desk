@@ -13,7 +13,7 @@ required_apps = []
 
 # ── PUBLIC LOGIN ASSETS ────────────────────────────────────────────────────────
 web_include_css = ["/assets/solvronix_desk/css/login.css?v=7"]
-web_include_js = ["/assets/solvronix_desk/js/login_theme.js?v=4"]
+web_include_js = ["/assets/solvronix_desk/js/login_theme.js?v=5"]
 
 # ── AUTHENTICATED DESK ASSETS ──────────────────────────────────────────────────
 # Query versions are bumped whenever an asset changes to invalidate browser cache.
@@ -28,7 +28,7 @@ app_include_css = [
     "/assets/solvronix_desk/css/dark_mode.css?v=13",
     "/assets/solvronix_desk/css/module_cards.css?v=2",
     "/assets/solvronix_desk/css/density.css?v=2",
-    "/assets/solvronix_desk/css/theme_studio.css?v=7",
+    "/assets/solvronix_desk/css/theme_studio.css?v=8",
 ]
 app_include_js = [
     "/assets/solvronix_desk/js/dark_mode.js?v=9",

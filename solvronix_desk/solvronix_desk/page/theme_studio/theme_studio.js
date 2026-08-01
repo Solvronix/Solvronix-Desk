@@ -504,12 +504,22 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	}
 
 	_login_scene_html() {
-		return '<div class="sts-scene sts-login-scene" data-scene="login"><div class="sts-login-card">' +
-			'<div class="sts-login-logo">S</div><h3 data-login-heading>' + this._esc(this.config.login_heading || __("Welcome back")) +
-			'</h3><p data-login-description>' + this._esc(this.config.login_description || "") + '</p><label>' + __("Email") +
-			'<input value="ayesha@company.com"></label><label>' + __("Password") + '<input type="password" value="password"></label>' +
-			'<button>' + __("Sign in") + '</button><small data-login-footer>' + this._esc(this.config.footer_text || "Solvronix Desk") +
-			"</small></div></div>";
+		/* Mirror the public Frappe login DOM: a visual card head plus a form body.
+		   Login-only tokens stay independent from Desk's derived dark preview. */
+		var companyLogo = this.config.company_logo ?
+			'<img class="sts-login-company-logo" data-login-company-logo src="' + this._esc(this.config.company_logo) +
+			'" alt="' + this._esc(this.config.app_title || "") + '">' :
+			'<img class="sts-login-company-logo" data-login-company-logo alt="" hidden>';
+		return '<div class="sts-scene sts-login-scene" data-scene="login"><div class="sts-login-shell">' +
+			'<div class="sts-login-card-head">' + companyLogo + '<div class="sts-login-app-logo">' + this._icon("cube") +
+			'</div><h3 data-login-heading>' + this._esc(this.config.login_heading || __("Welcome back")) +
+			'</h3><p data-login-description>' + this._esc(this.config.login_description || "") + '</p></div>' +
+			'<div class="sts-login-card-body"><label><span>' + __("Email or Username") + '</span><div class="sts-login-input">' +
+			this._icon("mail") + '<input value="jane@example.com"></div></label><label><span>' + __("Password") +
+			'</span><div class="sts-login-input">' + this._icon("lock") + '<input type="password" value="password">' +
+			this._icon("eye") + '</div></label><a class="sts-login-forgot">' + __("Forgot password?") + '</a>' +
+			'<button>' + __("Continue") + '</button><small data-login-powered>' + __("Powered by Solvronix") +
+			'</small></div></div><small class="sts-login-custom-footer" data-login-footer></small></div>';
 	}
 
 	/* ── 5. PREVIEW BLOCK LAYOUT ──────────────────────────────────────────────
@@ -1176,7 +1186,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			(c.preferred_mode === "Auto" && window.matchMedia &&
 				window.matchMedia("(prefers-color-scheme: dark)").matches);
 		var visual = this._resolved_visual_config(c, previewDark);
-		this._apply_preview_vars(this.$preview, visual);
+		this._apply_preview_vars(this.$preview, visual, c);
 		this.$preview.attr("data-theme", previewDark ? "dark" : "light");
 		this.$preview.attr("data-density", String(c.density || "Comfortable").toLowerCase());
 		this.$root.find(".sts-segments button").removeClass("active")
@@ -1295,7 +1305,14 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		return "#" + mixed.join("").toUpperCase();
 	}
 
-	_apply_preview_vars($target, c) {
+	_apply_preview_vars($target, c, loginConfig) {
+		/* Public login does not receive Desk's client-derived dark surfaces. Use
+		   the raw published login palette so this scene matches /login. */
+		var login = loginConfig || c;
+		var safeLoginImage = String(login.login_bg_image || "").replace(/["\\\r\n]/g, "");
+		var loginBackground = safeLoginImage ?
+			'linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.12)),url("' + safeLoginImage + '")' :
+			"linear-gradient(" + login.login_gradient_angle + "deg," + login.login_background + "," + login.login_gradient_to + ")";
 		var shadow = {
 			None: "none",
 			Soft: "0 10px 28px rgba(22,28,45,.09)",
@@ -1346,10 +1363,28 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"--studio-login-to": c.login_gradient_to,
 			"--studio-login-angle": c.login_gradient_angle + "deg",
 			"--studio-login-opacity": c.login_card_opacity + "%",
+			"--studio-login-background": loginBackground,
+			"--studio-login-card": login.card_background || "#FFFFFF",
+			"--studio-login-text": login.text_color || "#19202D",
+			"--studio-login-muted": login.muted_text_color || "#697386",
+			"--studio-login-input": login.input_background || "#F9FAFB",
+			"--studio-login-input-border": login.input_border_color || "#C9CDD4",
+			"--studio-login-button": login.accent_color || "#F57C00",
+			"--studio-login-link": login.brand_color || "#1B3F7E",
+			"--studio-login-card-radius": (login.card_radius || 16) + "px",
+			"--studio-login-button-radius": (login.button_radius || 8) + "px",
 		});
-		$target.find("[data-login-heading]").text(c.login_heading || __("Welcome back"));
-		$target.find("[data-login-description]").text(c.login_description || "");
-		$target.find("[data-login-footer]").text(c.footer_text || "Solvronix Desk");
+		$target.find("[data-login-heading]").text(login.login_heading || __("Welcome back"));
+		$target.find("[data-login-description]").text(login.login_description || "");
+		var $companyLogo = $target.find("[data-login-company-logo]");
+		$companyLogo.attr("alt", login.app_title || "");
+		$companyLogo.off("error.sts load.sts")
+			.on("error.sts", function () { this.hidden = true; })
+			.on("load.sts", function () { this.hidden = false; });
+		if (login.company_logo) $companyLogo.attr("src", login.company_logo).prop("hidden", false);
+		else $companyLogo.removeAttr("src").prop("hidden", true);
+		$target.find("[data-login-powered]").prop("hidden", !!login.hide_powered);
+		$target.find("[data-login-footer]").text(login.footer_text || "").prop("hidden", !login.footer_text);
 	}
 
 	/* Debounce server CSS generation and discard stale asynchronous responses. */
@@ -1598,6 +1633,10 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
 			grip: '<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>',
 			collapse: '<path d="m15 18-6-6 6-6"/><path d="M21 19V5"/>',
+			cube: '<path d="m12 2 8 4.5v9L12 20l-8-4.5v-9L12 2Z"/><path d="m4 6.5 8 4.5 8-4.5M12 11v9"/>',
+			mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+			lock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+			eye: '<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/>',
 		};
 		return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (paths[name] || "") + "</svg>";
 	}

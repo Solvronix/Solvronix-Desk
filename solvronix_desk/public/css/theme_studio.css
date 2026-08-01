@@ -276,17 +276,17 @@
 .sts-form-section-title { padding: 12px 14px; border-bottom: 1px solid var(--studio-border); color: var(--studio-text); font-size: 9px; font-weight: 750; }
 .sts-form-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; padding: 15px; }
 .sts-form-grid label { display: grid; gap: 5px; color: var(--studio-muted); font-size: 7px; font-weight: 650; }
-.sts-form-grid input,.sts-form-grid select,.sts-form-grid textarea,.sts-login-card input {
+.sts-form-grid input,.sts-form-grid select,.sts-form-grid textarea {
 	width: 100%; min-width: 0; min-height: var(--studio-button-height); padding: 6px 8px;
 	border: 1px solid var(--studio-input-border); border-radius: var(--studio-button-radius);
 	background: var(--studio-input-bg); color: var(--studio-text); font-size: 8px; outline: none;
 }
-.sts-form-grid input:focus,.sts-form-grid textarea:focus,.sts-login-card input:focus { border-color: var(--studio-focus); box-shadow: 0 0 0 2px color-mix(in srgb,var(--studio-focus) 20%,transparent); }
+.sts-form-grid input:focus,.sts-form-grid textarea:focus { border-color: var(--studio-focus); box-shadow: 0 0 0 2px color-mix(in srgb,var(--studio-focus) 20%,transparent); }
 .sts-form-grid input[readonly] { background: var(--studio-readonly); }
 .sts-form-grid textarea { min-height: 60px; resize: none; }
 .sts-form-wide { grid-column: 1 / -1; }
 .sts-form-actions { display: flex; justify-content: flex-end; gap: 7px; padding: 11px 15px; border-top: 1px solid var(--studio-border); }
-.sts-form-actions button,.sts-login-card button {
+.sts-form-actions button {
 	min-height: var(--studio-button-height); padding: 0 12px; border: 0; border-radius: var(--studio-button-radius);
 	background: var(--studio-primary-btn); color: #fff; font-size: 8px; font-weight: 700;
 }
@@ -304,17 +304,40 @@
 .sts-preview-frame[data-scene="login"] .sts-preview-nav,
 .sts-preview-frame[data-scene="login"] .sts-preview-sidebar { display: none; }
 .sts-preview-frame[data-scene="login"] .sts-preview-page {
-	display: grid; place-items: center; padding: 30px;
-	background: linear-gradient(var(--studio-login-angle),var(--studio-login-bg),var(--studio-login-to));
+	position: relative; display: grid; place-items: center; padding: 28px;
+	background-color: var(--studio-login-bg); background-image: var(--studio-login-background);
+	background-position: center; background-size: cover; overflow: hidden;
 }
 .sts-preview-frame[data-scene="login"] .sts-preview-main { width: 100%; }
-.sts-login-card { width: min(300px,90%); padding: 25px; border: 1px solid rgba(255,255,255,.24); border-radius: var(--studio-card-radius); background: color-mix(in srgb,var(--studio-card) var(--studio-login-opacity),transparent); box-shadow: var(--studio-shadow); backdrop-filter: blur(16px); }
-.sts-login-logo { width: 36px; height: 36px; display: grid; place-items: center; margin: 0 auto 12px; border-radius: var(--studio-radius); background: var(--studio-brand); color: #fff; font: 700 18px Georgia,serif; }
-.sts-login-card h3 { margin: 0; color: var(--studio-text); text-align: center; font: 700 18px Georgia,serif; }
-.sts-login-card > p { margin: 5px 0 16px; color: var(--studio-muted); font-size: 8px; text-align: center; }
-.sts-login-card label { display: grid; gap: 4px; margin-bottom: 9px; color: var(--studio-muted); font-size: 7px; font-weight: 650; }
-.sts-login-card button { width: 100%; margin-top: 4px; }
-.sts-login-card small { display: block; margin-top: 14px; color: var(--studio-muted); font-size: 6px; text-align: center; }
+.sts-preview-frame[data-scene="login"] .sts-preview-page::before {
+	content: ""; position: absolute; inset: -18%; pointer-events: none; opacity: .16;
+	background: radial-gradient(circle at 30% 35%, var(--studio-brand), transparent 34%),
+		radial-gradient(circle at 72% 65%, var(--studio-accent), transparent 32%);
+}
+.sts-login-shell { position: relative; z-index: 1; width: min(420px,92%); font-family: 'Segoe UI',sans-serif; }
+.sts-login-card-head,
+.sts-login-card-body {
+	background: color-mix(in srgb,var(--studio-login-card) var(--studio-login-opacity),transparent);
+	color: var(--studio-login-text); backdrop-filter: blur(18px);
+}
+.sts-login-card-head { padding: 32px 40px 16px; border-radius: var(--studio-login-card-radius) var(--studio-login-card-radius) 0 0; text-align: center; }
+.sts-login-card-body { padding: 8px 40px 32px; border-radius: 0 0 var(--studio-login-card-radius) var(--studio-login-card-radius); box-shadow: 0 24px 60px rgba(0,0,0,.3); }
+.sts-login-company-logo { display: block; max-width: min(190px,72%); max-height: 58px; margin: 0 auto 14px; object-fit: contain; }
+.sts-login-company-logo[hidden] { display: none; }
+.sts-login-app-logo { width: 48px; height: 48px; display: grid; place-items: center; margin: 0 auto 20px; border-radius: 14px; background: #858b96; color: #fff; }
+.sts-login-app-logo svg { width: 31px; height: 31px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.sts-login-card-head h3 { margin: 0; color: var(--studio-login-text); font: 700 20px/1.25 'Segoe UI',sans-serif; }
+.sts-login-card-head p { margin: 6px 0 0; color: var(--studio-login-text); font-size: 14px; line-height: 1.5; }
+.sts-login-card-body label { display: grid; gap: 6px; margin-bottom: 14px; color: var(--studio-login-muted); font-size: 13px; font-weight: 500; }
+.sts-login-input { height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border: 1.5px solid var(--studio-login-input-border); border-radius: var(--studio-login-button-radius); background: var(--studio-login-input); }
+.sts-login-input svg { width: 16px; height: 16px; flex: 0 0 16px; fill: none; stroke: var(--studio-login-muted); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.sts-login-input input { min-width: 0; width: 100%; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: var(--studio-login-text); font-size: 14px; }
+.sts-login-forgot { display: block; margin: -2px 0 20px; color: var(--studio-login-link); font-size: 13px; text-align: right; }
+.sts-login-card-body > button { width: 100%; height: 48px; border: 0; border-radius: var(--studio-login-button-radius); background: var(--studio-login-button); color: #fff; font-size: 15px; font-weight: 650; box-shadow: 0 4px 14px color-mix(in srgb,var(--studio-login-button) 40%,transparent); }
+.sts-login-card-body > small { display: block; margin-top: 28px; color: var(--studio-login-muted); font-size: 11px; letter-spacing: .04em; text-align: center; opacity: .65; }
+.sts-login-card-body > small[hidden] { display: none; }
+.sts-login-custom-footer { position: absolute; z-index: 2; bottom: 12px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,.72); font-size: 11px; white-space: nowrap; }
+.sts-login-custom-footer[hidden] { display: none; }
 
 /* ── READABLE TYPOGRAPHY SCALE ──────────────────────────────────────────────
    Keep the editor comfortably legible at 100% browser zoom. The preview stays
@@ -391,17 +414,13 @@
 .sts-form-grid label { font-size: 11px; }
 .sts-form-grid input,
 .sts-form-grid select,
-.sts-form-grid textarea,
-.sts-login-card input { font-size: 12px; }
+.sts-form-grid textarea { font-size: 12px; }
 .sts-form-actions button,
-.sts-login-card button { font-size: 11px; }
+.sts-login-card-body > button { font-size: 15px; }
 .sts-table-head,
 .sts-table-row { font-size: 11px; }
 .sts-table-head { font-size: 10px; }
 .sts-table-row i { font-size: 10px; }
-.sts-login-card > p { font-size: 11px; line-height: 1.5; }
-.sts-login-card label { font-size: 11px; }
-.sts-login-card small { font-size: 10px; }
 
 /* ── PREVIEW DEVICE ADAPTATION ─────────────────────────────────────────────── */
 .sts-preview-frame[data-device="mobile"] .sts-preview-sidebar,

@@ -85,6 +85,23 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn(".sts-field textarea { font-size: 13px;", css)
         self.assertIn(".sts-table-row { font-size: 11px; }", css)
 
+    def test_login_preview_matches_public_login_structure(self):
+        js = PAGE.read_text(encoding="utf-8")
+        css = CSS.read_text(encoding="utf-8")
+        login_runtime = (
+            ROOT / "solvronix_desk" / "public" / "js" / "login_theme.js"
+        ).read_text(encoding="utf-8")
+        for token in (
+            "sts-login-card-head", "sts-login-card-body", "sts-login-company-logo",
+            "sts-login-app-logo", "sts-login-input", "sts-login-forgot",
+            "data-login-powered", "data-login-footer",
+        ):
+            self.assertIn(token, js + css)
+        self.assertIn("var login = loginConfig || c;", js)
+        self.assertIn('"--studio-login-background": loginBackground', js)
+        self.assertIn("background-image: var(--studio-login-background)", css)
+        self.assertIn("image.addEventListener('error'", login_runtime)
+
     def test_published_navigation_tokens_reach_actual_desk_selectors(self):
         engine = ENGINE.read_text(encoding="utf-8")
         desk_css = DESK_CSS.read_text(encoding="utf-8")
@@ -102,10 +119,11 @@ class ThemeStudioTest(unittest.TestCase):
 
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=7", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=8", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=6", hooks)
+        self.assertIn("/assets/solvronix_desk/js/login_theme.js?v=5", hooks)
         self.assertIn('"on_update": "solvronix_desk.events.theme_settings_on_update"', hooks)
 
     def test_complete_studio_feature_surfaces_exist(self):

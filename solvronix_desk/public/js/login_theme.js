@@ -40,6 +40,9 @@
           image.className = 'st-login-company-logo';
           image.src = branding.logo;
           image.alt = branding.company_name || '';
+          /* Invalid or moved File URLs should not leave a broken-image label
+             above the app logo; Theme Studio preview follows the same rule. */
+          image.addEventListener('error', function () { image.remove(); });
           head.insertBefore(image, head.firstChild);
         }
         var title = head.querySelector('h4, h3, h2');
