@@ -31,6 +31,7 @@ function loadThemeStudio() {
   vm.createContext(context);
   vm.runInContext(fs.readFileSync(pagePath, "utf8"), context, { filename: pagePath });
   const studio = Object.create(context.solvronix_desk.ThemeStudio.prototype);
+  studio._context = context;
   studio.state = {
     defaults: {
       navbar_background: "#102750",
@@ -176,6 +177,109 @@ test("dark preview derives each untouched token even with custom dark surfaces",
   assert.equal(resolved.card_background, "#18232E");
   assert.equal(resolved.text_color, "#E8EDF5");
   assert.notEqual(resolved.navbar_background, studio.state.defaults.navbar_background);
+});
+
+test("apply synchronizes every schema color control to the exact effective preview color", () => {
+  const studio = loadThemeStudio();
+  const styles = {};
+  const makeCollection = (nodes = []) => ({
+    length: nodes.length,
+    each(callback) { nodes.forEach((node, index) => callback.call(node, index, node)); return this; },
+    val(value) { if (value === undefined) return nodes[0] && nodes[0].value; nodes.forEach((node) => { node.value = value; }); return this; },
+    attr() { return this; }, addClass() { return this; }, removeClass() { return this; },
+    filter() { return this; }, prop() { return this; }, toggleClass() { return this; },
+    text() { return this; }, off() { return this; }, on() { return this; }, removeAttr() { return this; },
+  });
+  const cssVariableByKey = {
+    brand_color: "--studio-brand", accent_color: "--studio-accent",
+    page_background: "--studio-page", card_background: "--studio-card",
+    text_color: "--studio-text", muted_text_color: "--studio-muted",
+    link_color: "--studio-link", border_color: "--studio-border",
+    success_color: "--studio-success", warning_color: "--studio-warning",
+    error_color: "--studio-error", info_color: "--studio-info",
+    navbar_background: "--studio-navbar", toolbar_text_color: "--studio-toolbar-text",
+    sidebar_background: "--studio-sidebar", sidebar_text_color: "--studio-sidebar-text",
+    sidebar_icon_color: "--studio-sidebar-icon", sidebar_active_color: "--studio-sidebar-active",
+    sidebar_active_text_color: "--studio-sidebar-active-text", sidebar_hover_color: "--studio-sidebar-hover",
+    primary_button_color: "--studio-primary-btn", secondary_button_color: "--studio-secondary-btn",
+    secondary_button_text: "--studio-secondary-text", input_background: "--studio-input-bg",
+    input_border_color: "--studio-input-border", focus_color: "--studio-focus",
+    checkbox_color: "--studio-checkbox", dropdown_background: "--studio-dropdown-bg",
+    readonly_background: "--studio-readonly", alternate_row_color: "--studio-row-alt",
+    table_header_color: "--studio-table-header", selected_row_color: "--studio-row-selected",
+    row_hover_color: "--studio-row-hover", report_grid_color: "--studio-report-grid",
+    workspace_card_color: "--studio-workspace-card", number_card_color: "--studio-number-card",
+    chart_background: "--studio-chart-bg", login_background: "--studio-login-bg",
+    login_gradient_to: "--studio-login-to",
+  };
+  const definitions = studio._context.solvronix_desk.theme_studio_sections
+    .flatMap((section) => section.controls)
+    .filter((definition) => definition[2] === "color" || definition[2] === "optional-color");
+  const optionalKeys = Array.from(definitions
+    .filter((definition) => definition[2] === "optional-color")
+    .map((definition) => definition[0]));
+  assert.equal(definitions.length, 39);
+  assert.equal(Object.keys(cssVariableByKey).length, 39);
+  assert.deepEqual(optionalKeys, ["toolbar_text_color", "sidebar_text_color", "sidebar_icon_color", "sidebar_active_text_color"]);
+
+  const inputsByKey = {};
+  const controls = {};
+  definitions.forEach(([key]) => {
+    const native = [{ type: "color", value: "#FFFFFF" }, { type: "color", value: "#FFFFFF" }];
+    const hex = [{ type: "text", value: "" }, { type: "text", value: "" }];
+    inputsByKey[key] = { native, hex };
+    controls[`[data-setting="${key}"]`] = native;
+    controls[`[data-hex="${key}"]`] = hex;
+  });
+  studio.$root = { find(selector) { return makeCollection(controls[selector]); } };
+  studio.$preview = {
+    css(values) { Object.assign(styles, values); return this; },
+    attr() { return this; },
+    find() { return makeCollection(); },
+  };
+  studio.config = {
+    ...studio.state.defaults,
+    preferred_mode: "Dark",
+    brand_color: "#1B3F7E",
+    accent_color: "#F57C00",
+    sidebar_active_color: "#F57C00",
+  };
+  definitions.forEach(([key]) => {
+    if (studio.config[key] === undefined) studio.config[key] = "#336699";
+  });
+  optionalKeys.forEach((key) => { studio.config[key] = ""; });
+  studio.config.navbar_background = "";
+  studio.config.sidebar_hover_color = "";
+  studio.history = [];
+  studio.future = [];
+  studio._update_wcag = () => {};
+  studio._apply_draft_to_desk = () => {};
+  studio._refresh_server_preview = () => {};
+  const activeHex = inputsByKey.card_background.hex[1];
+  activeHex.value = "#ABC";
+  studio._context.document.activeElement = activeHex;
+
+  ["Light", "Dark", "Auto"].forEach((mode) => {
+    studio.config.preferred_mode = mode;
+    const canonical = JSON.stringify(studio.config);
+    studio.apply();
+
+    definitions.forEach(([key, label]) => {
+      const expected = styles[cssVariableByKey[key]];
+      assert.match(expected, /^#[0-9A-F]{6}$/, `${mode} preview ${key} must resolve to a hex color`);
+      assert.deepEqual(inputsByKey[key].native.map((input) => input.value), [expected, expected], `${mode} native ${key}`);
+      assert.equal(inputsByKey[key].hex[0].value, expected, `${mode} full-settings hex ${key}`);
+      if (key === "card_background") assert.equal(inputsByKey[key].hex[1].value, "#ABC", `${mode} active hex ${key}`);
+      else assert.equal(inputsByKey[key].hex[1].value, expected, `${mode} inspector hex ${key}`);
+      assert.match(
+        studio._color_control(key, label, optionalKeys.includes(key), "inspector"),
+        new RegExp(`type="color" value="${expected}"`),
+        `${mode} newly rendered inspector ${key}`
+      );
+    });
+    optionalKeys.forEach((key) => assert.equal(studio.config[key], "", `${mode} optional canonical ${key}`));
+    assert.equal(JSON.stringify(studio.config), canonical, `${mode} canonical config`);
+  });
 });
 
 test("branding values update visible preview consumers", () => {

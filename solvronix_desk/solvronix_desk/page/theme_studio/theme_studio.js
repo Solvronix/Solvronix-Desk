@@ -190,6 +190,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.active_profile = "";
 		this.published_profile = "";
 		this.selected_inspector = null;
+		this.effective_visual_config = null;
 		this.preview_timer = null;
 		this.original_dark = document.documentElement.getAttribute("data-theme") === "dark";
 	}
@@ -451,6 +452,68 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		$outputs.each(function () { $(this).text(value + ($(this).data("unit") || "")); });
 	}
 
+	_effective_color_values(visual) {
+		var c = visual || {};
+		var values = {};
+		solvronix_desk.theme_studio_sections.forEach(function (section) {
+			section.controls.forEach(function (definition) {
+				if (definition[2] === "color" || definition[2] === "optional-color") {
+					values[definition[0]] = c[definition[0]];
+				}
+			});
+		});
+		Object.assign(values, {
+			navbar_background: c.navbar_background || this._mix_hex(c.brand_color, "#000000", 0.4),
+			toolbar_text_color: c.toolbar_text_color || this._contrast(c.navbar_background || c.brand_color),
+			sidebar_background: c.sidebar_background || "#FFFFFF",
+			sidebar_text_color: c.sidebar_text_color || this._contrast(c.sidebar_background || "#FFFFFF"),
+			sidebar_icon_color: c.sidebar_icon_color || c.sidebar_text_color || this._contrast(c.sidebar_background || "#FFFFFF"),
+			sidebar_active_color: c.sidebar_active_color || c.accent_color,
+			sidebar_active_text_color: c.sidebar_active_text_color || this._contrast(c.sidebar_active_color),
+			sidebar_hover_color: c.sidebar_hover_color || this._mix_hex(c.sidebar_background, c.text_color, 0.88),
+			page_background: c.page_background || "#F3F5F7",
+			card_background: c.card_background || "#FFFFFF",
+			workspace_card_color: c.workspace_card_color || c.card_background || "#FFFFFF",
+			number_card_color: c.number_card_color || c.card_background || "#FFFFFF",
+			chart_background: c.chart_background || c.card_background || "#FFFFFF",
+			text_color: c.text_color || "#19202D",
+			muted_text_color: c.muted_text_color || "#697386",
+			border_color: c.border_color || "#E1E5EA",
+			link_color: c.link_color || c.brand_color,
+			primary_button_color: c.primary_button_color || c.accent_color,
+			login_card_color: c.card_background || "#FFFFFF",
+			login_text_color: c.text_color || "#19202D",
+			login_muted_color: c.muted_text_color || "#697386",
+			login_input_color: c.input_background || "#F9FAFB",
+			login_input_border_color: c.input_border_color || "#C9CDD4",
+			login_button_color: c.accent_color || "#F57C00",
+			login_link_color: c.brand_color || "#1B3F7E",
+			chart_primary_color: (c.chart_palette || [])[0] || c.brand_color,
+			chart_secondary_color: (c.chart_palette || [])[1] || c.accent_color,
+		});
+		Object.keys(values).forEach(function (key) {
+			var value = String(values[key] || "");
+			if (/^#[0-9A-F]{6}$/i.test(value)) values[key] = value.toUpperCase();
+		});
+		return values;
+	}
+
+	_sync_effective_color_inputs(visual) {
+		if (!this.$root) return;
+		var values = this._effective_color_values(visual);
+		var active = document.activeElement;
+		Object.keys(values).forEach(function (key) {
+			var value = String(values[key] || "").toUpperCase();
+			if (!/^#[0-9A-F]{6}$/.test(value)) return;
+			this.$root.find('[data-setting="' + key + '"]').each(function () {
+				if (this.type === "color") this.value = value;
+			});
+			this.$root.find('[data-hex="' + key + '"]').each(function () {
+				if (this !== active) this.value = value;
+			});
+		}, this);
+	}
+
 	_tabs_html() {
 		var self = this;
 		return '<nav class="sts-tabs" aria-label="' + __("Theme categories") + '">' +
@@ -560,12 +623,13 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	}
 
 	_color_control(key, label, optional, scope) {
-		var value = this.config[key] || (key === "brand_color" ? "#1B3F7E" : key === "accent_color" ? "#F57C00" : "#FFFFFF");
+		var effective = this._effective_color_values(this.effective_visual_config || this.config);
+		var value = effective[key] || (key === "brand_color" ? "#1B3F7E" : key === "accent_color" ? "#F57C00" : "#FFFFFF");
 		var inputId = "sts-" + (scope ? scope + "-" : "") + key;
 		return '<div class="sts-color-row" data-control="' + key + '">' +
 			'<label for="' + inputId + '">' + label + "</label>" +
 			'<div><input id="' + inputId + '" type="color" value="' + value + '" data-setting="' + key + '">' +
-			'<input class="sts-hex" type="text" value="' + (this.config[key] || "") + '" placeholder="' +
+			'<input class="sts-hex" type="text" value="' + value + '" placeholder="' +
 				(optional ? __("Auto") : value) + '" data-hex="' + key + '" maxlength="7" spellcheck="false">' +
 			(optional ? '<button type="button" class="sts-auto" data-clear="' + key + '" title="' + __("Use automatic value") + '">×</button>' : "") +
 			"</div></div>";
@@ -1352,6 +1416,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			(c.preferred_mode === "Auto" && window.matchMedia &&
 				window.matchMedia("(prefers-color-scheme: dark)").matches);
 		var visual = this._resolved_visual_config(c, previewDark);
+		this.effective_visual_config = visual;
+		this._sync_effective_color_inputs(visual);
 		this._apply_preview_vars(this.$preview, visual, c);
 		this.$preview.attr("data-theme", previewDark ? "dark" : "light");
 		this.$preview.attr("data-density", String(c.density || "Comfortable").toLowerCase());
@@ -1467,61 +1533,62 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	}
 
 	_apply_preview_vars($target, c, loginConfig) {
-		/* The public runtime now resolves the same Dark/Auto surfaces as Desk.
-		   Keep content/background settings raw, while visual surfaces use c. */
-		var login = c;
+		/* One projection supplies the color controls and every preview color.
+		   Non-color login content continues to use the canonical settings. */
 		var loginSettings = loginConfig || c;
+		var colors = this._effective_color_values(c);
+		var loginColors = this._effective_color_values(loginSettings);
 		var safeLoginImage = String(loginSettings.login_bg_image || "").replace(/["\\\r\n]/g, "");
 		var loginBackground = safeLoginImage ?
 			'linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.12)),url("' + safeLoginImage + '")' :
-			"linear-gradient(" + loginSettings.login_gradient_angle + "deg," + loginSettings.login_background + "," + loginSettings.login_gradient_to + ")";
+			"linear-gradient(" + loginSettings.login_gradient_angle + "deg," + loginColors.login_background + "," + loginColors.login_gradient_to + ")";
 		var shadow = {
 			None: "none",
 			Soft: "0 10px 28px rgba(22,28,45,.09)",
 			Elevated: "0 18px 42px rgba(22,28,45,.17)",
 		}[c.shadow_style] || "none";
 		$target.css({
-			"--studio-brand": c.brand_color,
-			"--studio-accent": c.accent_color,
-			"--studio-sidebar": c.sidebar_background || "#FFFFFF",
-			"--studio-navbar": c.navbar_background || "color-mix(in srgb, " + c.brand_color + " 40%, black)",
-			"--studio-page": c.page_background || "#F3F5F7",
-			"--studio-card": c.card_background || "#FFFFFF",
-			"--studio-workspace-card": c.workspace_card_color || c.card_background || "#FFFFFF",
-			"--studio-number-card": c.number_card_color || c.card_background || "#FFFFFF",
-			"--studio-chart-bg": c.chart_background || c.card_background || "#FFFFFF",
-			"--studio-text": c.text_color || "#19202D",
-			"--studio-muted": c.muted_text_color || "#697386",
-			"--studio-border": c.border_color || "#E1E5EA",
-			"--studio-link": c.link_color || c.brand_color,
-			"--studio-primary-btn": c.primary_button_color || c.accent_color,
-			"--studio-secondary-btn": c.secondary_button_color,
-			"--studio-secondary-text": c.secondary_button_text,
+			"--studio-brand": colors.brand_color,
+			"--studio-accent": colors.accent_color,
+			"--studio-sidebar": colors.sidebar_background,
+			"--studio-navbar": colors.navbar_background,
+			"--studio-page": colors.page_background,
+			"--studio-card": colors.card_background,
+			"--studio-workspace-card": colors.workspace_card_color,
+			"--studio-number-card": colors.number_card_color,
+			"--studio-chart-bg": colors.chart_background,
+			"--studio-text": colors.text_color,
+			"--studio-muted": colors.muted_text_color,
+			"--studio-border": colors.border_color,
+			"--studio-link": colors.link_color,
+			"--studio-primary-btn": colors.primary_button_color,
+			"--studio-secondary-btn": colors.secondary_button_color,
+			"--studio-secondary-text": colors.secondary_button_text,
 			"--studio-button-radius": c.button_radius + "px",
 			"--studio-button-height": c.button_height + "px",
 			"--studio-button-padding": c.button_padding + "px",
 			"--studio-header-height": c.header_height + "px",
-			"--studio-input-bg": c.input_background,
-			"--studio-input-border": c.input_border_color,
-			"--studio-focus": c.focus_color,
+			"--studio-input-bg": colors.input_background,
+			"--studio-input-border": colors.input_border_color,
+			"--studio-focus": colors.focus_color,
 			"--studio-focus-width": c.focus_outline_width + "px",
-			"--studio-checkbox": c.checkbox_color,
-			"--studio-dropdown-bg": c.dropdown_background,
-			"--studio-readonly": c.readonly_background,
+			"--studio-checkbox": colors.checkbox_color,
+			"--studio-dropdown-bg": colors.dropdown_background,
+			"--studio-readonly": colors.readonly_background,
 			"--studio-disabled-opacity": String(c.disabled_opacity / 100),
 			"--studio-card-radius": c.card_radius + "px",
 			"--studio-section-spacing": c.section_spacing + "px",
 			"--studio-form-gap": c.form_column_gap + "px",
 			"--studio-row-height": c.list_row_height + "px",
-			"--studio-table-header": c.table_header_color,
-			"--studio-row-alt": c.alternate_row_color,
-			"--studio-row-selected": c.selected_row_color,
-			"--studio-row-hover": c.row_hover_color,
-			"--studio-report-grid": c.report_grid_color,
-			"--studio-success": c.success_color,
-			"--studio-warning": c.warning_color,
-			"--studio-error": c.error_color,
-			"--studio-info": c.info_color,
+			"--studio-table-header": colors.table_header_color,
+			"--studio-row-alt": colors.alternate_row_color,
+			"--studio-row-selected": colors.selected_row_color,
+			"--studio-row-hover": colors.row_hover_color,
+			"--studio-report-grid": colors.report_grid_color,
+			"--studio-success": colors.success_color,
+			"--studio-warning": colors.warning_color,
+			"--studio-error": colors.error_color,
+			"--studio-info": colors.info_color,
 			"--studio-font": '"' + (c.font_family || "Aptos").replace(/["']/g, "") + '", sans-serif',
 			"--studio-base-font": c.base_font_px + "px",
 			"--studio-font-weight": String(c.font_weight),
@@ -1535,28 +1602,28 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"--studio-workspace-width": c.workspace_width + "px",
 			"--studio-page-margin": c.page_margin + "px",
 			"--studio-shadow": shadow,
-			"--studio-sidebar-text": c.sidebar_text_color || this._contrast(c.sidebar_background || "#FFFFFF"),
-			"--studio-sidebar-icon": c.sidebar_icon_color || c.sidebar_text_color || this._contrast(c.sidebar_background || "#FFFFFF"),
-			"--studio-sidebar-active": c.sidebar_active_color || c.accent_color,
-			"--studio-sidebar-active-text": c.sidebar_active_text_color || this._contrast(c.sidebar_active_color),
-			"--studio-sidebar-hover": c.sidebar_hover_color || "color-mix(in srgb, " + c.sidebar_background + " 88%, " + c.text_color + ")",
-			"--studio-toolbar-text": c.toolbar_text_color || this._contrast(c.navbar_background || c.brand_color),
-			"--studio-chart-1": (c.chart_palette || [])[0] || c.brand_color,
-			"--studio-chart-2": (c.chart_palette || [])[1] || c.accent_color,
-			"--studio-login-bg": c.login_background,
-			"--studio-login-to": c.login_gradient_to,
+			"--studio-sidebar-text": colors.sidebar_text_color,
+			"--studio-sidebar-icon": colors.sidebar_icon_color,
+			"--studio-sidebar-active": colors.sidebar_active_color,
+			"--studio-sidebar-active-text": colors.sidebar_active_text_color,
+			"--studio-sidebar-hover": colors.sidebar_hover_color,
+			"--studio-toolbar-text": colors.toolbar_text_color,
+			"--studio-chart-1": colors.chart_primary_color,
+			"--studio-chart-2": colors.chart_secondary_color,
+			"--studio-login-bg": colors.login_background,
+			"--studio-login-to": colors.login_gradient_to,
 			"--studio-login-angle": c.login_gradient_angle + "deg",
 			"--studio-login-opacity": c.login_card_opacity + "%",
 			"--studio-login-background": loginBackground,
-			"--studio-login-card": login.card_background || "#FFFFFF",
-			"--studio-login-text": login.text_color || "#19202D",
-			"--studio-login-muted": login.muted_text_color || "#697386",
-			"--studio-login-input": login.input_background || "#F9FAFB",
-			"--studio-login-input-border": login.input_border_color || "#C9CDD4",
-			"--studio-login-button": login.accent_color || "#F57C00",
-			"--studio-login-link": login.brand_color || "#1B3F7E",
-			"--studio-login-card-radius": (login.card_radius || 16) + "px",
-			"--studio-login-button-radius": (login.button_radius || 8) + "px",
+			"--studio-login-card": colors.login_card_color,
+			"--studio-login-text": colors.login_text_color,
+			"--studio-login-muted": colors.login_muted_color,
+			"--studio-login-input": colors.login_input_color,
+			"--studio-login-input-border": colors.login_input_border_color,
+			"--studio-login-button": colors.login_button_color,
+			"--studio-login-link": colors.login_link_color,
+			"--studio-login-card-radius": (c.card_radius || 16) + "px",
+			"--studio-login-button-radius": (c.button_radius || 8) + "px",
 		});
 		$target.attr("data-layout", String(c.layout_mode || "Full Width").toLowerCase().replace(/\s+/g, "-"));
 		$target.attr("data-logo-position", String(c.logo_position || "Left").toLowerCase());
