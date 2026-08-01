@@ -252,6 +252,176 @@ test("color-blind palette updates semantic preview colors", () => {
   assert.equal(resolved.info_color, "#56B4E9");
 });
 
+function installChartState(studio) {
+  studio.state.chart_schema = {
+    version: 1,
+    groups: {
+      chart: {
+        height: { type: "integer", default: 240, min: 80, max: 900, unit: "px", applies_to: ["full", "sparkline"], label: "Height" },
+        responsive: { type: "boolean", default: true, applies_to: ["full", "sparkline"], label: "Responsive sizing" },
+      },
+      surface: {
+        background: { type: "color", default: "#FFFFFF", applies_to: ["full", "sparkline"], label: "Chart background" },
+      },
+      series_defaults: {
+        palette: { type: "palette", default: ["#1B3F7E", "#F57C00"], max_items: 8, applies_to: ["full", "sparkline"], label: "Chart palette" },
+      },
+    },
+  };
+  studio.state.chart_registry = [
+    { id: "chart-1", title: "Sales", family: "dashboard_chart", capability: "full" },
+    { id: "card-1", title: "Revenue", family: "number_card", capability: "sparkline" },
+  ];
+  studio.config = {
+    chart_system_version: 1,
+    chart_defaults: { chart: { height: 300 } },
+    chart_overrides: { "chart-1": { surface: { background: "#112233" } } },
+    chart_background: "#FFFFFF",
+    chart_palette: ["#1B3F7E", "#F57C00"],
+  };
+  studio.saved = JSON.parse(JSON.stringify(studio.config));
+  studio.history = [];
+  studio.future = [];
+  studio.$root = { toggleClass() {}, find() { return { val() {}, prop() {}, toggleClass() {}, text() {} }; } };
+  studio.page = {};
+  studio.apply = () => {};
+}
+
+test("chart editor resolves system then global then individual ownership", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+
+  const resolved = studio._chart_effective_state("chart-1");
+
+  assert.equal(resolved.values.chart.height, 300);
+  assert.equal(resolved.values.surface.background, "#112233");
+  assert.equal(resolved.values.chart.responsive, true);
+  assert.equal(resolved.ownership["chart.height"], "global");
+  assert.equal(resolved.ownership["surface.background"], "individual");
+  assert.equal(resolved.ownership["chart.responsive"], "system");
+});
+
+test("chart resets fall back from individual to global and global to system", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  studio._set_chart_value("individual", "chart-1", "chart.height", 420);
+  assert.equal(studio.config.chart_overrides["chart-1"].chart.height, 420);
+
+  studio._reset_chart_property("individual", "chart-1", "chart.height");
+  assert.equal(studio._chart_effective_state("chart-1").values.chart.height, 300);
+
+  studio._reset_chart("chart-1");
+  assert.equal(studio.config.chart_overrides["chart-1"], undefined);
+  studio._reset_global_charts();
+  assert.equal(Object.keys(studio.config.chart_defaults).length, 0);
+  assert.equal(studio._chart_effective_state("chart-1").values.chart.height, 240);
+});
+
+test("chart controls are generated from schema and filtered by capability", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+
+  const full = studio._chart_controls_html("individual", "chart-1", "full");
+  const sparkline = studio._chart_controls_html("individual", "card-1", "sparkline");
+
+  assert.match(full, /data-chart-path="chart\.height"/);
+  assert.match(full, /data-chart-path="surface\.background"/);
+  assert.match(full, /data-chart-reset-property="surface\.background"/);
+  assert.doesNotMatch(sparkline, /data-chart-path="axes\./);
+});
+
+test("workspace chart classification takes precedence and preserves runtime identity", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  const chartElement = { classList: { add() {}, remove() {} } };
+  const hit = workspaceTargetElement({ [workspaceTargetSelectors.card]: { name: "generic-card" } });
+  const frameDocument = {
+    defaultView: {
+      solvronixChartRuntime: {
+        describe(element) {
+          assert.equal(element, hit);
+          return { id: "chart-1", family: "dashboard_chart", capability: "full", element: chartElement };
+        },
+      },
+    },
+  };
+
+  const target = studio._classify_workspace_target(hit, frameDocument);
+
+  assert.equal(target.id, "workspace.chart");
+  assert.equal(target.chart_id, "chart-1");
+  assert.equal(target.element, chartElement);
+});
+
+test("chart editor panel exposes global controls and permission-filtered registry", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+
+  const html = studio._chart_system_html();
+
+  assert.match(html, /Global chart defaults/);
+  assert.match(html, /Sales/);
+  assert.match(html, /Revenue/);
+  assert.match(html, /data-select-chart="chart-1"/);
+  assert.match(html, /data-reset-global-charts/);
+});
+
+test("Theme Studio pushes chart config and schema into the workspace runtime", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  const calls = [];
+  studio.$workspace_iframe = {
+    length: 1,
+    0: { contentWindow: { solvronixChartRuntime: { setConfig(config, schema) { calls.push([config, schema]); } } } },
+  };
+
+  assert.equal(studio._apply_chart_runtime_to_workspace(), true);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][0], studio.config);
+  assert.equal(calls[0][1], studio.state.chart_schema);
+});
+
+test("invalid chart input blocks draft and publish requests", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  let calls = 0;
+  studio._context.frappe.call = () => { calls += 1; };
+  studio._context.frappe.show_alert = () => {};
+  studio.chart_invalid = { "global::chart.height": "invalid" };
+  studio.dirty = true;
+
+  assert.equal(studio.save_draft(), false);
+  assert.equal(studio.save(), false);
+  assert.equal(calls, 0);
+});
+
+test("chart mutation rejects unknown and prototype paths", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+
+  assert.equal(studio._set_chart_value("global", "", "__proto__.polluted", true), false);
+  assert.equal(studio._set_chart_value("global", "", "surface.unknown", "x"), false);
+  assert.equal({}.polluted, undefined);
+});
+
+test("selected runtime series expose individual line and bar overrides", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  studio.state.chart_schema.groups.series_defaults.line_width = {
+    type: "number", default: 2, min: 0, max: 12, step: 0.5, unit: "px", applies_to: ["line", "area"], label: "Line width",
+  };
+  studio.state.chart_schema.groups.series_defaults.bar_radius = {
+    type: "integer", default: 4, min: 0, max: 30, unit: "px", applies_to: ["bar"], label: "Bar radius",
+  };
+  const html = studio._chart_series_controls_html("chart-1", [
+    { key: "dataset:net_total", label: "Net Total" },
+  ]);
+
+  assert.match(html, /Net Total/);
+  assert.match(html, /data-chart-path="series\.dataset:net_total\.line_width"/);
+  assert.match(html, /data-chart-path="series\.dataset:net_total\.bar_radius"/);
+});
+
 test("dark preview derives each untouched token even with custom dark surfaces", () => {
   const studio = loadThemeStudio();
   const resolved = studio._resolved_visual_config({

@@ -208,6 +208,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.active_profile = "";
 		this.published_profile = "";
 		this.selected_inspector = null;
+		this.selected_chart_id = null;
+		this.chart_invalid = Object.create(null);
 		this.effective_visual_config = null;
 		this.preview_timer = null;
 		this.page_active = true;
@@ -455,6 +457,10 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 
 	_render_inspector() {
 		if (!this.$inspector || !this.$inspector.length) return;
+		if (this.selected_inspector === "workspace.chart" && this.selected_chart_id) {
+			this._render_chart_inspector();
+			return;
+		}
 		var item = this._inspector_catalog()[this.selected_inspector];
 		if (!item) {
 			this.selected_inspector = null;
@@ -474,6 +480,23 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			'<p>' + __("Changes apply instantly to the preview and published theme.") + '</p><div class="sts-inspector-controls">' +
 			controls + '</div><button type="button" class="sts-inspector-more" data-open-control-section="' + section + '">' +
 			__("Open full settings section") + "</button>"
+		);
+		this._restore_inspector_highlight();
+	}
+
+	_render_chart_inspector() {
+		var self = this;
+		var entry = ((this.state && this.state.chart_registry) || []).find(function (item) { return item.id === self.selected_chart_id; }) || {};
+		var runtimeCapability = this.workspace_selection && this.workspace_selection.capabilities;
+		var capability = runtimeCapability || (entry.family === "number_card" ? "sparkline" : "full");
+		var label = entry.label || entry.title || this.selected_chart_id;
+		this.$inspector.addClass("is-open").html(
+			'<div class="sts-inspector-head"><div><small>' + __("Individual chart") + '</small><b>' + this._esc(label) +
+			'</b></div><button type="button" data-inspector-close title="' + __("Close inspector") + '">×</button></div>' +
+			'<p>' + __("Only explicit overrides are stored. Reset a property to inherit the global chart value.") + '</p><div class="sts-inspector-controls sts-chart-controls">' +
+			this._chart_controls_html("individual", this.selected_chart_id, capability) +
+			this._chart_series_controls_html(this.selected_chart_id, (this.workspace_selection && this.workspace_selection.series) || []) +
+			'</div><button type="button" class="sts-inspector-more" data-reset-chart="' + this._esc(this.selected_chart_id) + '">' + __("Reset this chart to global defaults") + "</button>"
 		);
 		this._restore_inspector_highlight();
 	}
@@ -714,8 +737,219 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 					'<button type="button" data-reset-section="' + section.id + '">' + __("Reset section") + "</button></div>" +
 				'<p class="sts-section-copy">' + __(section.description) + "</p>" +
 				section.controls.map(function (definition) { return self._render_control(definition); }).join("") +
+				(section.id === "workspace" ? self._chart_system_html() : "") +
 			"</section>";
 		}).join("");
+	}
+
+	_chart_schema() {
+		return (this.state && this.state.chart_schema) || { version: 1, groups: {} };
+	}
+
+	_chart_system_defaults() {
+		var result = {};
+		var groups = this._chart_schema().groups || {};
+		Object.keys(groups).forEach(function (group) {
+			result[group] = {};
+			Object.keys(groups[group] || {}).forEach(function (key) {
+				result[group][key] = this._clone(groups[group][key].default);
+			}, this);
+		}, this);
+		return result;
+	}
+
+	_chart_merge(target, source) {
+		target = target || {};
+		Object.keys(source || {}).forEach(function (key) {
+			var value = source[key];
+			if (value && typeof value === "object" && !Array.isArray(value)) {
+				target[key] = this._chart_merge(target[key] || {}, value);
+			} else {
+				target[key] = this._clone(value);
+			}
+		}, this);
+		return target;
+	}
+
+	_chart_has_path(source, path) {
+		return this._chart_path_parts(path).every(function (part) {
+			if (!source || !Object.prototype.hasOwnProperty.call(source, part)) return false;
+			source = source[part];
+			return true;
+		});
+	}
+
+	_chart_path(source, path) {
+		this._chart_path_parts(path).forEach(function (part) { source = source && source[part]; });
+		return source;
+	}
+
+	_chart_path_parts(path) {
+		var text = String(path || ""), parts = text.split(".");
+		if (parts[0] === "series" && parts.length > 3) return ["series", parts.slice(1, -1).join("."), parts[parts.length - 1]];
+		return parts;
+	}
+
+	_chart_effective_state(chartId) {
+		var system = this._chart_system_defaults();
+		var globalValues = (this.config && this.config.chart_defaults) || {};
+		var individual = ((this.config && this.config.chart_overrides) || {})[chartId] || {};
+		var values = this._chart_merge(this._chart_merge(this._clone(system), globalValues), individual);
+		var ownership = {};
+		var groups = this._chart_schema().groups || {};
+		Object.keys(groups).forEach(function (group) {
+			Object.keys(groups[group] || {}).forEach(function (key) {
+				var path = group + "." + key;
+				ownership[path] = this._chart_has_path(individual, path) ? "individual" :
+					(this._chart_has_path(globalValues, path) ? "global" : "system");
+			}, this);
+		}, this);
+		return { values: values, ownership: ownership };
+	}
+
+	_set_chart_path(target, path, value) {
+		var parts = this._chart_path_parts(path), leaf = parts.pop();
+		parts.forEach(function (part) { target = target[part] || (target[part] = {}); });
+		target[leaf] = this._clone(value);
+	}
+
+	_delete_chart_path(target, path) {
+		var parts = this._chart_path_parts(path), parents = [], cursor = target;
+		for (var i = 0; i < parts.length - 1; i++) {
+			if (!cursor || !Object.prototype.hasOwnProperty.call(cursor, parts[i])) return;
+			parents.push([cursor, parts[i]]);
+			cursor = cursor[parts[i]];
+		}
+		if (cursor) delete cursor[parts[parts.length - 1]];
+		for (var j = parents.length - 1; j >= 0; j--) {
+			if (!Object.keys(parents[j][0][parents[j][1]] || {}).length) delete parents[j][0][parents[j][1]];
+		}
+	}
+
+	_set_chart_value(scope, chartId, path, value) {
+		if (!this._chart_definition(path) || (scope === "global" && String(path).indexOf("series.") === 0)) return false;
+		this._checkpoint();
+		this.config.chart_system_version = this._chart_schema().version || 1;
+		this.config.chart_defaults = this.config.chart_defaults || {};
+		this.config.chart_overrides = this.config.chart_overrides || {};
+		var target = this.config.chart_defaults;
+		if (scope === "individual") {
+			if (!chartId) return false;
+			target = this.config.chart_overrides[chartId] || (this.config.chart_overrides[chartId] = {});
+		}
+		this._set_chart_path(target, path, value);
+		if (scope === "global" && path === "surface.background") {
+			this.config.chart_background = value;
+			try { this._sync_setting_inputs("chart_background"); } catch (e) {}
+		}
+		if (scope === "global" && path === "series_defaults.palette") {
+			this.config.chart_palette = this._clone(value);
+			try { this._sync_setting_inputs("chart_palette"); } catch (e) {}
+		}
+		this.changed();
+		return true;
+	}
+
+	_reset_chart_property(scope, chartId, path) {
+		if (!this._chart_definition(path) || (scope === "global" && String(path).indexOf("series.") === 0)) return false;
+		this._checkpoint();
+		var target = scope === "global" ? (this.config.chart_defaults || {}) :
+			(((this.config.chart_overrides || {})[chartId]) || {});
+		this._delete_chart_path(target, path);
+		if (scope === "individual" && chartId && !Object.keys(target).length) delete this.config.chart_overrides[chartId];
+		if (scope === "global" && path === "surface.background") this.config.chart_background = this._chart_path(this._chart_system_defaults(), path);
+		if (scope === "global" && path === "series_defaults.palette") this.config.chart_palette = this._clone(this._chart_path(this._chart_system_defaults(), path));
+		this.changed();
+		return true;
+	}
+
+	_reset_chart(chartId) {
+		if (!chartId) return;
+		this._checkpoint();
+		delete (this.config.chart_overrides || {})[chartId];
+		this.changed();
+	}
+
+	_reset_global_charts() {
+		this._checkpoint();
+		var system = this._chart_system_defaults();
+		this.config.chart_defaults = {};
+		this.config.chart_background = system.surface.background;
+		this.config.chart_palette = this._clone(system.series_defaults.palette);
+		this.changed();
+	}
+
+	_chart_capability_allows(definition, capability) {
+		var kind = typeof capability === "string" ? capability : (capability && capability.kind) || "full";
+		var groups = capability && capability.groups;
+		if (groups && groups.indexOf && groups.indexOf(this._chart_rendering_group) === -1) return false;
+		return kind !== "sparkline" || (definition.applies_to || []).indexOf("sparkline") !== -1;
+	}
+
+	_chart_controls_html(scope, chartId, capability) {
+		var self = this, groups = this._chart_schema().groups || {};
+		var resolved = this._chart_effective_state(chartId || "");
+		return Object.keys(groups).map(function (group) {
+			self._chart_rendering_group = group;
+			var controls = Object.keys(groups[group] || {}).map(function (key) {
+				var definition = groups[group][key], path = group + "." + key;
+				if (!self._chart_capability_allows(definition, capability)) return "";
+				var value = self._chart_path(resolved.values, path);
+				var owner = scope === "global" ? (self._chart_has_path(self.config.chart_defaults || {}, path) ? "global" : "system") : resolved.ownership[path];
+				return self._chart_control_html(scope, chartId, path, definition, value, owner);
+			}).join("");
+			return controls ? '<details class="sts-chart-group" open><summary>' + self._esc(group.replace(/_/g, " ")) + "</summary>" + controls + "</details>" : "";
+		}).join("");
+	}
+
+	_chart_series_controls_html(chartId, series) {
+		var self = this, definitions = ((this._chart_schema().groups || {}).series_defaults) || {};
+		var effective = this._chart_effective_state(chartId);
+		var globalDefaults = effective.values.series_defaults || {};
+		var chartOverride = ((this.config.chart_overrides || {})[chartId] || {}).series || {};
+		return (series || []).filter(function (item) { return item && item.key && String(item.key).indexOf("session:") !== 0; }).map(function (item) {
+			var owned = chartOverride[item.key] || {};
+			var values = self._chart_merge(self._clone(globalDefaults), owned);
+			var controls = Object.keys(definitions).filter(function (key) { return key !== "palette"; }).map(function (key) {
+				var path = "series." + item.key + "." + key;
+				return self._chart_control_html("individual", chartId, path, definitions[key], values[key],
+					Object.prototype.hasOwnProperty.call(owned, key) ? "individual" : (effective.ownership["series_defaults." + key] || "system"));
+			}).join("");
+			return '<details class="sts-chart-group sts-chart-series"><summary>' + self._esc(item.label || item.key) + "</summary>" + controls + "</details>";
+		}).join("");
+	}
+
+	_chart_control_html(scope, chartId, path, definition, value, owner) {
+		var attrs = ' data-chart-scope="' + scope + '" data-chart-id="' + this._esc(chartId || "") + '" data-chart-path="' + path + '"';
+		var type = definition.type, input;
+		if (type === "boolean") input = '<input type="checkbox"' + attrs + (value ? " checked" : "") + ">";
+		else if (type === "enum") input = '<select' + attrs + ">" + (definition.values || []).map(function (option) {
+			return '<option value="' + option + '"' + (String(option) === String(value) ? " selected" : "") + ">" + this._esc(option) + "</option>";
+		}, this).join("") + "</select>";
+		else if (type === "color" || type === "optional_color") input = '<input type="color" value="' + (value || "#FFFFFF") + '"' + attrs + ">";
+		else if (type === "palette") input = '<input type="text" value="' + this._esc((value || []).join(", ")) + '" data-chart-palette="1"' + attrs + ">";
+		else input = '<input type="' + (type.indexOf("number") !== -1 || type === "integer" ? "number" : "text") + '" value="' + this._esc(value == null ? "" : value) + '"' +
+			(definition.min != null ? ' min="' + definition.min + '"' : "") + (definition.max != null ? ' max="' + definition.max + '"' : "") +
+			(definition.step != null ? ' step="' + definition.step + '"' : "") + attrs + ">";
+		return '<div class="sts-field sts-chart-field" data-chart-owner="' + owner + '"><label><span>' + this._esc(definition.label || path) +
+			'<em>' + this._esc((definition.applies_to || []).join(", ")) + '</em></span><small>' + this._esc(owner) + '</small></label><div class="sts-chart-input">' + input +
+			'<button type="button" data-chart-reset-property="' + path + '" data-chart-scope="' + scope + '" data-chart-id="' + this._esc(chartId || "") + '" title="' +
+			this._esc(scope === "global" ? "Use system default" : "Use global default") + '">↺</button></div><span class="sts-chart-error" role="alert"></span></div>';
+	}
+
+	_chart_system_html() {
+		if (!this.state || !this.state.chart_schema) return "";
+		var self = this, registry = this.state.chart_registry || [];
+		return '<div class="sts-chart-system"><div class="sts-section-title"><span>CH</span>' + __("Chart System") +
+			'<button type="button" data-reset-global-charts>' + __("Reset global charts") + '</button></div><p class="sts-section-copy">' +
+			__("Set defaults for every supported ERPNext chart, then override individual charts below.") + '</p><details open><summary>' + __("Global chart defaults") +
+			'</summary><div class="sts-chart-controls">' + this._chart_controls_html("global", "", "full") + '</div></details>' +
+			'<div class="sts-chart-registry"><label>' + __("Individual charts") + '</label><input type="search" data-chart-search placeholder="' + __("Search charts…") + '"><div data-chart-registry-list>' +
+			registry.map(function (entry) {
+				var label = entry.label || entry.title || entry.id;
+				return '<button type="button" data-select-chart="' + self._esc(entry.id) + '" data-chart-family="' + self._esc(entry.family || "") + '"' +
+					(entry.available === false ? " disabled" : "") + '><b>' + self._esc(label) + '</b><small>' + self._esc(entry.context || entry.family || "") + "</small></button>";
+			}).join("") + "</div></div></div>";
 	}
 
 	_render_control(definition, scope) {
@@ -1108,6 +1342,20 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			["workspace.background", ".workspace-container,.layout-main-section,.page-container,.page-body,body"],
 		];
 		try {
+			var runtime = frameDocument && frameDocument.defaultView && frameDocument.defaultView.solvronixChartRuntime;
+			if (runtime && typeof runtime.describe === "function") {
+				var descriptor = runtime.describe(element);
+				if (descriptor && descriptor.id) {
+					return {
+						id: "workspace.chart",
+						chart_id: descriptor.id,
+						family: descriptor.family || "",
+						capabilities: descriptor.capabilities || descriptor.capability || "full",
+						series: descriptor.series || [],
+						element: descriptor.element || descriptor.root || element,
+					};
+				}
+			}
 			if (typeof element.closest === "function") {
 				for (var i = 0; i < selectors.length; i++) {
 					var matched = element.closest(selectors[i][1]);
@@ -1170,6 +1418,11 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			if (Object.prototype.hasOwnProperty.call(selection, "variant")) {
 				this.workspace_selection.variant = selection.variant;
 			}
+			var workspaceSelection = this.workspace_selection;
+			["chart_id", "family", "capabilities", "series"].forEach(function (key) {
+				if (Object.prototype.hasOwnProperty.call(selection, key)) workspaceSelection[key] = selection[key];
+			});
+			if (selection.chart_id) this.selected_chart_id = selection.chart_id;
 			this.selected_inspector = selection.id;
 			this._render_inspector();
 			this._schedule_workspace_reanchor();
@@ -1273,6 +1526,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			this._install_workspace_inspector_css(frameDocument);
 			this._install_workspace_read_only_guards(frameDocument);
 			this._sync_workspace_document_state(frameDocument);
+			this._apply_chart_runtime_to_workspace();
 			this._set_workspace_state("ready");
 			this._inject_workspace_css(this.workspace_preview_css);
 			return true;
@@ -1339,7 +1593,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 
 	/* ── 5. PREVIEW BLOCK LAYOUT ──────────────────────────────────────────────
 	   Rebuild block order from stable IDs while preserving the active scene. */
-	render_blocks() {
+		render_blocks() {
 		var blocks = {
 			metrics:
 				'<section class="sts-block sts-metrics" draggable="true" data-block="metrics" data-inspector="dashboard.metrics"><div class="sts-drag">' + this._icon("grip") + "</div>" +
@@ -1386,6 +1640,52 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this._restore_inspector_highlight();
 	}
 
+	_chart_definition(path) {
+		var parts = this._chart_path_parts(path);
+		if (parts.some(function (part) { return !part || ["__proto__", "prototype", "constructor"].indexOf(part) !== -1; })) return null;
+		var groups = this._chart_schema().groups || {};
+		if (parts[0] === "series" && parts.length === 3 && parts[1].indexOf("session:") !== 0 && parts[2] !== "palette") {
+			return (groups.series_defaults || {})[parts[2]] || null;
+		}
+		return parts.length === 2 ? ((groups[parts[0]] || {})[parts[1]] || null) : null;
+	}
+
+	_chart_input_value(element, definition) {
+		var type = definition && definition.type;
+		if (type === "boolean") return { value: !!element.checked };
+		if (type === "palette") {
+			var palette = String(element.value || "").split(",").map(function (item) { return item.trim().toUpperCase(); }).filter(Boolean);
+			if (!palette.length || palette.length > (definition.max_items || 8) || palette.some(function (item) { return !/^#[0-9A-F]{6}$/.test(item); })) {
+				return { error: "Use 1–" + (definition.max_items || 8) + " six-digit hex colours" };
+			}
+			return { value: palette };
+		}
+		if (type === "color" || type === "optional_color") {
+			var color = String(element.value || "").trim().toUpperCase();
+			if (color || type === "color") {
+				if (!/^#[0-9A-F]{6}$/.test(color)) return { error: "Use a six-digit hex colour" };
+			}
+			return { value: color };
+		}
+		if (type === "integer" || type === "number" || type === "optional_number") {
+			if (type === "optional_number" && String(element.value || "").trim() === "") return { value: null };
+			var number = Number(element.value);
+			if (!Number.isFinite(number) || (type === "integer" && Math.floor(number) !== number) ||
+				(definition.min != null && number < definition.min) || (definition.max != null && number > definition.max)) {
+				return { error: "Enter a valid value within the allowed range" };
+			}
+			return { value: number };
+		}
+		return { value: String(element.value || "") };
+	}
+
+	_refresh_chart_editor() {
+		if (!this.$root || !this.$root.find) return;
+		var $current = this.$root.find(".sts-chart-system");
+		if ($current && $current.length && $current.replaceWith) $current.replaceWith(this._chart_system_html());
+		if (this.selected_inspector === "workspace.chart") this._render_inspector();
+	}
+
 	/* ── 6. EVENT BINDINGS ───────────────────────────────────────────────────
 	   Delegation keeps the generated control surface cheap to re-render. */
 	bind() {
@@ -1414,6 +1714,45 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			self.$root.find(".sts-control-panel").removeClass("active").filter('[data-section="' + section + '"]').addClass("active");
 			self.$root.find('[data-section="' + section + '"]')[0].scrollIntoView({ behavior: "smooth", block: "start" });
 		});
+		this.$root.on("input change", "[data-chart-path]", function () {
+			var $input = $(this), path = $input.data("chart-path");
+			var parsed = self._chart_input_value(this, self._chart_definition(path));
+			var invalidKey = ($input.data("chart-scope") || "global") + ":" + ($input.data("chart-id") || "") + ":" + path;
+			if (parsed.error) {
+				self.chart_invalid[invalidKey] = parsed.error;
+				$input.attr("aria-invalid", "true");
+				$input.closest(".sts-chart-field").find(".sts-chart-error").text(parsed.error);
+				return;
+			}
+			delete self.chart_invalid[invalidKey];
+			$input.removeAttr("aria-invalid");
+			$input.closest(".sts-chart-field").find(".sts-chart-error").text("");
+			self._set_chart_value($input.data("chart-scope"), $input.data("chart-id"), path, parsed.value);
+			$input.closest(".sts-chart-field").attr("data-chart-owner", $input.data("chart-scope"));
+		});
+		this.$root.on("click", "[data-chart-reset-property]", function () {
+			self._reset_chart_property($(this).data("chart-scope"), $(this).data("chart-id"), $(this).data("chart-reset-property"));
+			self._refresh_chart_editor();
+		});
+		this.$root.on("click", "[data-reset-chart]", function () {
+			self._reset_chart($(this).data("reset-chart"));
+			self._refresh_chart_editor();
+		});
+		this.$root.on("click", "[data-reset-global-charts]", function () {
+			self._reset_global_charts();
+			self._refresh_chart_editor();
+		});
+		this.$root.on("click", "[data-select-chart]", function () {
+			self.selected_chart_id = $(this).data("select-chart");
+			self.selected_inspector = "workspace.chart";
+			self._render_inspector();
+		});
+		this.$root.on("input", "[data-chart-search]", function () {
+			var query = String(this.value || "").trim().toLowerCase();
+			self.$root.find("[data-chart-registry-list] [data-select-chart]").each(function () {
+				$(this).toggle(!query || $(this).text().toLowerCase().indexOf(query) !== -1);
+			});
+		});
 		this.$root.on("input change", "[data-setting]", function () {
 			var key = $(this).data("setting");
 			self._checkpoint();
@@ -1432,6 +1771,15 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				}).filter(function (item) { return /^#[0-9A-F]{6}$/.test(item); });
 			} else {
 				self.config[key] = this.value;
+			}
+			if (key === "chart_background" || key === "chart_palette") {
+				self.config.chart_system_version = self._chart_schema().version || 1;
+				self.config.chart_defaults = self.config.chart_defaults || {};
+				self._set_chart_path(
+					self.config.chart_defaults,
+					key === "chart_background" ? "surface.background" : "series_defaults.palette",
+					self.config[key]
+				);
 			}
 			self._sync_setting_inputs(key, this);
 			self.changed();
@@ -1770,7 +2118,14 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	}
 
 	/* ── 9. DRAFTS, IMPORT/EXPORT, VERSIONS, AND DEPLOYMENT ────────────────── */
+	_chart_inputs_valid() {
+		if (!Object.keys(this.chart_invalid || {}).length) return true;
+		frappe.show_alert({ message: __("Fix invalid chart values before saving or publishing"), indicator: "red" }, 5);
+		return false;
+	}
+
 	save_draft() {
+		if (!this._chart_inputs_valid()) return false;
 		var self = this;
 		frappe.call({
 			method: "solvronix_desk.theme_api.save_theme_draft",
@@ -1780,6 +2135,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			callback: function (response) {
 				if (!response.message) return;
 				self.config = self._clone(response.message.config);
+				self.chart_invalid = Object.create(null);
 				self._update_wcag(response.message.wcag_failures);
 				frappe.show_alert({ message: __("Draft saved; published theme is unchanged"), indicator: "blue" }, 4);
 			},
@@ -2079,8 +2435,21 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		}
 		this._apply_draft_to_desk(visual);
 		this._sync_workspace_document_state();
+		this._apply_chart_runtime_to_workspace();
 		this._schedule_workspace_reanchor();
 		this._refresh_server_preview();
+	}
+
+	_apply_chart_runtime_to_workspace() {
+		try {
+			var frame = this.$workspace_iframe && this.$workspace_iframe.length && this.$workspace_iframe[0];
+			var runtime = frame && frame.contentWindow && frame.contentWindow.solvronixChartRuntime;
+			if (!runtime || typeof runtime.setConfig !== "function") return false;
+			runtime.setConfig(this.config, this._chart_schema());
+			return true;
+		} catch (e) {
+			return false;
+		}
 	}
 
 	/* Light configs receive derived dark surfaces for Dark/Auto preview without
@@ -2379,6 +2748,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 
 	/* ── 13. PUBLISH / RESET / DESK-WIDE DRAFT APPLICATION ────────────────── */
 	save() {
+		if (!this._chart_inputs_valid()) return false;
 		if (!this.config || !this.dirty) {
 			frappe.show_alert({ message: __("Theme is already up to date"), indicator: "blue" });
 			return;
@@ -2403,6 +2773,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				self.history = [];
 				self.future = [];
 				self.dirty = false;
+				self.chart_invalid = Object.create(null);
 				self.changed(false);
 				self._inject_global_css(r.message.css);
 				window.dispatchEvent(new CustomEvent("st-theme-runtime-refresh", {
@@ -2410,6 +2781,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 						css: r.message.css,
 						config: r.message.config,
 						preferred_mode: r.message.config.preferred_mode,
+						chart_schema: self._chart_schema(),
 						schedule: self.state && self.state.schedule,
 					},
 				}));
