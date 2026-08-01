@@ -152,3 +152,15 @@ Click a highlighted preview element to open its focused settings card beside the
 
 ![Login button contextual settings](screenshots/theme-studio/floating/19-login-button.png)
 
+### Workspace (live, styling-only)
+
+In the live Workspace scene, click a surface to open the existing Theme Studio contextual inspector. The inspector classifies selections into four groups:
+
+- Workspace background
+- Card/widget (including number cards)
+- Text/link
+- Button/shortcut
+
+For a **Workspace shortcut**, the inspector exposes brand colour, shortcut style, card background, radius, and shadow. For a **Number card**, it exposes number-card colour, text, muted text, border, radius, and shadow. Generic cards and buttons retain their standard contextual controls, so these subtypes do not add extra inspector groups.
+
+These controls are limited to styling: background, card, text, border, radius, shadow, and button colours are available only where appropriate for the selected group. Workspace content, links, buttons, forms, routes, and actions remain read-only and cannot be activated. Scrolling and the Workspace picker continue to work.

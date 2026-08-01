@@ -243,7 +243,6 @@
 .sts-workspace-preview[data-state="empty"] [data-workspace-state="empty"],
 .sts-workspace-preview[data-state="error"] [data-workspace-state="error"] { display: flex; }
 .sts-workspace-preview[data-state="error"] [data-workspace-state="error"] { color: var(--studio-error,#c83d4a); }
-.is-workspace-preview .sts-context-inspector { display: none; }
 /* ── PREVIEW NAVIGATION SHELL ──────────────────────────────────────────────── */
 .sts-preview-sidebar {
 	width: 64px; min-width: 64px; display: flex; flex-direction: column; padding: 0 8px 10px;

@@ -164,7 +164,15 @@ frappe.pages["theme-studio"].on_page_load = function (wrapper) {
 frappe.pages["theme-studio"].on_page_show = function () {
 	var studio = frappe.pages["theme-studio"].studio;
 	if (studio) {
-		studio.refresh_if_clean();
+		if (!studio.page_active) {
+			studio.page_active = true;
+			studio.lifecycle_generation = (studio.lifecycle_generation || 0) + 1;
+		}
+		if ((!studio.config || !studio.state) && typeof studio._request_initial_state === "function") {
+			studio._request_initial_state();
+		} else {
+			studio.refresh_if_clean();
+		}
 		if (studio.dirty) studio.apply();
 		studio._resume_workspace_preview();
 	}
@@ -173,6 +181,12 @@ frappe.pages["theme-studio"].on_page_show = function () {
 frappe.pages["theme-studio"].on_page_hide = function () {
 	var studio = frappe.pages["theme-studio"].studio;
 	if (studio) {
+		studio.page_active = false;
+		studio.lifecycle_generation = (studio.lifecycle_generation || 0) + 1;
+		studio.state_request_active = false;
+		studio.state_request_generation = (studio.state_request_generation || 0) + 1;
+		clearTimeout(studio.preview_timer);
+		studio.preview_timer = null;
 		studio.remove_draft();
 		studio._pause_workspace_preview();
 	}
@@ -196,6 +210,10 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.selected_inspector = null;
 		this.effective_visual_config = null;
 		this.preview_timer = null;
+		this.page_active = true;
+		this.lifecycle_generation = 1;
+		this.state_request_active = false;
+		this.state_request_generation = 0;
 		this.workspace_groups = [];
 		this.workspace_routes = Object.create(null);
 		this.workspace_preview_css = "";
@@ -218,9 +236,24 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.$root = $('<div class="sts-loading"><div class="sts-loader"></div><span>' +
 			__("Preparing your studio…") + "</span></div>").appendTo(this.wrapper.find(".page-content"));
 
+		this._request_initial_state();
+	}
+
+	_request_initial_state() {
+		if (!this.page_active || this.state_request_active) return false;
+		var self = this;
+		var generation = this.lifecycle_generation;
+		var requestGeneration = (this.state_request_generation || 0) + 1;
+		this.state_request_generation = requestGeneration;
+		this.state_request_active = true;
 		frappe.call({
 			method: "solvronix_desk.theme_api.get_theme_studio_state",
 			callback: function (r) {
+				if (
+					!self.page_active || generation !== self.lifecycle_generation ||
+					requestGeneration !== self.state_request_generation
+				) return;
+				self.state_request_active = false;
 				if (!r.message) return;
 				self.state = r.message;
 				self.config = self._clone(r.message.config);
@@ -231,18 +264,25 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				self.render();
 			},
 			error: function () {
+				if (
+					!self.page_active || generation !== self.lifecycle_generation ||
+					requestGeneration !== self.state_request_generation
+				) return;
+				self.state_request_active = false;
 				self.$root.html('<div class="sts-error">' + __("Theme Studio could not be loaded.") + "</div>");
 			},
 		});
+		return true;
 	}
 
 	/* External changes are safe to pull only when no local draft would be lost. */
 	refresh_if_clean() {
-		if (!this.config || this.dirty) return;
-		var self = this;
+		if (!this.page_active || !this.config || this.dirty) return;
+		var self = this, generation = this.lifecycle_generation;
 		frappe.call({
 			method: "solvronix_desk.theme_api.get_theme_studio_state",
 			callback: function (r) {
+				if (!self.page_active || generation !== self.lifecycle_generation) return;
 				if (!r.message) return;
 				self.state = r.message;
 				self.config = self._clone(r.message.config);
@@ -355,7 +395,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	/* Preview elements map to existing schema keys, keeping the contextual
 	   inspector and full category panels on one canonical configuration model. */
 	_inspector_catalog() {
-		return {
+		var catalog = {
 			"navigation.toolbar": { title: "Top toolbar", scene: "Global", keys: ["navbar_background", "toolbar_text_color", "header_height", "sticky_navbar"] },
 			"navigation.sidebar": { title: "Sidebar", scene: "Global", keys: ["sidebar_background", "sidebar_text_color", "sidebar_icon_color", "sidebar_active_color", "sidebar_hover_color", "sidebar_width", "sidebar_mode"] },
 			"dashboard.heading": { title: "Dashboard heading", scene: "Dashboard", keys: ["page_background", "text_color", "heading_scale", "primary_button_color", "button_radius"] },
@@ -363,6 +403,10 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"dashboard.chart": { title: "Chart card", scene: "Dashboard", keys: ["chart_background", "chart_palette", "text_color", "card_radius", "shadow_style"] },
 			"dashboard.activity": { title: "Activity card", scene: "Dashboard", keys: ["workspace_card_color", "text_color", "muted_text_color", "border_color", "card_radius"] },
 			"dashboard.shortcuts": { title: "Quick actions", scene: "Dashboard", keys: ["workspace_card_color", "shortcut_style", "primary_button_color", "button_radius", "card_radius"] },
+			"workspace.background": { title: "Workspace background", scene: "Workspace", keys: ["page_background", "text_color", "muted_text_color"] },
+			"workspace.card": { title: "Workspace card", scene: "Workspace", keys: ["workspace_card_color", "text_color", "muted_text_color", "border_color", "card_radius", "shadow_style"] },
+			"workspace.text": { title: "Workspace text", scene: "Workspace", keys: ["text_color", "muted_text_color", "link_color"] },
+			"workspace.button": { title: "Workspace button", scene: "Workspace", keys: ["primary_button_color", "secondary_button_color", "secondary_button_text", "button_radius", "shadow_style"] },
 			"form.heading": { title: "Form heading", scene: "Form", keys: ["page_background", "text_color", "heading_scale", "primary_button_color", "button_radius"] },
 			"form.card": { title: "Form card", scene: "Form", keys: ["card_background", "border_color", "card_radius", "shadow_style", "section_spacing"] },
 			"form.fields": { title: "Form fields", scene: "Form", keys: ["input_background", "input_border_color", "focus_color", "readonly_background", "label_font_size", "button_radius", "button_height", "form_column_gap"] },
@@ -377,6 +421,20 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"login.button": { title: "Login button", scene: "Login", keys: ["accent_color", "button_radius", "button_height", "button_padding"] },
 			"login.footer": { title: "Login footer", scene: "Login", keys: ["footer_text", "hide_powered", "muted_text_color"] },
 		};
+		var selection = this.workspace_selection;
+		if (selection && selection.id === "workspace.button" && selection.variant === "shortcut") {
+			catalog["workspace.button"] = {
+				title: "Workspace shortcut", scene: "Workspace",
+				keys: ["brand_color", "shortcut_style", "card_background", "card_radius", "shadow_style"],
+			};
+		}
+		if (selection && selection.id === "workspace.card" && selection.variant === "number-card") {
+			catalog["workspace.card"] = {
+				title: "Number card", scene: "Workspace",
+				keys: ["number_card_color", "text_color", "muted_text_color", "border_color", "card_radius", "shadow_style"],
+			};
+		}
+		return catalog;
 	}
 
 	_definition_for(key) {
@@ -449,10 +507,116 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	}
 
 	_restore_inspector_highlight() {
-		if (!this.$preview || !this.selected_inspector) return;
+		if (!this.selected_inspector) return;
+		if (String(this.selected_inspector).indexOf("workspace.") === 0) {
+			this._schedule_workspace_reanchor();
+			return;
+		}
+		if (!this.$preview) return;
 		this.$preview.find(".is-inspected").removeClass("is-inspected");
 		var element = this.$preview.find('[data-inspector="' + this.selected_inspector + '"]:visible').first().addClass("is-inspected")[0];
 		this._position_inspector(element);
+	}
+
+	_workspace_target_anchor() {
+		try {
+			var selection = this.workspace_selection;
+			var frame = this.$workspace_iframe && this.$workspace_iframe.length && this.$workspace_iframe[0];
+			var element = selection && selection.element;
+			if (!element || !frame || element.isConnected === false) return null;
+			if (typeof element.getBoundingClientRect !== "function" || typeof frame.getBoundingClientRect !== "function") return null;
+
+			var selectedRect = element.getBoundingClientRect();
+			var frameRect = frame.getBoundingClientRect();
+			var validRect = function (rect) {
+				if (!rect) return false;
+				var values = [rect.left, rect.top, rect.right, rect.bottom, rect.width, rect.height];
+				if (!values.every(Number.isFinite) || rect.width <= 0 || rect.height <= 0) return false;
+				return Math.abs(rect.right - rect.left - rect.width) <= 0.01 &&
+					Math.abs(rect.bottom - rect.top - rect.height) <= 0.01;
+			};
+			if (!validRect(selectedRect) || !validRect(frameRect)) return null;
+
+			var viewportRight = Number(window.innerWidth);
+			var viewportBottom = Number(window.innerHeight);
+			if (!Number.isFinite(viewportRight) || !Number.isFinite(viewportBottom) || viewportRight <= 0 || viewportBottom <= 0) return null;
+			var frameLeft = Math.max(0, frameRect.left);
+			var frameTop = Math.max(0, frameRect.top);
+			var frameRight = Math.min(viewportRight, frameRect.right);
+			var frameBottom = Math.min(viewportBottom, frameRect.bottom);
+			var left = Math.max(frameLeft, frameRect.left + selectedRect.left);
+			var top = Math.max(frameTop, frameRect.top + selectedRect.top);
+			var right = Math.min(frameRight, frameRect.left + selectedRect.right);
+			var bottom = Math.min(frameBottom, frameRect.top + selectedRect.bottom);
+			if (![left, top, right, bottom].every(Number.isFinite) || right <= left || bottom <= top) return null;
+			var visibleRect = {
+				left: left,
+				top: top,
+				right: right,
+				bottom: bottom,
+				width: right - left,
+				height: bottom - top,
+			};
+			return { getBoundingClientRect: function () { return visibleRect; } };
+		} catch (e) {
+			return null;
+		}
+	}
+
+	_clear_workspace_selection(closeInspector) {
+		try {
+			var selection = this.workspace_selection;
+			if (selection && selection.element && selection.element.classList) {
+				selection.element.classList.remove("st-theme-workspace-inspected");
+			}
+		} catch (e) {}
+		try { this.workspace_selection = null; } catch (e) {}
+		if (closeInspector === false) return;
+		try {
+			if (typeof this.selected_inspector !== "string" || this.selected_inspector.indexOf("workspace.") !== 0) return;
+			this.selected_inspector = null;
+			try { this._render_inspector(); } catch (e) {}
+		} catch (e) {}
+	}
+
+	_reanchor_workspace_inspector() {
+		try { this.workspace_reanchor_pending = false; } catch (e) {}
+		try {
+			var anchor = this._workspace_target_anchor();
+			if (!anchor) {
+				this._clear_workspace_selection();
+				return;
+			}
+			this._position_inspector(anchor);
+		} catch (e) {}
+	}
+
+	_schedule_workspace_reanchor() {
+		try {
+			if (this.workspace_reanchor_pending) return false;
+			this.workspace_reanchor_pending = true;
+			var self = this;
+			var callback = function () {
+				try { self._reanchor_workspace_inspector(); }
+				catch (e) { try { self.workspace_reanchor_pending = false; } catch (ignored) {} }
+			};
+			try {
+				if (typeof window.requestAnimationFrame === "function") {
+					window.requestAnimationFrame(callback);
+					return true;
+				}
+			} catch (e) {}
+			try {
+				setTimeout(callback, 0);
+				return true;
+			} catch (e) {
+				this.workspace_reanchor_pending = false;
+				return false;
+			}
+		} catch (e) {
+			try { this.workspace_reanchor_pending = false; } catch (ignored) {}
+			return false;
+		}
 	}
 
 	_sync_setting_inputs(key, source) {
@@ -807,12 +971,13 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this._set_workspace_state("loading");
 		frappe.call({
 			method: "solvronix_desk.api.get_workspaces",
-			callback: function (response) {
-				if (generation !== self.workspace_load_generation || self.workspace_paused) return;
-				self.workspace_request_active = false;
-				var message = (response && response.message) || {};
-				if (message.unavailable) {
-					self.workspace_groups = [];
+				callback: function (response) {
+					if (generation !== self.workspace_load_generation || self.workspace_paused) return;
+					self.workspace_request_active = false;
+					var message = (response && response.message) || {};
+					if (message.unavailable) {
+						self._clear_workspace_selection();
+						self.workspace_groups = [];
 					self.workspace_routes = Object.create(null);
 					self._render_workspace_selector();
 					self._set_workspace_state("error");
@@ -828,13 +993,17 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 					});
 				});
 				self._render_workspace_selector();
-				if (!first) self._set_workspace_state("empty");
-				else self._select_workspace(first);
-			},
-			error: function () {
-				if (generation !== self.workspace_load_generation || self.workspace_paused) return;
-				self.workspace_request_active = false;
-				self.workspace_groups = [];
+					if (!first) {
+						self._clear_workspace_selection();
+						self._set_workspace_state("empty");
+					}
+					else self._select_workspace(first);
+				},
+				error: function () {
+					if (generation !== self.workspace_load_generation || self.workspace_paused) return;
+					self.workspace_request_active = false;
+					self._clear_workspace_selection();
+					self.workspace_groups = [];
 				self.workspace_routes = Object.create(null);
 				self._render_workspace_selector();
 				self._set_workspace_state("error");
@@ -844,6 +1013,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	}
 
 	_pause_workspace_preview() {
+		this._clear_workspace_selection();
 		if (this.workspace_paused) return false;
 		this.workspace_paused = true;
 		this.workspace_load_generation = (this.workspace_load_generation || 0) + 1;
@@ -877,6 +1047,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		url = String(url || "");
 		if (!Object.prototype.hasOwnProperty.call(this.workspace_routes || {}, url)) return false;
 		if (!this.$workspace_iframe || !this.$workspace_iframe.length) return false;
+		if (this.workspace_url !== url) this._clear_workspace_selection();
 		this.workspace_url = url;
 		this._set_workspace_state("loading");
 		this.$workspace_iframe.attr("src", url);
@@ -909,18 +1080,115 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			if (!target && frameDocument && isScrollable(frameDocument.scrollingElement)) {
 				target = frameDocument.scrollingElement;
 			}
-			if (target) {
-				if (typeof target.scrollBy === "function") target.scrollBy(deltaX, deltaY);
-				else {
+				if (target) {
+					if (typeof target.scrollBy === "function") target.scrollBy(deltaX, deltaY);
+					else {
 					target.scrollLeft = (Number(target.scrollLeft) || 0) + deltaX;
-					target.scrollTop = (Number(target.scrollTop) || 0) + deltaY;
+						target.scrollTop = (Number(target.scrollTop) || 0) + deltaY;
+					}
+					this._schedule_workspace_reanchor();
+					return true;
 				}
+				if (!frame.contentWindow || typeof frame.contentWindow.scrollBy !== "function") return false;
+				frame.contentWindow.scrollBy(deltaX, deltaY);
+				this._schedule_workspace_reanchor();
 				return true;
+		} catch (e) {
+			return false;
+		}
+	}
+
+	_classify_workspace_target(element, frameDocument) {
+		if (!element) return null;
+		var selectors = [
+			["workspace.button", 'button,.btn,[role="button"],.shortcut-widget-box,.widget-control,.dropdown-toggle'],
+			["workspace.text", "a,h1,h2,h3,h4,h5,h6,p,label,small,.widget-title,.widget-subtitle,.link-content,.text-muted"],
+			["workspace.card", ".number-card,.number-widget-box,.number-card-widget-box", "number-card"],
+			["workspace.card", ".widget,.widget-group,.number-card,.dashboard-widget-box,.card,.onboarding-widget-box,.links-widget-box,.quick-list-widget-box,.custom-block"],
+			["workspace.background", ".workspace-container,.layout-main-section,.page-container,.page-body,body"],
+		];
+		try {
+			if (typeof element.closest === "function") {
+				for (var i = 0; i < selectors.length; i++) {
+					var matched = element.closest(selectors[i][1]);
+					if (matched) {
+						var target = { id: selectors[i][0], element: matched };
+						if (selectors[i][2]) target.variant = selectors[i][2];
+						if (typeof matched.matches === "function") {
+							if (target.id === "workspace.button" && matched.matches(".shortcut-widget-box")) target.variant = "shortcut";
+							if (target.id === "workspace.card" && matched.matches(".number-card")) target.variant = "number-card";
+						}
+						return target;
+					}
+				}
 			}
-			if (!frame.contentWindow || typeof frame.contentWindow.scrollBy !== "function") return false;
-			frame.contentWindow.scrollBy(deltaX, deltaY);
+		} catch (e) {
+			return null;
+		}
+		try {
+			var fallback = frameDocument.body || frameDocument.documentElement;
+			return fallback ? { id: "workspace.background", element: fallback } : null;
+		} catch (e) {
+			return null;
+		}
+	}
+
+	_select_workspace_target(event) {
+		var selection = null;
+		var previousSelection;
+		var previousInspector;
+		var transactionStarted = false;
+		try {
+			var frame = this.$workspace_iframe && this.$workspace_iframe.length && this.$workspace_iframe[0];
+			if (!frame || typeof frame.getBoundingClientRect !== "function") return false;
+			var frameDocument = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+			var rect = frame.getBoundingClientRect();
+			if (!frameDocument || !rect || typeof frameDocument.elementFromPoint !== "function") return false;
+			if (
+				!Number.isFinite(rect.left) || !Number.isFinite(rect.top) ||
+				!Number.isFinite(rect.width) || !Number.isFinite(rect.height) ||
+				rect.width <= 0 || rect.height <= 0
+			) return false;
+			var x = event.clientX - rect.left;
+			var y = event.clientY - rect.top;
+			if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || y < 0 || x >= rect.width || y >= rect.height) {
+				return false;
+			}
+			var hit = frameDocument.elementFromPoint(x, y);
+			if (!hit) return false;
+			selection = this._classify_workspace_target(hit, frameDocument);
+			if (!selection) return false;
+			if (this._install_workspace_inspector_css(frameDocument) !== true) return false;
+			previousSelection = this.workspace_selection;
+			previousInspector = this.selected_inspector;
+			transactionStarted = true;
+			if (this.workspace_selection && this.workspace_selection.element) {
+				this.workspace_selection.element.classList.remove("st-theme-workspace-inspected");
+			}
+			selection.element.classList.add("st-theme-workspace-inspected");
+			this.workspace_selection = { id: selection.id, element: selection.element };
+			if (Object.prototype.hasOwnProperty.call(selection, "variant")) {
+				this.workspace_selection.variant = selection.variant;
+			}
+			this.selected_inspector = selection.id;
+			this._render_inspector();
+			this._schedule_workspace_reanchor();
 			return true;
 		} catch (e) {
+			if (!transactionStarted) return false;
+			try {
+				if (selection && selection.element) {
+					selection.element.classList.remove("st-theme-workspace-inspected");
+				}
+			} catch (removeError) {}
+			try {
+				if (previousSelection && previousSelection.element) {
+					previousSelection.element.classList.add("st-theme-workspace-inspected");
+				}
+			} catch (restoreHighlightError) {}
+			try { this.workspace_selection = previousSelection; } catch (restoreSelectionError) {}
+			try { this.selected_inspector = previousInspector; } catch (restoreInspectorError) {}
+			try { this._render_inspector(); } catch (restoreRenderError) {}
 			return false;
 		}
 	}
@@ -932,11 +1200,13 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			if (!frameDocument || !frameDocument.documentElement) return false;
 			var root = frameDocument.documentElement;
 			var c = this.config || {};
+			var shortcutStyle = String(c.shortcut_style || "Soft").toLowerCase();
 			var attributes = {
 				"data-theme": this.workspace_preview_theme || "light",
 				"data-density": String(c.density || "Comfortable").toLowerCase(),
 				"data-layout": String(c.layout_mode || "Full Width").toLowerCase().replace(/\s+/g, "-"),
-				"data-shortcuts": String(c.shortcut_style || "Soft").toLowerCase(),
+				"data-shortcuts": shortcutStyle,
+				"data-st-shortcuts": shortcutStyle,
 				"data-compact-forms": String(!!c.compact_forms),
 				"data-high-contrast": String(!!c.high_contrast),
 				"data-large-text": String(!!c.large_text),
@@ -972,6 +1242,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	}
 
 	_reject_workspace_iframe() {
+		this._clear_workspace_selection();
 		this.workspace_url = "";
 		var blanked = false;
 		try {
@@ -987,6 +1258,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	}
 
 	_workspace_iframe_loaded() {
+		this._clear_workspace_selection();
 		if (!this.workspace_url) return false;
 		try {
 			var frame = this.$workspace_iframe && this.$workspace_iframe.length && this.$workspace_iframe[0];
@@ -998,6 +1270,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				return this._reject_workspace_iframe();
 			}
 			var frameDocument = frame.contentDocument || frame.contentWindow.document;
+			this._install_workspace_inspector_css(frameDocument);
 			this._install_workspace_read_only_guards(frameDocument);
 			this._sync_workspace_document_state(frameDocument);
 			this._set_workspace_state("ready");
@@ -1005,6 +1278,41 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			return true;
 		} catch (e) {
 			return this._reject_workspace_iframe();
+		}
+	}
+
+	_install_workspace_inspector_css(frameDocument) {
+		try {
+			if (
+				!frameDocument || !frameDocument.head ||
+				typeof frameDocument.createElement !== "function" ||
+				typeof frameDocument.getElementById !== "function"
+			) return false;
+			var inspectorCss = ".st-theme-workspace-inspected:not(#st-theme-workspace-inspector-sentinel){outline:2px solid #5b8def !important;outline-offset:2px !important;}";
+			var element = frameDocument.getElementById("st-studio-workspace-inspector");
+			var isNew = !element;
+			if (isNew) {
+				element = frameDocument.createElement("style");
+				if (
+					String(element && (element.tagName || element.nodeName) || "").toUpperCase() !== "STYLE" ||
+					typeof element.setAttribute !== "function" ||
+					typeof element.getAttribute !== "function"
+				) return false;
+				element.setAttribute("data-st-theme-owner", "solvronix-desk");
+			} else if (
+				String(element.tagName || element.nodeName || "").toUpperCase() !== "STYLE" ||
+				typeof element.getAttribute !== "function" ||
+				element.getAttribute("data-st-theme-owner") !== "solvronix-desk" ||
+				(element.parentNode && element.parentNode !== frameDocument.head)
+			) {
+				return false;
+			}
+			element.id = "st-studio-workspace-inspector";
+			element.textContent = inspectorCss;
+			frameDocument.head.appendChild(element);
+			return true;
+		} catch (e) {
+			return false;
 		}
 	}
 
@@ -1017,6 +1325,12 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			element.id = "st-studio-workspace-draft";
 			element.textContent = String(css || "");
 			if (!element.parentNode) frameDocument.head.appendChild(element);
+			var inspectorInstalled = false;
+			try { inspectorInstalled = this._install_workspace_inspector_css(frameDocument) === true; } catch (e) {}
+			if (!inspectorInstalled && this.workspace_selection) {
+				try { this._clear_workspace_selection(); } catch (e) {}
+			}
+			this._schedule_workspace_reanchor();
 			return true;
 		} catch (e) {
 			return false;
@@ -1089,6 +1403,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			self._select_inspector($(this).data("inspector"), this);
 		});
 		this.$root.on("click", "[data-inspector-close]", function () {
+			self._clear_workspace_selection(false);
 			self.selected_inspector = null;
 			self._render_inspector();
 		});
@@ -1179,6 +1494,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			setTimeout(function () { self._restore_inspector_highlight(); }, 340);
 		});
 		this.$root.on("click", "[data-preview-scene]", function () {
+			self._clear_workspace_selection();
 			var scene = $(this).data("preview-scene");
 			self.$root.find("[data-preview-scene]").removeClass("active");
 			$(this).addClass("active");
@@ -1201,7 +1517,11 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.$workspace_iframe.on("load.stsWorkspace", function () {
 			self._workspace_iframe_loaded();
 		}).on("error.stsWorkspace", function () {
+			self._clear_workspace_selection();
 			self._set_workspace_state("error");
+		});
+		this.$root.on("click", ".sts-workspace-shield", function (event) {
+			self._select_workspace_target(event.originalEvent || event);
 		});
 		this.$root.on("wheel", ".sts-workspace-shield", function (event) {
 			self._forward_workspace_wheel(event.originalEvent || event);
@@ -1759,6 +2079,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		}
 		this._apply_draft_to_desk(visual);
 		this._sync_workspace_document_state();
+		this._schedule_workspace_reanchor();
 		this._refresh_server_preview();
 	}
 
@@ -1984,13 +2305,20 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 
 	/* Debounce server CSS generation and discard stale asynchronous responses. */
 	_refresh_server_preview() {
-		var self = this, snapshot = JSON.stringify(this.config);
+		var self = this, snapshot = JSON.stringify(this.config), generation = this.lifecycle_generation;
 		clearTimeout(this.preview_timer);
+		if (!this.page_active) {
+			this.preview_timer = null;
+			return;
+		}
 		this.preview_timer = setTimeout(function () {
+			self.preview_timer = null;
+			if (!self.page_active || generation !== self.lifecycle_generation) return;
 			frappe.call({
 				method: "solvronix_desk.theme_api.preview_theme_css",
 				args: { config: self.config },
 				callback: function (response) {
+					if (!self.page_active || generation !== self.lifecycle_generation) return;
 					if (!response.message || snapshot !== JSON.stringify(self.config)) return;
 					self.workspace_preview_css = response.message.css;
 					self._inject_workspace_css(self.workspace_preview_css);
