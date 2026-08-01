@@ -181,6 +181,69 @@ class ThemeEngineTest(unittest.TestCase):
             {"user@example.com": "builtin-dark"},
         )
 
+    def test_sanitize_config_includes_versioned_chart_payload(self):
+        config = ENGINE.sanitize_config({}, validate_contrast=False)
+
+        self.assertEqual(config["chart_system_version"], 1)
+        self.assertEqual(config["chart_defaults"], {})
+        self.assertEqual(config["chart_overrides"], {})
+
+    def test_legacy_chart_colors_migrate_into_canonical_globals(self):
+        config = ENGINE.sanitize_config(
+            {"chart_background": "#112233", "chart_palette": ["#445566"]},
+            validate_contrast=False,
+        )
+
+        self.assertEqual(
+            config["chart_defaults"]["surface"]["background"], "#112233"
+        )
+        self.assertEqual(
+            config["chart_defaults"]["series_defaults"]["palette"],
+            ["#445566"],
+        )
+
+    def test_profile_chart_payload_replaces_base_instead_of_merging(self):
+        chart_id = "v1|dashboard_chart|4:Base"
+        base = ENGINE.sanitize_config(
+            {
+                "chart_system_version": 1,
+                "chart_defaults": {"chart": {"height": 300}},
+                "chart_overrides": {chart_id: {"chart": {"height": 320}}},
+            },
+            validate_contrast=False,
+        )
+        selected = ENGINE.sanitize_config(
+            {
+                "chart_system_version": 1,
+                "chart_defaults": {"chart": {"height": 480}},
+                "chart_overrides": {},
+            },
+            validate_contrast=False,
+        )
+
+        resolved = ENGINE.resolve_profile_config(base, selected)
+
+        self.assertEqual(resolved["chart_defaults"]["chart"]["height"], 480)
+        self.assertEqual(resolved["chart_overrides"], {})
+
+    def test_renderer_uses_canonical_global_chart_projections(self):
+        config = ENGINE.sanitize_config(
+            {
+                "chart_system_version": 1,
+                "chart_defaults": {
+                    "surface": {"background": "#123456"},
+                    "series_defaults": {"palette": ["#111111", "#222222"]},
+                },
+            },
+            validate_contrast=False,
+        )
+
+        css = ENGINE.render_css(config)
+
+        self.assertIn("--st-chart-bg: #123456", css)
+        self.assertIn("--st-chart-1: #111111", css)
+        self.assertIn("--st-chart-2: #222222", css)
+
 
 if __name__ == "__main__":
     unittest.main()

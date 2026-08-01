@@ -9,6 +9,8 @@ from datetime import datetime
 
 import frappe
 
+from solvronix_desk import chart_config
+
 
 # ── 1. VALIDATION LIMITS / CANONICAL SCHEMA ────────────────────────────────────
 # These guards bound every administrator-controlled value before CSS generation.
@@ -92,6 +94,9 @@ DEFAULT_CONFIG = {
     "number_card_color": "#FFFFFF",
     "chart_background": "#FFFFFF",
     "chart_palette": ["#1B3F7E", "#F57C00", "#238A57", "#2D72B8", "#6B4AA0"],
+    "chart_system_version": 1,
+    "chart_defaults": {},
+    "chart_overrides": {},
     "module_icon_style": "Tinted",
     "workspace_width": 1440,
     "empty_state_style": "Illustrated",
@@ -333,7 +338,7 @@ def sanitize_custom_variables(value):
     return clean
 
 
-def sanitize_config(raw, base=None, validate_contrast=True):
+def sanitize_config(raw, base=None, validate_contrast=True, strict_charts=False):
     """Normalize an untrusted partial config against a complete safe baseline."""
     raw = parse_json(raw, {}) if isinstance(raw, str) else (raw or {})
     if not isinstance(raw, dict):
@@ -367,6 +372,24 @@ def sanitize_config(raw, base=None, validate_contrast=True):
         palette = [item.strip() for item in palette.split(",")]
     clean_palette = [color(item) for item in (palette or [])]
     result["chart_palette"] = [item for item in clean_palette if item][:8] or deepcopy(DEFAULT_CONFIG["chart_palette"])
+    chart_source = deepcopy(result)
+    for field in ("chart_system_version", "chart_defaults", "chart_overrides"):
+        if field in raw:
+            chart_source[field] = deepcopy(raw[field])
+    if "chart_system_version" not in raw and any(
+        field in raw
+        for field in ("chart_background", "chart_palette", "chart_defaults", "chart_overrides")
+    ):
+        chart_source.pop("chart_system_version", None)
+    chart_source = chart_config.normalize_payload(chart_source, strict=strict_charts)
+    for field in (
+        "chart_system_version",
+        "chart_defaults",
+        "chart_overrides",
+        "chart_background",
+        "chart_palette",
+    ):
+        result[field] = deepcopy(chart_source[field])
     result["scoped_rules"] = sanitize_scoped_rules(raw.get("scoped_rules", []))
     result["class_mappings"] = sanitize_class_mappings(raw.get("class_mappings", []))
     result["custom_variables"] = sanitize_custom_variables(raw.get("custom_variables", {}))
@@ -677,7 +700,17 @@ def resolved_profile(settings, user=None):
 def resolve_config(settings, user=None):
     base = published_config(settings)
     selected = resolved_profile(settings, user)
-    return sanitize_config(selected["config"], base, validate_contrast=False) if selected else base
+    return resolve_profile_config(base, selected["config"]) if selected else base
+
+
+def resolve_profile_config(base, selected):
+    """Resolve a profile while treating its chart payload as one owned unit."""
+    resolved = sanitize_config(selected, base, validate_contrast=False)
+    if selected and "chart_system_version" in selected:
+        for key in ("chart_system_version", "chart_defaults", "chart_overrides"):
+            resolved[key] = deepcopy(selected.get(key, DEFAULT_CONFIG[key]))
+        resolved = chart_config.normalize_payload(resolved)
+    return resolved
 
 
 def resolve_profile_id(settings, user=None):
