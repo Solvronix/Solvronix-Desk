@@ -2297,6 +2297,124 @@ html[dir="rtl"] #st-lang-dropdown {
   .page-head { background: none !important; color: inherit !important; }
 }
 
+/* ── Schema-driven ERPNext charts ───────────────────────────── */
+[data-st-chart-id] {
+  --st-chart-surface: var(--st-chart-bg, var(--st-card-bg));
+  --st-chart-card: var(--st-card-bg);
+  --st-chart-border: var(--st-border);
+  --st-chart-border-width: 1px;
+  --st-chart-radius: var(--st-card-radius, 10px);
+  --st-chart-padding: 16px;
+  --st-chart-shadow: var(--st-shadow-md);
+  --st-chart-axis: var(--st-text-muted);
+  --st-chart-grid: var(--st-report-grid, var(--st-border));
+  --st-chart-grid-width: 1px;
+  --st-chart-axis-label: var(--st-text-muted);
+  --st-chart-axis-label-size: 11px;
+  --st-chart-legend: var(--st-text-muted);
+  --st-chart-legend-size: 12px;
+  --st-chart-label: var(--st-text);
+  --st-chart-label-size: 12px;
+  --st-chart-tooltip-bg: var(--st-card-bg);
+  --st-chart-tooltip-text: var(--st-text);
+  --st-chart-tooltip-border: var(--st-border);
+  --st-chart-tooltip-border-width: 1px;
+  --st-chart-line-width: 2px;
+  --st-chart-bar-radius: 4px;
+  background: var(--st-chart-surface) !important;
+  border: var(--st-chart-border-width) solid var(--st-chart-border) !important;
+  border-radius: var(--st-chart-radius) !important;
+  box-shadow: var(--st-chart-shadow) !important;
+}
+[data-st-chart-id] .chart-container,
+[data-st-chart-id].chart-container,
+[data-st-chart-id] .frappe-chart {
+  background: var(--st-chart-surface) !important;
+}
+[data-st-chart-id] .x.axis text,
+[data-st-chart-id] .y.axis text,
+[data-st-chart-id] .chart-label {
+  fill: var(--st-chart-axis-label) !important;
+  color: var(--st-chart-axis-label) !important;
+  font-size: var(--st-chart-axis-label-size) !important;
+}
+[data-st-chart-id] .x.axis line,
+[data-st-chart-id] .y.axis line,
+[data-st-chart-id] .x.axis path,
+[data-st-chart-id] .y.axis path {
+  stroke: var(--st-chart-axis) !important;
+}
+[data-st-chart-id] .line-horizontal,
+[data-st-chart-id] .line-vertical,
+[data-st-chart-id] .chart-draw line {
+  stroke: var(--st-chart-grid) !important;
+  stroke-width: var(--st-chart-grid-width) !important;
+}
+[data-st-chart-id] .chart-legend,
+[data-st-chart-id] .legend,
+[data-st-chart-id] .stats {
+  color: var(--st-chart-legend) !important;
+  font-size: var(--st-chart-legend-size) !important;
+}
+[data-st-chart-id][data-st-chart-legend="hidden"] .chart-legend,
+[data-st-chart-id][data-st-chart-legend="hidden"] .legend,
+[data-st-chart-id][data-st-chart-legend="hidden"] .stats,
+[data-st-chart-id][data-st-chart-tooltip="hidden"] .graph-svg-tip {
+  display: none !important;
+}
+[data-st-chart-id] .graph-svg-tip {
+  background: var(--st-chart-tooltip-bg) !important;
+  color: var(--st-chart-tooltip-text) !important;
+  border: var(--st-chart-tooltip-border-width) solid var(--st-chart-tooltip-border) !important;
+}
+[data-st-chart-id] .line-graph-path {
+  stroke-width: var(--st-chart-line-width) !important;
+  transition: opacity var(--st-chart-animation-duration) var(--st-chart-animation-easing);
+}
+[data-st-chart-id] .bar,
+[data-st-chart-id] rect.bar {
+  rx: var(--st-chart-bar-radius);
+  ry: var(--st-chart-bar-radius);
+  opacity: var(--st-chart-series-opacity, 1);
+  transition: opacity var(--st-chart-animation-duration) var(--st-chart-animation-easing);
+}
+[data-st-chart-id] .dataset-0,
+[data-st-chart-id] .dataset-0 path,
+[data-st-chart-id] .dataset-0 rect { stroke: var(--st-chart-series-0, var(--st-chart-1)) !important; fill: var(--st-chart-series-fill-0, var(--st-chart-series-0, var(--st-chart-1))) !important; stroke-width: var(--st-chart-series-width-0, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-0, 1); }
+[data-st-chart-id] .dataset-1,
+[data-st-chart-id] .dataset-1 path,
+[data-st-chart-id] .dataset-1 rect { stroke: var(--st-chart-series-1, var(--st-chart-2)) !important; fill: var(--st-chart-series-fill-1, var(--st-chart-series-1, var(--st-chart-2))) !important; stroke-width: var(--st-chart-series-width-1, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-1, 1); }
+[data-st-chart-id] .dataset-2,
+[data-st-chart-id] .dataset-2 path,
+[data-st-chart-id] .dataset-2 rect { stroke: var(--st-chart-series-2, var(--st-chart-3)) !important; fill: var(--st-chart-series-fill-2, var(--st-chart-series-2, var(--st-chart-3))) !important; stroke-width: var(--st-chart-series-width-2, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-2, 1); }
+[data-st-chart-id] .dataset-3,
+[data-st-chart-id] .dataset-3 path,
+[data-st-chart-id] .dataset-3 rect { stroke: var(--st-chart-series-3, var(--st-chart-4)) !important; fill: var(--st-chart-series-fill-3, var(--st-chart-series-3, var(--st-chart-4))) !important; stroke-width: var(--st-chart-series-width-3, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-3, 1); }
+[data-st-chart-id] .dataset-4,
+[data-st-chart-id] .dataset-4 path,
+[data-st-chart-id] .dataset-4 rect { stroke: var(--st-chart-series-4, var(--st-chart-5)) !important; fill: var(--st-chart-series-fill-4, var(--st-chart-series-4, var(--st-chart-5))) !important; stroke-width: var(--st-chart-series-width-4, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-4, 1); }
+[data-st-chart-id] .dataset-5,
+[data-st-chart-id] .dataset-5 path,
+[data-st-chart-id] .dataset-5 rect { stroke: var(--st-chart-series-5, var(--st-chart-1)) !important; fill: var(--st-chart-series-fill-5, var(--st-chart-series-5, var(--st-chart-1))) !important; stroke-width: var(--st-chart-series-width-5, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-5, 1); }
+[data-st-chart-id] .dataset-6,
+[data-st-chart-id] .dataset-6 path,
+[data-st-chart-id] .dataset-6 rect { stroke: var(--st-chart-series-6, var(--st-chart-2)) !important; fill: var(--st-chart-series-fill-6, var(--st-chart-series-6, var(--st-chart-2))) !important; stroke-width: var(--st-chart-series-width-6, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-6, 1); }
+[data-st-chart-id] .dataset-7,
+[data-st-chart-id] .dataset-7 path,
+[data-st-chart-id] .dataset-7 rect { stroke: var(--st-chart-series-7, var(--st-chart-3)) !important; fill: var(--st-chart-series-fill-7, var(--st-chart-series-7, var(--st-chart-3))) !important; stroke-width: var(--st-chart-series-width-7, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-7, 1); }
+[data-st-chart-id][data-st-chart-type="line"] .line-graph-path { fill: none !important; }
+[data-st-chart-id][data-st-chart-type="area"] .line-graph-path { fill-opacity: var(--st-chart-fill-opacity, .28) !important; }
+[data-st-chart-id][data-st-chart-hover="on"] svg:hover .bar { opacity: .42; }
+[data-st-chart-id][data-st-chart-hover="on"] svg .bar:hover { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  [data-st-chart-id] *,
+  [data-st-chart-id] *::before,
+  [data-st-chart-id] *::after {
+    animation-duration: 0ms !important;
+    transition-duration: 0ms !important;
+  }
+}
+
 /* ── APPEARANCE CONTROLS (All-Options panel, v1.2.0) ───────────────────────── */
 #st-op-appearance {
   padding: 12px 16px;

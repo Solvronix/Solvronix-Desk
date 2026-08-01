@@ -8,9 +8,19 @@
   var revision = 1;
   var applying = false;
   var observer = null;
+  var sessionSequence = 0;
+  var FULL_GROUPS = ["chart", "surface", "series_defaults", "axes", "legend", "labels", "tooltip", "animation", "interaction", "advanced"];
+  var SPARKLINE_GROUPS = ["chart", "surface", "series_defaults", "animation", "interaction"];
 
   function clone(value) {
     return value == null ? value : JSON.parse(JSON.stringify(value));
+  }
+
+  function encodeIdentity(family, segments) {
+    return ["v1", family].concat((segments || []).map(function (segment) {
+      segment = String(segment);
+      return segment.length + ":" + segment;
+    })).join("|");
   }
 
   function defaultsFromSchema() {
@@ -89,6 +99,139 @@
     catch (ignored) {}
   }
 
+  function setToken(root, name, value, unit) {
+    if (!root || !root.style || typeof root.style.setProperty !== "function" || value == null || value === "") return;
+    root.style.setProperty(name, String(value) + (unit || ""));
+  }
+
+  function shadowValue(value) {
+    if (value === "none") return "none";
+    if (value === "elevated") return "0 14px 32px rgba(15,23,42,.16)";
+    return "0 5px 14px rgba(15,23,42,.10)";
+  }
+
+  function structuralOptions(values) {
+    var chart = values.chart || {};
+    return {
+      type: chart.type || "source",
+      height: chart.height == null ? 240 : chart.height,
+      orientation: chart.orientation || "vertical",
+      stacked: !!chart.stacked,
+      responsive: chart.responsive !== false
+    };
+  }
+
+  function validateShape(record, options) {
+    var datasets = record && record.source && record.source.data && record.source.data.datasets;
+    datasets = Array.isArray(datasets) ? datasets : [];
+    if (["pie", "donut", "percentage"].indexOf(options.type) >= 0 && datasets.length > 1) {
+      throw new Error(options.type + " charts support one dataset for this source");
+    }
+    return true;
+  }
+
+  function applyStructure(record, values) {
+    var options = structuralOptions(values);
+    if (options.type === "source") return;
+    validateShape(record, options);
+    var signature = JSON.stringify(options);
+    if (signature === record.structuralSignature) return;
+    if (typeof record.rebuild === "function") record.rebuild(clone(options));
+    else if (record.instance && typeof record.instance.update === "function") {
+      record.instance.update(clone(options));
+    }
+    record.structuralSignature = signature;
+  }
+
+  function applyPresentation(record, values) {
+    var root = record.root;
+    var surface = values.surface || {};
+    var axes = values.axes || {};
+    var legend = values.legend || {};
+    var labels = values.labels || {};
+    var tooltip = values.tooltip || {};
+    var seriesDefaults = values.series_defaults || {};
+    var animation = values.animation || {};
+    var interaction = values.interaction || {};
+    setToken(root, "--st-chart-surface", surface.background);
+    setToken(root, "--st-chart-card", surface.card_background || surface.background);
+    setToken(root, "--st-chart-border", surface.border_color);
+    setToken(root, "--st-chart-border-width", surface.border_width, "px");
+    setToken(root, "--st-chart-radius", surface.radius, "px");
+    setToken(root, "--st-chart-padding", surface.padding, "px");
+    setToken(root, "--st-chart-shadow", shadowValue(surface.shadow));
+    setToken(root, "--st-chart-axis", axes.axis_color);
+    setToken(root, "--st-chart-grid", axes.grid_color);
+    setToken(root, "--st-chart-grid-width", axes.grid_width, "px");
+    setToken(root, "--st-chart-axis-label", axes.label_color);
+    setToken(root, "--st-chart-axis-label-size", axes.label_size, "px");
+    setToken(root, "--st-chart-axis-rotation", axes.label_rotation, "deg");
+    setToken(root, "--st-chart-legend", legend.text_color);
+    setToken(root, "--st-chart-legend-size", legend.text_size, "px");
+    setToken(root, "--st-chart-label", labels.text_color);
+    setToken(root, "--st-chart-label-size", labels.font_size, "px");
+    setToken(root, "--st-chart-tooltip-bg", tooltip.background);
+    setToken(root, "--st-chart-tooltip-text", tooltip.text_color);
+    setToken(root, "--st-chart-tooltip-border", tooltip.border_color);
+    setToken(root, "--st-chart-tooltip-border-width", tooltip.border_width, "px");
+    setToken(root, "--st-chart-line-width", seriesDefaults.line_width, "px");
+    setToken(root, "--st-chart-fill-opacity", (seriesDefaults.fill_opacity == null ? 28 : seriesDefaults.fill_opacity) / 100);
+    setToken(root, "--st-chart-series-opacity", (seriesDefaults.opacity == null ? 100 : seriesDefaults.opacity) / 100);
+    setToken(root, "--st-chart-point-size", seriesDefaults.point_size, "px");
+    setToken(root, "--st-chart-bar-width", seriesDefaults.bar_width, "px");
+    setToken(root, "--st-chart-bar-radius", seriesDefaults.bar_radius, "px");
+    setToken(root, "--st-chart-bar-gap", seriesDefaults.bar_gap, "%");
+    setToken(root, "--st-chart-animation-duration", animation.duration, "ms");
+    setToken(root, "--st-chart-animation-easing", animation.easing);
+    var palette = Array.isArray(seriesDefaults.palette) ? seriesDefaults.palette : [];
+    (record.series || []).forEach(function (series, index) {
+      var owned = (values.series || {})[series.key] || {};
+      var color = owned.color || seriesDefaults.color || palette[index % Math.max(1, palette.length)];
+      setToken(root, "--st-chart-series-" + index, color);
+      setToken(root, "--st-chart-series-fill-" + index, owned.fill_color || seriesDefaults.fill_color || color);
+      setToken(root, "--st-chart-series-width-" + index, owned.line_width == null ? seriesDefaults.line_width : owned.line_width, "px");
+      setToken(root, "--st-chart-series-opacity-" + index, (owned.opacity == null ? (seriesDefaults.opacity == null ? 100 : seriesDefaults.opacity) : owned.opacity) / 100);
+    });
+    if (root.dataset) {
+      root.dataset.stChartLegend = legend.visible === false ? "hidden" : "visible";
+      root.dataset.stChartAxes = axes.x_visible === false && axes.y_visible === false ? "hidden" : "visible";
+      root.dataset.stChartLabels = labels.data_labels_visible ? "visible" : "hidden";
+      root.dataset.stChartTooltip = tooltip.visible === false ? "hidden" : "visible";
+      root.dataset.stChartHover = interaction.hover_emphasis === false ? "off" : "on";
+      root.dataset.stChartSelectable = interaction.selectable_values ? "on" : "off";
+      root.dataset.stChartAnimation = animation.enabled === false ? "off" : "on";
+      root.dataset.stChartLineStyle = seriesDefaults.line_style || "solid";
+      root.dataset.stChartSmooth = seriesDefaults.smooth ? "on" : "off";
+      root.dataset.stChartType = (values.chart && values.chart.type) || "source";
+    }
+  }
+
+  function makeAdapter(kind) {
+    return {
+      capabilities: {
+        kind: kind === "number_card" ? "sparkline" : "full",
+        groups: kind === "number_card" ? SPARKLINE_GROUPS.slice() : FULL_GROUPS.slice()
+      },
+      apply: function (record, effective) {
+        if (kind !== "number_card") applyStructure(record, effective.values);
+        applyPresentation(record, effective.values);
+      },
+      dispose: function (record) {
+        if (record && record.root && record.root.dataset) {
+          delete record.root.dataset.stChartId;
+          delete record.root.dataset.stChartFamily;
+        }
+      }
+    };
+  }
+
+  var adapters = {
+    dashboard_chart: makeAdapter("dashboard_chart"),
+    dashboard_graph: makeAdapter("dashboard_graph"),
+    report_chart: makeAdapter("report_chart"),
+    number_card: makeAdapter("number_card")
+  };
+
   function applyRecord(record, force) {
     if (!record || !record.root || record.root.isConnected === false) return false;
     if (!force && record.appliedRevision === revision) return true;
@@ -109,6 +252,10 @@
     if (!descriptor || !descriptor.id || !descriptor.root) return null;
     var existing = registrations.get(descriptor.id);
     var record = Object.assign(existing || {}, descriptor);
+    record.adapter = descriptor.adapter || adapters[descriptor.family] || null;
+    record.capabilities = descriptor.capabilities || clone(
+      (record.adapter && record.adapter.capabilities) || {}
+    );
     record.appliedRevision = 0;
     registrations.set(record.id, record);
     try {
@@ -180,27 +327,120 @@
     } : null;
   }
 
+  function closestData(element, selector, keys) {
+    var host = element;
+    try { host = element && element.closest ? (element.closest(selector) || element) : element; }
+    catch (ignored) { host = element; }
+    var data = (host && host.dataset) || {};
+    for (var index = 0; index < keys.length; index += 1) {
+      if (data[keys[index]]) return String(data[keys[index]]);
+    }
+    return "";
+  }
+
+  function routeParts() {
+    try {
+      var route = frappe.get_route ? frappe.get_route() : [];
+      return Array.isArray(route) ? route.map(String) : [];
+    } catch (ignored) { return []; }
+  }
+
+  function classifyElement(element) {
+    var route = routeParts();
+    var isNumber = false;
+    try {
+      isNumber = !!(element.matches && element.matches(".number-card-chart,.number-card .chart-container")) ||
+        !!(element.closest && element.closest(".number-card,.number-widget-box,.number-card-widget-box"));
+    } catch (ignored) {}
+    if (isNumber) return "number_card";
+    if (route[0] === "query-report" || route[0] === "Report") return "report_chart";
+    if (route[0] === "dashboard-view" || route[0] === "Dashboard") return "dashboard_graph";
+    return "dashboard_chart";
+  }
+
+  function seriesFromInstance(instance) {
+    var datasets = instance && instance.data && instance.data.datasets;
+    if (!Array.isArray(datasets)) return [];
+    return datasets.map(function (dataset, index) {
+      var source = dataset && (dataset.fieldname || dataset.key || dataset.name);
+      return { key: source ? "dataset:" + encodeURIComponent(String(source)) : "session:" + index };
+    });
+  }
+
+  function scan(root) {
+    var scope = root && root.querySelectorAll ? root : document;
+    var nodes = [];
+    try {
+      nodes = Array.from(scope.querySelectorAll(
+        ".chart-container,.frappe-chart,.number-card-chart,.dashboard-graph-wrapper"
+      ));
+    } catch (ignored) { return 0; }
+    var added = 0;
+    nodes.forEach(function (element) {
+      if (!element || element.isConnected === false) return;
+      if (element.dataset && element.dataset.stChartId && registrations.has(element.dataset.stChartId)) return;
+      var family = classifyElement(element);
+      var sourceName = closestData(
+        element,
+        "[data-chart-name],[data-widget-name],[data-st-chart-source],[data-name]",
+        ["chartName", "widgetName", "stChartSource", "name"]
+      );
+      var route = routeParts();
+      var persistable = !!sourceName;
+      var segments;
+      if (family === "report_chart" && route[1]) {
+        segments = [route[1], sourceName || "main"];
+        persistable = !!sourceName;
+      } else if (family === "dashboard_graph" && route[1]) {
+        segments = [route[1], sourceName || "main"];
+        persistable = !!sourceName;
+      } else {
+        segments = [sourceName || ("session-" + (++sessionSequence))];
+      }
+      var instance = element.__chart || element.chart || null;
+      register({
+        id: encodeIdentity(family, segments),
+        family: family,
+        root: element,
+        instance: instance,
+        source: instance || { data: {} },
+        series: seriesFromInstance(instance),
+        persistable: persistable
+      });
+      added += 1;
+    });
+    return added;
+  }
+
   window.solvronixChartRuntime = {
     register: register,
     unregister: unregister,
     refresh: refresh,
     setConfig: setConfig,
     resolveEffective: resolveEffective,
-    describe: describe
+    describe: describe,
+    scan: scan
   };
 
   function ready() {
     if (typeof MutationObserver === "function" && document.body) {
-      observer = new MutationObserver(function () { refresh({ force: true }); });
+      observer = new MutationObserver(function () {
+        scan();
+        refresh({ force: true });
+      });
       observer.observe(document.body, { childList: true, subtree: true });
     }
     if (frappe.router && frappe.router.on) {
-      frappe.router.on("change", function () { refresh({ force: true }); });
+      frappe.router.on("change", function () {
+        scan();
+        refresh({ force: true });
+      });
     }
     window.addEventListener("st-theme-runtime-refresh", function (event) {
       var detail = event && event.detail;
       if (detail && detail.config) setConfig(detail.config, detail.chart_schema);
     });
+    scan();
     refresh({ force: true });
   }
 
