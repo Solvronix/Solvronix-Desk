@@ -377,4 +377,14 @@
     /* Also trigger on first load if already on home */
     setTimeout(function () { maybeInjectGrid(); }, 500);
   });
+
+  /* ── Shared with other theme pages (e.g. Today's View's own apps
+     section) so they render workspace cards identically instead of
+     duplicating the icon/color map and card markup. ─────────────── */
+  frappe.provide("solvronix_desk");
+  solvronix_desk.workspaceCards = {
+    fetchWorkspaces: fetchWorkspaces,
+    buildCard: buildCard,
+    buildSkeletons: buildSkeletons,
+  };
 }());

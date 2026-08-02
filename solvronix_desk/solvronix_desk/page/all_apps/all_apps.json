@@ -1,0 +1,10 @@
+{
+ "doctype": "Page",
+ "name": "all-apps",
+ "page_name": "all-apps",
+ "title": "All Apps",
+ "standard": "Yes",
+ "system_page": 0,
+ "module": "Solvronix Desk",
+ "roles": []
+}

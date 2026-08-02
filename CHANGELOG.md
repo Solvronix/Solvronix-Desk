@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.0] — 2026-07-31 — Today's View Apps Grid
+
+### Added
+- Today's View now shows an "Your Apps" grid right below the KPI cards — the same workspace launcher cards (icons, colors, hover states) as the full "All Apps" grid, so you can jump into any workspace straight from the dashboard instead of navigating elsewhere first. Shows up to 8 workspaces with a "View All Workspaces" link to the full grid. Prompted by #8.
+- New dedicated `/desk/all-apps` page for the full workspace grid. Previously this only lived at the bare `/desk` route, which "Enable Smart Home" redirects away from — meaning the grid (and the "View All Workspaces" link) had no reliable way to be reached on any site with Smart Home on. It now has its own stable route, unaffected by Smart Home or any site's own Workspace naming.
+
 ## [1.3.5] — 2026-07-31
 
 ### Fixed
