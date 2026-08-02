@@ -6,7 +6,7 @@ app_email = "sales@solvronix.com"
 app_license = "MIT"
 app_color = "#E8610A"
 app_icon = "octicon octicon-paintcan"
-app_version = "1.3.5"
+app_version = "1.4.0"
 
 required_apps = []
 
@@ -17,7 +17,7 @@ app_include_css = [
     "/assets/solvronix_desk/css/solvronix_desk.css?v=42",
     "/assets/solvronix_desk/css/sidebar.css?v=18",
     "/assets/solvronix_desk/css/command_palette.css?v=4",
-    "/assets/solvronix_desk/css/smart_home.css?v=2",
+    "/assets/solvronix_desk/css/smart_home.css?v=3",
     "/assets/solvronix_desk/css/progressive_forms.css?v=3",
     "/assets/solvronix_desk/css/notification_center.css?v=3",
     "/assets/solvronix_desk/css/polish.css?v=2",
@@ -33,7 +33,7 @@ app_include_js = [
     "/assets/solvronix_desk/js/command_palette.js?v=5",
     "/assets/solvronix_desk/js/progressive_forms.js?v=4",
     "/assets/solvronix_desk/js/notification_center.js?v=4",
-    "/assets/solvronix_desk/js/module_cards.js?v=8",
+    "/assets/solvronix_desk/js/module_cards.js?v=9",
 ]
 
 boot_session = "solvronix_desk.boot.add_boot_data"

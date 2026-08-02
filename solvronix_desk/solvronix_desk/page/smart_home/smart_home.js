@@ -60,10 +60,17 @@ solvronix_desk.SmartHome = class SmartHome {
 			      '<h2 class="st-sh-greeting">' + greeting + ', <span class="st-sh-name">' + this._esc(fname) + '</span></h2>' +
 			      '<div class="st-sh-date">' + date_label + '</div>' +
 			    '</div>' +
-			    '<a href="/desk/home" class="st-sh-all-ws">' + __("All Workspaces") + ' &rarr;</a>' +
 			  '</div>' +
 
 			  '<div class="st-sh-kpi-row" id="st-sh-kpis"></div>' +
+
+			  '<div class="st-sh-apps-section">' +
+			    '<div class="st-sh-apps-head">' +
+			      '<div class="st-sh-card-head">' + __("Your Apps") + '</div>' +
+			      '<a href="/desk/all-apps" class="st-sh-all-ws">' + __("View All Workspaces") + ' &rarr;</a>' +
+			    '</div>' +
+			    '<div id="st-sh-apps" class="st-ws-cards"></div>' +
+			  '</div>' +
 
 			  '<div class="st-sh-layout">' +
 			    '<div class="st-sh-main">' +
@@ -91,6 +98,8 @@ solvronix_desk.SmartHome = class SmartHome {
 		this._build_kpi_shells();
 		/* Quick Create is static — render once, never needs refresh */
 		this._render_quick_create();
+		/* Apps grid — workspace list rarely changes mid-session, render once */
+		this._render_apps_grid();
 	}
 
 	/* ── First full load ───────────────────────────────────────── */
@@ -242,6 +251,38 @@ solvronix_desk.SmartHome = class SmartHome {
 				'<span>' + __(dt) + '</span>' +
 			'</a>';
 		}).join(""));
+	}
+
+	/* ── Apps grid — reuses module_cards.js's own card renderer so
+	     this looks identical to the full "All Apps" grid (same icons,
+	     colors, hover states, dark mode) instead of a second, slightly
+	     different-looking app launcher. ─────────────────────────────── */
+	_render_apps_grid() {
+		var $row = this.$body.find("#st-sh-apps");
+		var wc = solvronix_desk.workspaceCards;
+		if (!wc) return; /* module_cards.js not loaded — nothing to render */
+
+		$row.html(wc.buildSkeletons(8));
+
+		wc.fetchWorkspaces(function (pages) {
+			var items = (pages || []).slice(0, 8);
+			if (!items.length) {
+				$row.html('<div class="st-sh-empty">' + __("No workspaces found.") + '</div>');
+				return;
+			}
+
+			$row.html(items.map(function (p, idx) { return wc.buildCard(p, idx); }).join(""));
+
+			/* buildCard() only returns markup — wire navigation ourselves,
+			   same as module_cards.js's own renderGrid() does. */
+			$row.find(".st-ws-card[data-ws]").each(function () {
+				var slug = this.getAttribute("data-ws");
+				this.addEventListener("click", function (e) {
+					e.preventDefault();
+					if (slug) frappe.set_route(slug);
+				});
+			});
+		});
 	}
 
 	/* ── Pending / Needs Attention ──────────────────────────────── */

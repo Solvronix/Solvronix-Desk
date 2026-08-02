@@ -110,6 +110,29 @@
   margin-top: 4px;
 }
 
+/* ── Apps grid — cards themselves reuse .st-ws-card from
+   module_cards.css so this matches the full "All Apps" grid exactly;
+   only the section wrapper/heading below is specific to this page. */
+.st-sh-apps-section {
+  margin-bottom: 28px;
+}
+
+.st-sh-apps-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.st-sh-apps-head .st-sh-card-head {
+  padding: 0;
+  border-bottom: none;
+}
+
+.st-sh-apps-head .st-sh-all-ws {
+  margin-top: 0;
+}
+
 /* ── Layout ──────────────────────────────────────────────────── */
 .st-sh-layout {
   display: grid;
