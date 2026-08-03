@@ -891,14 +891,23 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		if (scope === "individual" && chartId && !Object.keys(target).length) delete this.config.chart_overrides[chartId];
 		if (scope === "global" && path === "surface.background") this.config.chart_background = this._chart_path(this._chart_system_defaults(), path);
 		if (scope === "global" && path === "series_defaults.palette") this.config.chart_palette = this._clone(this._chart_path(this._chart_system_defaults(), path));
+		this._clear_chart_invalid(scope, chartId, path);
 		this.changed();
 		return true;
+	}
+
+	_clear_chart_invalid(scope, chartId, path) {
+		var prefix = String(scope || "global") + ":" + String(chartId || "") + ":";
+		Object.keys(this.chart_invalid || {}).forEach(function (key) {
+			if (path ? key === prefix + path : key.indexOf(prefix) === 0) delete this.chart_invalid[key];
+		}, this);
 	}
 
 	_reset_chart(chartId) {
 		if (!chartId) return;
 		this._checkpoint();
 		delete (this.config.chart_overrides || {})[chartId];
+		this._clear_chart_invalid("individual", chartId);
 		this.changed();
 	}
 
@@ -908,6 +917,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.config.chart_defaults = {};
 		this.config.chart_background = system.surface.background;
 		this.config.chart_palette = this._clone(system.series_defaults.palette);
+		this._clear_chart_invalid("global", "");
 		this.changed();
 	}
 
@@ -2007,7 +2017,10 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		if (!this.$root || !this.$root.find) return;
 		var $current = this.$root.find(".sts-chart-system");
 		if ($current && $current.length && $current.replaceWith) $current.replaceWith(this._chart_system_html());
-		if (this.selected_inspector === "workspace.chart") this._render_inspector();
+		if (this.selected_inspector === "workspace.chart" || this.selected_inspector === "charts.chart") {
+			this._render_inspector();
+			this._restore_inspector_highlight();
+		}
 	}
 
 	/* ── 6. EVENT BINDINGS ───────────────────────────────────────────────────

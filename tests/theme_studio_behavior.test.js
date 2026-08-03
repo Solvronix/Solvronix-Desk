@@ -323,15 +323,43 @@ test("chart resets fall back from individual to global and global to system", ()
   installChartState(studio);
   studio._set_chart_value("individual", "chart-1", "chart.height", 420);
   assert.equal(studio.config.chart_overrides["chart-1"].chart.height, 420);
+  studio.chart_invalid = {
+    "individual:chart-1:chart.height": "invalid",
+    "individual:chart-1:surface.background": "invalid",
+    "global::chart.height": "invalid",
+  };
 
   studio._reset_chart_property("individual", "chart-1", "chart.height");
   assert.equal(studio._chart_effective_state("chart-1").values.chart.height, 300);
+  assert.equal(studio.chart_invalid["individual:chart-1:chart.height"], undefined);
+  assert.equal(studio.chart_invalid["individual:chart-1:surface.background"], "invalid");
 
   studio._reset_chart("chart-1");
   assert.equal(studio.config.chart_overrides["chart-1"], undefined);
+  assert.equal(studio.chart_invalid["individual:chart-1:surface.background"], undefined);
   studio._reset_global_charts();
   assert.equal(Object.keys(studio.config.chart_defaults).length, 0);
   assert.equal(studio._chart_effective_state("chart-1").values.chart.height, 240);
+  assert.equal(studio.chart_invalid["global::chart.height"], undefined);
+});
+
+test("chart editor refresh rerenders both gallery and workspace chart inspectors", () => {
+  ["charts.chart", "workspace.chart"].forEach((inspector) => {
+    const studio = loadThemeStudio();
+    installChartState(studio);
+    studio.selected_inspector = inspector;
+    const calls = [];
+    studio._chart_system_html = () => "<div>charts</div>";
+    studio._render_inspector = () => calls.push("render");
+    studio._restore_inspector_highlight = () => calls.push("restore");
+    studio.$root = {
+      find() { return { length: 1, replaceWith(html) { calls.push(["replace", html]); } }; },
+    };
+
+    studio._refresh_chart_editor();
+
+    assert.deepEqual(calls, [["replace", "<div>charts</div>"], "render", "restore"]);
+  });
 });
 
 test("chart controls are generated from schema and filtered by capability", () => {
