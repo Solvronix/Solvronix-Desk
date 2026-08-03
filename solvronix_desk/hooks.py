@@ -21,7 +21,7 @@ app_include_css = [
     "/assets/solvronix_desk/css/solvronix_desk.css?v=51",
     "/assets/solvronix_desk/css/sidebar.css?v=21",
     "/assets/solvronix_desk/css/command_palette.css?v=4",
-    "/assets/solvronix_desk/css/smart_home.css?v=6",
+    "/assets/solvronix_desk/css/smart_home.css?v=7",
     "/assets/solvronix_desk/css/progressive_forms.css?v=3",
     "/assets/solvronix_desk/css/notification_center.css?v=3",
     "/assets/solvronix_desk/css/polish.css?v=3",
@@ -38,7 +38,7 @@ app_include_js = [
     "/assets/solvronix_desk/js/command_palette.js?v=9",
     "/assets/solvronix_desk/js/progressive_forms.js?v=4",
     "/assets/solvronix_desk/js/notification_center.js?v=4",
-    "/assets/solvronix_desk/js/module_cards.js?v=9",
+    "/assets/solvronix_desk/js/module_cards.js?v=10",
     "/assets/solvronix_desk/js/theme_runtime.js?v=8",
     "/assets/solvronix_desk/js/chart_runtime.js?v=3",
 ]

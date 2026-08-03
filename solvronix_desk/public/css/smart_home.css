@@ -432,6 +432,24 @@
   min-height: 194px;
 }
 
+/* The upstream apps launcher participates in the customizable widget grid. */
+.st-sh-apps-card {
+  min-height: 0;
+}
+
+.st-sh-apps-head {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.st-sh-apps-body {
+  padding: 18px;
+}
+
+.st-sh-apps-body .st-ws-cards {
+  margin: 0;
+}
+
 /* ── RECENT DOCUMENTS ───────────────────────────────────────────────────────── */
 .st-sh-doc-row {
   display: flex;

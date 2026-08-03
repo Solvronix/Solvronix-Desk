@@ -49,7 +49,7 @@ class NavigationRoutingTest(unittest.TestCase):
 
         self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=49", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
-        self.assertIn("/assets/solvronix_desk/js/module_cards.js?v=9", hooks)
+        self.assertIn("/assets/solvronix_desk/js/module_cards.js?v=10", hooks)
 
 
 if __name__ == "__main__":

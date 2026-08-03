@@ -43,7 +43,7 @@ class SmartHomeWidgetsTest(unittest.TestCase):
 
     def test_smart_home_asset_cache_is_bumped(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/smart_home.css?v=6", hooks)
+        self.assertIn("/assets/solvronix_desk/css/smart_home.css?v=7", hooks)
 
     def test_widget_library_and_simple_builder_are_available(self):
         js = JS.read_text(encoding="utf-8")

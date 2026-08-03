@@ -194,6 +194,8 @@ solvronix_desk.SmartHome = class SmartHome {
 			if (hidden.indexOf(kpi.id) === -1) $grid.append(self._kpi_widget(kpi));
 		});
 
+		if (hidden.indexOf("your-apps") === -1) $grid.append(this._apps_widget());
+
 		if (hidden.indexOf("recent-documents") === -1) $grid.append(
 			this._panel_widget(
 				"recent-documents",
@@ -234,6 +236,7 @@ solvronix_desk.SmartHome = class SmartHome {
 		});
 
 		this._render_quick_create();
+		this._render_apps_grid();
 		this._start_live_widgets();
 	}
 
@@ -356,6 +359,24 @@ solvronix_desk.SmartHome = class SmartHome {
 				body +
 			'</div>';
 		return this._widget_shell(id, size, inner, "st-sh-panel-widget");
+	}
+
+	/* Keep the upstream workspace launcher as a first-class dashboard widget. */
+	_apps_widget() {
+		var inner =
+			'<div class="st-sh-card st-sh-apps-card">' +
+				'<div class="st-sh-card-head st-sh-apps-head">' +
+					'<div class="st-sh-card-heading">' +
+						'<span class="st-sh-card-icon">' + this._icon("grid", "sm") + '</span>' +
+						'<div><h3>' + __("Your Apps") + '</h3><p>' + __("Jump to any workspace") + '</p></div>' +
+					'</div>' +
+					'<a href="/desk/all-apps" class="st-sh-all-ws">' +
+						__("View All Workspaces") + ' <span aria-hidden="true">&rarr;</span>' +
+					'</a>' +
+				'</div>' +
+				'<div id="st-sh-apps" class="st-sh-apps-body"></div>' +
+			'</div>';
+		return this._widget_shell("your-apps", "full", inner, "st-sh-panel-widget");
 	}
 
 	/* Filter before rendering so inaccessible DocTypes never enter the DOM. */
@@ -737,8 +758,20 @@ solvronix_desk.SmartHome = class SmartHome {
 			if (known[id]) $grid.append(known[id]);
 		});
 
-		/* Newly-added or newly-permitted widgets append instead of disappearing
-		   from an older saved layout that does not know their IDs. */
+		/* Existing saved layouts predate the upstream apps launcher. Place that
+		   new widget after the KPI row once, then let future saved order win. */
+		if (order.indexOf("your-apps") === -1 && known["your-apps"]) {
+			var last_kpi = $grid.children(".st-sh-kpi").last()[0];
+			if (last_kpi) {
+				last_kpi.parentNode.insertBefore(known["your-apps"], last_kpi.nextSibling);
+			} else {
+				$grid.prepend(known["your-apps"]);
+			}
+			delete known["your-apps"];
+		}
+
+		/* Other newly-added or newly-permitted widgets append instead of
+		   disappearing from an older saved layout that does not know their IDs. */
 		Object.keys(known).forEach(function (id) {
 			if (order.indexOf(id) === -1) $grid.append(known[id]);
 		});
@@ -891,6 +924,35 @@ solvronix_desk.SmartHome = class SmartHome {
 				'</a>'
 			);
 		}).join("") + '</div>');
+	}
+
+	/* Reuse module_cards.js so Today's View and All Apps stay identical. */
+	_render_apps_grid() {
+		var $row = this.$body.find("#st-sh-apps");
+		var wc = solvronix_desk.workspaceCards;
+		if (!$row.length || !wc) return;
+
+		$row.html(wc.buildSkeletons(8));
+
+		wc.fetchWorkspaces(function (pages) {
+			var items = (pages || []).slice(0, 8);
+			if (!items.length) {
+				$row.html('<div class="st-ws-cards"><div class="st-sh-empty">' + __("No workspaces found.") + '</div></div>');
+				return;
+			}
+
+			$row.html('<div class="st-ws-cards">' + items.map(function (p, idx) {
+				return wc.buildCard(p, idx);
+			}).join("") + '</div>');
+
+			$row.find(".st-ws-card[data-ws]").each(function () {
+				var slug = this.getAttribute("data-ws");
+				this.addEventListener("click", function (e) {
+					e.preventDefault();
+					if (slug) frappe.set_route(slug);
+				});
+			});
+		});
 	}
 
 	/* ── 10. NEEDS ATTENTION ─────────────────────────────────────────────────
