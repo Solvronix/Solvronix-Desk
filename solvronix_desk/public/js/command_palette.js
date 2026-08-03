@@ -1,13 +1,14 @@
-/* =============================================
-   Solvronix Desk — Command Palette (Ctrl+K)
-   Searches: Reports, DocTypes, Workspaces
-   ============================================= */
+/* =============================================================================
+   Solvronix Desk — Command Palette
+   Ctrl/Cmd+K navigation built from boot metadata, with no server call on open.
+   ============================================================================= */
 
 (function () {
   "use strict";
 
   var ST_CP = (window.solvronix_desk = window.solvronix_desk || {});
 
+  /* ── 1. PALETTE STATE / INITIALIZATION ──────────────────────────────────── */
   ST_CP.cp = {
     overlay:   null,
     input:     null,
@@ -24,6 +25,7 @@
       var self = this;
       document.addEventListener("keydown", function (e) {
         if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+          if (frappe.boot && frappe.boot.enable_command_palette === 0) return;
           e.preventDefault();
           e.stopImmediatePropagation();
           self.overlay ? self.close() : self.open();
@@ -33,6 +35,8 @@
       this._build_items();
     },
 
+    /* ── 2. BOOT-DERIVED SEARCH INDEX ───────────────────────────────────────
+       Permission lists filter records before they become searchable. */
     _build_items: function () {
       var boot        = (window.frappe && frappe.boot) || {};
       var user        = boot.user || {};
@@ -57,6 +61,8 @@
 
       // ── DocTypes (all readable, no slice cap) ─────────────────────────────
       can_read.forEach(function (dt) {
+        // Theme Studio is the canonical UI; keep the storage DocType out of search.
+        if (dt === "Theme Settings") return;
         var creatable = can_create.indexOf(dt) !== -1;
         items.push({
           label:    dt,
@@ -71,11 +77,13 @@
       // ── Workspaces (from sidebar boot data if available) ──────────────────
       var sidebar_pages = (boot.sidebar_items && boot.sidebar_items.pages) || [];
       sidebar_pages.forEach(function (page) {
+        var workspace_route = page.route ||
+          ((frappe.router && frappe.router.slug) ? frappe.router.slug(page.name || page.title || "") : "");
         items.push({
           label:  page.title || page.name,
           sub:    __("Workspace"),
           type:   "workspace",
-          action: function () { frappe.set_route("workspace", encodeURIComponent(page.name)); },
+          action: function () { if (workspace_route) frappe.set_route(workspace_route); },
         });
       });
 
@@ -91,7 +99,9 @@
       }
     },
 
+    /* ── 3. OPEN / CLOSE LIFECYCLE ────────────────────────────────────────── */
     open: function () {
+      if (frappe.boot && frappe.boot.enable_command_palette === 0) return;
       if (this.overlay) return;
       this._rebuild_if_needed();
       var self = this;
@@ -152,16 +162,17 @@
       setTimeout(function () { el && el.remove(); }, 110);
     },
 
+    /* ── 4. DEFAULT GROUPS / FUZZY SEARCH ─────────────────────────────────── */
     _render_default: function () {
       var hasERPNext = !!(frappe.boot && frappe.boot.versions && frappe.boot.versions.erpnext);
       var quick = hasERPNext ? [
         { label: __("New Sales Invoice"),  sub: __("Create document"), type: "create", action: function () { frappe.new_doc("Sales Invoice"); } },
         { label: __("New Purchase Order"), sub: __("Create document"), type: "create", action: function () { frappe.new_doc("Purchase Order"); } },
         { label: __("New Customer"),       sub: __("Create document"), type: "create", action: function () { frappe.new_doc("Customer"); } },
-        { label: __("Theme Settings"),     sub: "Solvronix Desk",      type: "action", action: function () { frappe.set_route("Form", "Theme Settings"); } },
+        { label: __("Theme Studio"),       sub: __("Visual theme editor"), type: "action", action: function () { frappe.set_route("theme-studio"); } },
         { label: __("Home"),               sub: __("Workspace"),        type: "workspace", action: function () { frappe.set_route(""); } },
       ] : [
-        { label: __("Theme Settings"),     sub: "Solvronix Desk",      type: "action", action: function () { frappe.set_route("Form", "Theme Settings"); } },
+        { label: __("Theme Studio"),       sub: __("Visual theme editor"), type: "action", action: function () { frappe.set_route("theme-studio"); } },
         { label: __("Home"),               sub: __("Workspace"),        type: "workspace", action: function () { frappe.set_route(""); } },
       ];
       var rpt_count = Object.keys((frappe.boot && frappe.boot.allowed_reports) || {}).length;
@@ -228,6 +239,7 @@
       this._render(sections, null, total > 0 ? total + " " + (total !== 1 ? __("results") : __("result")) : "");
     },
 
+    /* ── 5. RESULT RENDERING / KEYBOARD NAVIGATION ────────────────────────── */
     _render: function (sections, _unused, count_hint) {
       var self = this;
       this.list.innerHTML = "";
@@ -310,6 +322,7 @@
     },
   };
 
+  /* Frappe and the DOM can become ready in either order on cached SPA loads. */
   function tryInit() {
     if (window.frappe && frappe.boot) {
       if (frappe.boot.enable_command_palette === 0) return;

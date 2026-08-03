@@ -21,6 +21,31 @@
   "base_font_size",
   "column_break_personalization",
   "default_density",
+  "section_visual_design",
+  "sidebar_background",
+  "navbar_background",
+  "column_break_visual_colors",
+  "page_background",
+  "card_background",
+  "text_color",
+  "corner_radius",
+  "column_break_visual_shape",
+  "shadow_style",
+  "sidebar_width",
+  "studio_layout",
+  "section_theme_engine",
+  "theme_enabled",
+  "allow_user_theme",
+  "column_break_theme_engine",
+  "theme_lock",
+  "preview_admin_only",
+  "active_profile",
+  "theme_studio_config",
+  "theme_studio_draft",
+  "theme_profiles",
+  "theme_versions",
+  "theme_assignments",
+  "theme_schedule",
   "section_features",
   "enable_command_palette",
   "column_break_features",
@@ -125,6 +150,165 @@
    "fieldtype": "Select",
    "label": "Default Density",
    "options": "Comfortable\nCompact"
+  },
+  {
+   "description": "Fine-tune the desk visually from Theme Studio. Empty color fields use the automatic brand palette.",
+   "fieldname": "section_visual_design",
+   "fieldtype": "Section Break",
+   "label": "Visual Design"
+  },
+  {
+   "description": "Optional override. Leave empty for the automatic theme value.",
+   "fieldname": "sidebar_background",
+   "fieldtype": "Color",
+   "label": "Sidebar Background"
+  },
+  {
+   "description": "Optional override. Leave empty for the automatic theme value.",
+   "fieldname": "navbar_background",
+   "fieldtype": "Color",
+   "label": "Navbar Background"
+  },
+  {
+   "fieldname": "column_break_visual_colors",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Optional override for light mode.",
+   "fieldname": "page_background",
+   "fieldtype": "Color",
+   "label": "Page Background"
+  },
+  {
+   "description": "Optional override for light mode cards and forms.",
+   "fieldname": "card_background",
+   "fieldtype": "Color",
+   "label": "Card Background"
+  },
+  {
+   "description": "Optional override for light mode primary text.",
+   "fieldname": "text_color",
+   "fieldtype": "Color",
+   "label": "Text Color"
+  },
+  {
+   "default": "8",
+   "description": "Global corner roundness in pixels (0–24).",
+   "fieldname": "corner_radius",
+   "fieldtype": "Int",
+   "label": "Corner Radius"
+  },
+  {
+   "fieldname": "column_break_visual_shape",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Soft",
+   "fieldname": "shadow_style",
+   "fieldtype": "Select",
+   "label": "Card Shadow",
+   "options": "None\nSoft\nElevated"
+  },
+  {
+   "default": "240",
+   "description": "Expanded sidebar width in pixels (200–320).",
+   "fieldname": "sidebar_width",
+   "fieldtype": "Int",
+   "label": "Sidebar Width"
+  },
+  {
+   "default": "[\"metrics\",\"chart\",\"activity\",\"quick_actions\"]",
+   "fieldname": "studio_layout",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Theme Studio Preview Layout",
+   "options": "JSON"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_theme_engine",
+   "fieldtype": "Section Break",
+   "label": "Theme Studio Engine"
+  },
+  {
+   "default": "1",
+   "description": "Apply the published Theme Studio configuration.",
+   "fieldname": "theme_enabled",
+   "fieldtype": "Check",
+   "label": "Enable Published Theme"
+  },
+  {
+   "default": "1",
+   "description": "Allow users to select an assigned or available theme profile.",
+   "fieldname": "allow_user_theme",
+   "fieldtype": "Check",
+   "label": "Allow User Theme Choice"
+  },
+  {
+   "fieldname": "column_break_theme_engine",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Force the administrator-selected theme and ignore user overrides.",
+   "fieldname": "theme_lock",
+   "fieldtype": "Check",
+   "label": "Lock Theme"
+  },
+  {
+   "default": "1",
+   "description": "Unpublished live previews remain visible only to System Managers.",
+   "fieldname": "preview_admin_only",
+   "fieldtype": "Check",
+   "label": "Administrator-only Preview"
+  },
+  {
+   "fieldname": "active_profile",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Active Theme Profile"
+  },
+  {
+   "fieldname": "theme_studio_config",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Published Theme Configuration",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "theme_studio_draft",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Theme Draft",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "theme_profiles",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Theme Profiles",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "theme_versions",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Theme Version History",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "theme_assignments",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Theme Assignments",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "theme_schedule",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Theme Schedule",
+   "options": "JSON"
   },
   {
    "fieldname": "section_features",

@@ -304,8 +304,8 @@ html[data-theme="dark"] .desk-page {
 
 .desk-sidebar .sidebar-item:hover,
 .desk-sidebar .standard-sidebar-item:hover {
-  background: rgba(0,0,0,0.05) !important;
-  color: #111827 !important;
+  background: var(--st-sidebar-hover, rgba(0,0,0,0.05)) !important;
+  color: var(--st-sidebar-hover-text, var(--st-sidebar-text, #111827)) !important;
   border-left: none !important;
   transform: translateX(2px);
 }
@@ -315,8 +315,8 @@ html[data-theme="dark"] .desk-page {
 .desk-sidebar .sidebar-item.active,
 .desk-sidebar .standard-sidebar-item.selected,
 .desk-sidebar .standard-sidebar-item.active {
-  background: var(--st-accent) !important;
-  color: var(--st-white) !important;
+  background: var(--st-sidebar-active, var(--st-accent)) !important;
+  color: var(--st-sidebar-active-text, var(--st-white)) !important;
   border-left: none !important;
   border-radius: var(--st-radius-sm) !important;
   font-weight: 600 !important;
@@ -324,18 +324,20 @@ html[data-theme="dark"] .desk-page {
 }
 
 .desk-sidebar .sidebar-item.selected a,
-.desk-sidebar .standard-sidebar-item.selected a,
+.desk-sidebar .standard-sidebar-item.selected a {
+  color: var(--st-sidebar-active-text, var(--st-white)) !important;
+}
 .desk-sidebar .sidebar-item:hover a,
 .desk-sidebar .standard-sidebar-item:hover a {
-  color: var(--st-white) !important;
+  color: var(--st-sidebar-hover-text, var(--st-sidebar-text)) !important;
 }
 
 /* Sidebar icons */
 .desk-sidebar .sidebar-item-icon,
 .desk-sidebar .standard-sidebar-item svg,
 .desk-sidebar .standard-sidebar-item .icon {
-  color: #6B7280 !important;
-  stroke: #6B7280 !important;
+  color: var(--st-sidebar-icon, var(--st-sidebar-text-muted, #6B7280)) !important;
+  stroke: currentColor !important;
   opacity: 1;
 }
 .desk-sidebar .sidebar-item.selected .sidebar-item-icon,
@@ -429,7 +431,7 @@ button.btn-primary,
 a.btn-primary {
   background: var(--st-primary-gradient) !important;
   border: none !important;
-  color: var(--st-button-text) !important;
+  color: var(--st-btn-primary-text, var(--st-button-text)) !important;
   border-radius: var(--st-radius-sm) !important;
   box-shadow: var(--st-shadow-sm) !important;
   font-weight: 600 !important;
@@ -438,6 +440,7 @@ a.btn-primary {
 }
 .btn-primary:hover,
 button.btn-primary:hover {
+  color: var(--st-btn-primary-text, var(--st-button-text)) !important;
   box-shadow: 0 4px 14px color-mix(in srgb, var(--st-accent) 45%, transparent) !important;
   transform: translateY(-1px);
   opacity: 0.95;
@@ -459,6 +462,36 @@ button.btn-primary:active {
 .btn-secondary:hover {
   border-color: var(--st-accent) !important;
   color: var(--st-accent) !important;
+}
+
+/* Icon-only Desk buttons must keep a real content box. Theme Studio's
+   configurable horizontal button padding applies only to labelled buttons. */
+.btn.icon-btn {
+  width: var(--st-button-height, 32px) !important;
+  min-width: var(--st-button-height, 32px) !important;
+  padding: 6px !important;
+  flex: 0 0 var(--st-button-height, 32px);
+}
+
+.btn.icon-btn .icon,
+.btn.icon-btn .es-icon,
+.page-head .breadcrumb a .icon,
+.page-head .breadcrumb a .es-icon,
+.page-head .breadcrumb-area a .icon,
+.page-head .breadcrumb-area a .es-icon {
+  width: 16px !important;
+  min-width: 16px !important;
+  height: 16px !important;
+  color: inherit !important;
+  stroke: currentColor !important;
+}
+
+.btn.icon-btn .icon use,
+.btn.icon-btn .es-icon use,
+.page-head .breadcrumb a svg use,
+.page-head .breadcrumb-area a svg use {
+  color: inherit !important;
+  stroke: currentColor !important;
 }
 
 /* ── FORMS (left-bar sections) ───────────────────────────────────── */
@@ -707,7 +740,7 @@ html:not([data-theme="dark"]) .layout-main-section > .page-head .st-breadcrumb {
 html:not([data-theme="dark"]) .desk-page > .page-head .btn-primary,
 html:not([data-theme="dark"]) .layout-main-section > .page-head .btn-primary {
   background: var(--st-primary-gradient) !important;
-  color: #fff !important;
+  color: var(--st-btn-primary-text, #fff) !important;
 }
 html:not([data-theme="dark"]) .desk-page > .page-head .btn-default,
 html:not([data-theme="dark"]) .layout-main-section > .page-head .btn-default {
@@ -1392,14 +1425,28 @@ html[data-theme="dark"] #st-powered-by {
   right: 0;
   z-index: 1060;
   height: 36px;
-  background: var(--st-dark-deep);
+  background: var(--st-toolbar-bg, var(--st-dark-deep));
   border-bottom: 1px solid rgba(255,255,255,0.07);
   display: flex;
   align-items: center;
   padding: 0 16px;
   gap: 10px;
   font-size: 12px;
-  color: rgba(255,255,255,0.65);
+  color: var(--st-toolbar-text, rgba(255,255,255,0.65));
+}
+
+/* EditorJS wraps workspace section titles in its own .h4 span, whose Frappe
+   gray token can become nearly transparent after a colour-mode switch. */
+.editor-js-container .ce-header,
+.editor-js-container .ce-header .h4,
+.editor-js-container .ce-header b {
+  color: var(--st-text) !important;
+}
+
+#st-top-toolbar a,
+#st-top-toolbar button,
+#st-top-toolbar #st-tb-user {
+  color: var(--st-toolbar-text, rgba(255,255,255,0.72)) !important;
 }
 
 /* Push Frappe v16 layout below the fixed 36px toolbar.
@@ -1853,6 +1900,26 @@ body.st-has-toolbar header.navbar {
 .st-ud-item:hover svg {
   opacity: 1;
 }
+.st-ud-state {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+  border-radius: 999px;
+  background: var(--st-accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+.st-ud-item.st-active .st-ud-state {
+  opacity: 1;
+  transform: scale(1);
+}
 .st-ud-logout {
   color: #DC2626 !important;
 }
@@ -2151,6 +2218,56 @@ html[data-theme="dark"] .st-ud-app-ver {
   min-width: 0 !important;
 }
 
+/* ── USER-CONTROLLED FULL-WIDTH DESK ─────────────────────────────────────────
+   Uses Frappe's native body.full-width state and container_fullwidth setting.
+   Keep sidebars intact while removing the centered content cap on every page. */
+@media (min-width: 769px) {
+  body.full-width {
+    --page-max-width: 100%;
+  }
+
+  body.full-width .page-head .container,
+  body.full-width .page-body .container,
+  body.full-width .page-content .container,
+  body.full-width .layout-main {
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  body.full-width .layout-main {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}
+
+/* EditorJS block picker/toolbars must float above workspace blocks while editing. */
+[data-page-route="Workspaces"] #editorjs .ce-toolbar,
+[data-page-route="Workspaces"] #editorjs .ce-inline-toolbar,
+[data-page-route="Workspaces"] #editorjs .ce-conversion-toolbar,
+[data-page-route="Workspaces"] #editorjs .ce-settings,
+[data-page-route="Workspaces"] #editorjs .ce-settings__default-zone {
+  z-index: 1200 !important;
+}
+[data-page-route="Workspaces"] #editorjs .ce-popover {
+  z-index: 1201 !important;
+}
+[data-page-route="Workspaces"] #editorjs .st-editorjs-popover-host {
+  position: relative;
+  z-index: 1195 !important;
+}
+[data-page-route="Workspaces"] #editorjs .ce-block--focused,
+[data-page-route="Workspaces"] #editorjs .ce-block--selected {
+  position: relative;
+  z-index: 1190 !important;
+}
+
+/* Hover lifts create stacking contexts that can flicker against the open block menu. */
+[data-page-route="Workspaces"] #editorjs .widget:hover,
+[data-page-route="Workspaces"] #editorjs .desk-card:hover,
+[data-page-route="Workspaces"] #editorjs .frappe-card:hover {
+  transform: none !important;
+}
+
 /* ── RTL (right-to-left languages: fa, ar, he, ur …) ──────────────────────── */
 /* Only fix dropdown internal direction — toolbar/sidebar layout is left to Frappe */
 html[dir="rtl"] #st-user-dropdown {
@@ -2178,6 +2295,124 @@ html[dir="rtl"] #st-lang-dropdown {
   }
   body { background: white !important; }
   .page-head { background: none !important; color: inherit !important; }
+}
+
+/* ── Schema-driven ERPNext charts ───────────────────────────── */
+[data-st-chart-id] {
+  --st-chart-surface: var(--st-chart-bg, var(--st-card-bg));
+  --st-chart-card: var(--st-card-bg);
+  --st-chart-border: var(--st-border);
+  --st-chart-border-width: 1px;
+  --st-chart-radius: var(--st-card-radius, 10px);
+  --st-chart-padding: 16px;
+  --st-chart-shadow: var(--st-shadow-md);
+  --st-chart-axis: var(--st-text-muted);
+  --st-chart-grid: var(--st-report-grid, var(--st-border));
+  --st-chart-grid-width: 1px;
+  --st-chart-axis-label: var(--st-text-muted);
+  --st-chart-axis-label-size: 11px;
+  --st-chart-legend: var(--st-text-muted);
+  --st-chart-legend-size: 12px;
+  --st-chart-label: var(--st-text);
+  --st-chart-label-size: 12px;
+  --st-chart-tooltip-bg: var(--st-card-bg);
+  --st-chart-tooltip-text: var(--st-text);
+  --st-chart-tooltip-border: var(--st-border);
+  --st-chart-tooltip-border-width: 1px;
+  --st-chart-line-width: 2px;
+  --st-chart-bar-radius: 4px;
+  background: var(--st-chart-surface) !important;
+  border: var(--st-chart-border-width) solid var(--st-chart-border) !important;
+  border-radius: var(--st-chart-radius) !important;
+  box-shadow: var(--st-chart-shadow) !important;
+}
+[data-st-chart-id] .chart-container,
+[data-st-chart-id].chart-container,
+[data-st-chart-id] .frappe-chart {
+  background: var(--st-chart-surface) !important;
+}
+[data-st-chart-id] .x.axis text,
+[data-st-chart-id] .y.axis text,
+[data-st-chart-id] .chart-label {
+  fill: var(--st-chart-axis-label) !important;
+  color: var(--st-chart-axis-label) !important;
+  font-size: var(--st-chart-axis-label-size) !important;
+}
+[data-st-chart-id] .x.axis line,
+[data-st-chart-id] .y.axis line,
+[data-st-chart-id] .x.axis path,
+[data-st-chart-id] .y.axis path {
+  stroke: var(--st-chart-axis) !important;
+}
+[data-st-chart-id] .line-horizontal,
+[data-st-chart-id] .line-vertical,
+[data-st-chart-id] .chart-draw line {
+  stroke: var(--st-chart-grid) !important;
+  stroke-width: var(--st-chart-grid-width) !important;
+}
+[data-st-chart-id] .chart-legend,
+[data-st-chart-id] .legend,
+[data-st-chart-id] .stats {
+  color: var(--st-chart-legend) !important;
+  font-size: var(--st-chart-legend-size) !important;
+}
+[data-st-chart-id][data-st-chart-legend="hidden"] .chart-legend,
+[data-st-chart-id][data-st-chart-legend="hidden"] .legend,
+[data-st-chart-id][data-st-chart-legend="hidden"] .stats,
+[data-st-chart-id][data-st-chart-tooltip="hidden"] .graph-svg-tip {
+  display: none !important;
+}
+[data-st-chart-id] .graph-svg-tip {
+  background: var(--st-chart-tooltip-bg) !important;
+  color: var(--st-chart-tooltip-text) !important;
+  border: var(--st-chart-tooltip-border-width) solid var(--st-chart-tooltip-border) !important;
+}
+[data-st-chart-id] .line-graph-path {
+  stroke-width: var(--st-chart-line-width) !important;
+  transition: opacity var(--st-chart-animation-duration) var(--st-chart-animation-easing);
+}
+[data-st-chart-id] .bar,
+[data-st-chart-id] rect.bar {
+  rx: var(--st-chart-bar-radius);
+  ry: var(--st-chart-bar-radius);
+  opacity: var(--st-chart-series-opacity, 1);
+  transition: opacity var(--st-chart-animation-duration) var(--st-chart-animation-easing);
+}
+[data-st-chart-id] .dataset-0,
+[data-st-chart-id] .dataset-0 path,
+[data-st-chart-id] .dataset-0 rect { stroke: var(--st-chart-series-0, var(--st-chart-1)) !important; fill: var(--st-chart-series-fill-0, var(--st-chart-series-0, var(--st-chart-1))) !important; stroke-width: var(--st-chart-series-width-0, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-0, 1); }
+[data-st-chart-id] .dataset-1,
+[data-st-chart-id] .dataset-1 path,
+[data-st-chart-id] .dataset-1 rect { stroke: var(--st-chart-series-1, var(--st-chart-2)) !important; fill: var(--st-chart-series-fill-1, var(--st-chart-series-1, var(--st-chart-2))) !important; stroke-width: var(--st-chart-series-width-1, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-1, 1); }
+[data-st-chart-id] .dataset-2,
+[data-st-chart-id] .dataset-2 path,
+[data-st-chart-id] .dataset-2 rect { stroke: var(--st-chart-series-2, var(--st-chart-3)) !important; fill: var(--st-chart-series-fill-2, var(--st-chart-series-2, var(--st-chart-3))) !important; stroke-width: var(--st-chart-series-width-2, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-2, 1); }
+[data-st-chart-id] .dataset-3,
+[data-st-chart-id] .dataset-3 path,
+[data-st-chart-id] .dataset-3 rect { stroke: var(--st-chart-series-3, var(--st-chart-4)) !important; fill: var(--st-chart-series-fill-3, var(--st-chart-series-3, var(--st-chart-4))) !important; stroke-width: var(--st-chart-series-width-3, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-3, 1); }
+[data-st-chart-id] .dataset-4,
+[data-st-chart-id] .dataset-4 path,
+[data-st-chart-id] .dataset-4 rect { stroke: var(--st-chart-series-4, var(--st-chart-5)) !important; fill: var(--st-chart-series-fill-4, var(--st-chart-series-4, var(--st-chart-5))) !important; stroke-width: var(--st-chart-series-width-4, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-4, 1); }
+[data-st-chart-id] .dataset-5,
+[data-st-chart-id] .dataset-5 path,
+[data-st-chart-id] .dataset-5 rect { stroke: var(--st-chart-series-5, var(--st-chart-1)) !important; fill: var(--st-chart-series-fill-5, var(--st-chart-series-5, var(--st-chart-1))) !important; stroke-width: var(--st-chart-series-width-5, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-5, 1); }
+[data-st-chart-id] .dataset-6,
+[data-st-chart-id] .dataset-6 path,
+[data-st-chart-id] .dataset-6 rect { stroke: var(--st-chart-series-6, var(--st-chart-2)) !important; fill: var(--st-chart-series-fill-6, var(--st-chart-series-6, var(--st-chart-2))) !important; stroke-width: var(--st-chart-series-width-6, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-6, 1); }
+[data-st-chart-id] .dataset-7,
+[data-st-chart-id] .dataset-7 path,
+[data-st-chart-id] .dataset-7 rect { stroke: var(--st-chart-series-7, var(--st-chart-3)) !important; fill: var(--st-chart-series-fill-7, var(--st-chart-series-7, var(--st-chart-3))) !important; stroke-width: var(--st-chart-series-width-7, var(--st-chart-line-width)) !important; opacity: var(--st-chart-series-opacity-7, 1); }
+[data-st-chart-id][data-st-chart-type="line"] .line-graph-path { fill: none !important; }
+[data-st-chart-id][data-st-chart-type="area"] .line-graph-path { fill-opacity: var(--st-chart-fill-opacity, .28) !important; }
+[data-st-chart-id][data-st-chart-hover="on"] svg:hover .bar { opacity: .42; }
+[data-st-chart-id][data-st-chart-hover="on"] svg .bar:hover { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  [data-st-chart-id] *,
+  [data-st-chart-id] *::before,
+  [data-st-chart-id] *::after {
+    animation-duration: 0ms !important;
+    transition-duration: 0ms !important;
+  }
 }
 
 /* ── APPEARANCE CONTROLS (All-Options panel, v1.2.0) ───────────────────────── */

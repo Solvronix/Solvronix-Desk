@@ -10,13 +10,29 @@
    The cache is populated/updated by injectDynamicTheme() after the API call.
    ─────────────────────────────────────────────────────────────────────────── */
 (function () {
+  window.stApplyThemeCss = function (css) {
+    if (typeof css !== "string") return null;
+    var elements = Array.prototype.slice.call(
+      document.querySelectorAll('style[id="st-dynamic-theme"]')
+    );
+    var element = elements.shift() || document.createElement("style");
+    element.id = "st-dynamic-theme";
+    element.textContent = css;
+    if (!element.parentNode) document.head.appendChild(element);
+    elements.forEach(function (duplicate) { duplicate.remove(); });
+    try { localStorage.setItem("st_theme_css", css); } catch (e) {}
+    return element;
+  };
+
   try {
     var cached = localStorage.getItem("st_theme_css");
-    if (cached) {
-      var s = document.createElement("style");
-      s.id = "st-dynamic-theme";
-      s.textContent = cached;
-      document.head.appendChild(s);
+    var serverTheme = document.getElementById("st-dynamic-theme");
+    if (!serverTheme && cached) {
+      window.stApplyThemeCss(cached);
+    } else if (serverTheme) {
+      /* Server-rendered CSS is newer and authoritative. Never append a
+         duplicate cached style after it, because the stale copy wins. */
+      window.stApplyThemeCss(serverTheme.textContent || "");
     }
   } catch (e) {}
 }());
@@ -26,6 +42,39 @@
 
   var ST = (window.solvronix_desk = window.solvronix_desk || {});
   var COLLAPSE_KEY = "st_sidebar_collapsed";
+  var FULL_WIDTH_KEY = "container_fullwidth";
+
+  function isFullWidthEnabled() {
+    try {
+      return JSON.parse(localStorage.getItem(FULL_WIDTH_KEY) || "false") === true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function applyFullWidth(enabled) {
+    var isEnabled = enabled === true;
+    document.body.classList.toggle("full-width", isEnabled);
+    try {
+      localStorage.setItem(FULL_WIDTH_KEY, JSON.stringify(isEnabled));
+    } catch (e) {}
+    $(document.body).trigger("toggleFullWidth");
+    return isEnabled;
+  }
+
+  function toggleFullWidth() {
+    /* Keep the same storage key and body class as Frappe/ERPNext. */
+    if (frappe.ui && frappe.ui.toolbar &&
+        typeof frappe.ui.toolbar.toggle_full_width === "function") {
+      frappe.ui.toolbar.toggle_full_width();
+      return isFullWidthEnabled();
+    }
+    return applyFullWidth(!isFullWidthEnabled());
+  }
+
+  ST.isFullWidthEnabled = isFullWidthEnabled;
+  ST.applyFullWidth = applyFullWidth;
+  ST.toggleFullWidth = toggleFullWidth;
 
   /* ────────────────────────────────────────────────────────────────────────────
      1. DYNAMIC CSS FROM THEME SETTINGS
@@ -36,20 +85,7 @@
       callback: function (r) {
         if (!r.message) return;
         var css = r.message;
-        /* Persist so the synchronous early-inject block (top of file) can
-           apply it instantly on the next page load with zero flash. */
-        try { localStorage.setItem("st_theme_css", css); } catch (e) {}
-        /* Update in-place — never remove the element, which would cause a
-           brief flash as the browser re-renders without the style tag. */
-        var el = document.getElementById("st-dynamic-theme");
-        if (el) {
-          el.textContent = css;
-        } else {
-          var s = document.createElement("style");
-          s.id = "st-dynamic-theme";
-          s.textContent = css;
-          document.head.appendChild(s);
-        }
+        window.stApplyThemeCss(css);
       },
     });
   }
@@ -144,6 +180,85 @@
   ──────────────────────────────────────────────────────────────────────────── */
   function injectSidebarCollapseToggle() {
     /* Frappe v16 handles sidebar collapse natively. */
+  }
+
+  /* A focused start section keeps Today, New, and accessible workspaces together. */
+  function injectWorkspaceRail() {
+    var $sidebar = $(".body-sidebar").first();
+    if (!$sidebar.length || $sidebar.find("#st-workspace-rail").length || $sidebar.data("st-rail-loading")) return;
+    $sidebar.data("st-rail-loading", true);
+
+    frappe.call({
+      method: "solvronix_desk.api.get_workspaces",
+      callback: function (response) {
+        $sidebar.removeData("st-rail-loading");
+        if (!$sidebar.closest("body").length || $sidebar.find("#st-workspace-rail").length) return;
+        var message = (response && response.message) || {};
+        var pages = (message.pages || []).concat(message.private_pages || []);
+        var seen = {};
+        pages = pages.filter(function (page) {
+          var title = String(page.title || page.name || "").trim();
+          if (!title || seen[title]) return false;
+          seen[title] = true;
+          return true;
+        }).slice(0, 9);
+
+        function esc(value) {
+          return frappe.utils.escape_html(String(value || ""));
+        }
+        function routeFor(page) {
+          var route = page.route || String(page.title || page.name || "")
+            .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+          return "/desk/" + encodeURIComponent(route).replace(/%2F/gi, "/");
+        }
+
+        var createOrder = ["Sales Invoice", "Quotation", "Sales Order", "Purchase Order", "Customer", "Supplier", "Task", "ToDo"];
+        var canCreate = ((frappe.boot && frappe.boot.user && frappe.boot.user.can_create) || []);
+        var createItems = createOrder.filter(function (doctype) {
+          return canCreate.indexOf(doctype) !== -1;
+        }).slice(0, 6);
+
+        var html =
+          '<nav id="st-workspace-rail" aria-label="' + esc(__("Start and workspaces")) + '">' +
+            '<div class="st-rail-primary">' +
+              '<a class="st-rail-link st-rail-today" href="/desk/smart-home" title="' + esc(__("Today")) + '">' +
+                '<span class="st-rail-icon">' + frappe.utils.icon("sun", "sm") + '</span><span class="st-rail-label">' + esc(__("Today")) + '</span></a>' +
+              '<button class="st-rail-link st-rail-new" type="button" title="' + esc(__("New")) + '" aria-expanded="false">' +
+                '<span class="st-rail-icon">' + frappe.utils.icon("add", "sm") + '</span><span class="st-rail-label">' + esc(__("New")) + '</span>' +
+                '<span class="st-rail-new-plus">+</span></button>' +
+            '</div>' +
+            '<div class="st-rail-create" hidden>' +
+              (createItems.length ? createItems.map(function (doctype) {
+                return '<button type="button" data-new-doctype="' + esc(doctype) + '"><span>+</span>' + esc(__(doctype)) + '</button>';
+              }).join("") : '<small>' + esc(__("No create permissions found.")) + '</small>') +
+            '</div>' +
+            '<div class="st-rail-section-title"><span>' + esc(__("Workspaces")) + '</span><a href="/desk/home" title="' + esc(__("All Workspaces")) + '">&rarr;</a></div>' +
+            '<div class="st-rail-workspaces">' +
+              pages.map(function (page, index) {
+                var title = page.title || page.name;
+                return '<a class="st-rail-workspace" href="' + routeFor(page) + '" title="' + esc(title) + '">' +
+                  '<span class="st-rail-dot st-rail-dot-' + (index % 5) + '"></span><span class="st-rail-label">' + esc(title) + '</span></a>';
+              }).join("") +
+            '</div>' +
+          '</nav>';
+
+        var $top = $sidebar.find(".body-sidebar-top").first();
+        ($top.length ? $top : $sidebar).prepend(html);
+        var $rail = $sidebar.find("#st-workspace-rail");
+        $rail.on("click", ".st-rail-new", function () {
+          var $menu = $rail.find(".st-rail-create");
+          var open = $menu.prop("hidden");
+          $menu.prop("hidden", !open);
+          $(this).attr("aria-expanded", open ? "true" : "false");
+        });
+        $rail.on("click", "[data-new-doctype]", function () {
+          frappe.new_doc(this.dataset.newDoctype);
+        });
+      },
+      error: function () {
+        $sidebar.removeData("st-rail-loading");
+      }
+    });
   }
 
   /* ────────────────────────────────────────────────────────────────────────────
@@ -367,7 +482,7 @@
     if (localStorage.getItem(storageKey) === "done") return;
 
     var step1done = !!branding.company_name;
-    var step2done = !!brand && brand !== "#1b3f7e";
+    var step2done = !!brand;
     var step3done = !!branding.logo;
 
     /* Auto-dismiss once everything is configured */
@@ -391,7 +506,7 @@
         stepHtml(step2done, frappe._("Choose a brand color")) +
         stepHtml(step3done, frappe._("Upload your logo")) +
         '<div class="st-sg-actions">' +
-          '<a href="/desk/theme-settings" class="st-sg-open-btn">' + frappe._("Open Theme Settings") + ' &rarr;</a>' +
+          '<a href="/desk/theme-studio" class="st-sg-open-btn">' + frappe._("Open Theme Studio") + ' &rarr;</a>' +
         "</div>" +
       "</div>";
 
@@ -642,6 +757,11 @@
           '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1v1M7 12v1M1 7H2M12 7h1M2.9 2.9l.7.7M10.4 10.4l.7.7M2.9 11.1l.7-.7M10.4 3.6l.7-.7M9.5 7a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>' +
           'Toggle Theme' +
         '</button>' +
+        '<button class="st-ud-item" data-action="toggle-full-width" aria-pressed="false">' +
+          '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 2H2v3M9 2h3v3M5 12H2V9M9 12h3V9M2 5l3-3M12 5L9 2M2 9l3 3M12 9l-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+          '<span>Toggle Full Width</span>' +
+          '<span class="st-ud-state" aria-hidden="true">&#10003;</span>' +
+        '</button>' +
         '<button class="st-ud-item" data-action="reset-layout">' +
           '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 7a5 5 0 1 1 1.1 3.1M2 11V7.5H5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
           'Reset Desktop Layout' +
@@ -654,6 +774,16 @@
       '</div>'
     );
     $("body").append($userDrop);
+
+    var $fullWidthItem = $userDrop.find('[data-action="toggle-full-width"]');
+    function syncFullWidthItem() {
+      var enabled = isFullWidthEnabled();
+      $fullWidthItem
+        .toggleClass("st-active", enabled)
+        .attr("aria-pressed", enabled ? "true" : "false");
+    }
+    syncFullWidthItem();
+    $(document.body).on("toggleFullWidth.st_user_menu", syncFullWidthItem);
 
     /* ── Populate installed apps grid ── */
     (function () {
@@ -738,6 +868,13 @@
         } else if (frappe.ui && frappe.ui.ThemeSwitcher) {
           new frappe.ui.ThemeSwitcher().show();
         }
+      } else if (action === "toggle-full-width") {
+        toggleFullWidth();
+        syncFullWidthItem();
+        frappe.show_alert({
+          message: frappe._(isFullWidthEnabled() ? "Full width enabled" : "Full width disabled"),
+          indicator: "green",
+        }, 2);
       } else if (action === "reset-layout") {
         frappe.confirm(frappe._("Reset your desktop layout to default?"), function () {
           frappe.call({
@@ -911,11 +1048,20 @@
       refreshActive();
     });
 
+    /* Theme Studio is lazy-loaded and its page script can remain cached across
+       app upgrades. Bridge its mode control from this versioned global asset so
+       Studio -> toolbar/All Options synchronization is reliable as well. */
+    $(document).off("change.st_theme_mode_bridge", '.st-theme-studio [data-setting="preferred_mode"]')
+      .on("change.st_theme_mode_bridge", '.st-theme-studio [data-setting="preferred_mode"]', function () {
+        if (window.stSetThemeMode) window.stSetThemeMode($(this).val());
+      });
+
     /* Stay in sync when the theme is changed from the toolbar toggle */
     document.addEventListener("st:density-changed", refreshActive);
     document.addEventListener("st:font-changed", refreshActive);
+    window.addEventListener("st:theme-changed", refreshActive);
     refreshActive();
-    /* Toolbar dark toggle has no event — refresh whenever the panel opens */
+    /* Refresh on open as well, including after another tab changes the user. */
     $sec.data("st-refresh", refreshActive);
 
     return $sec;
@@ -977,9 +1123,7 @@
           "</a>"
         );
         $a.on("click", function (e) {
-          e.preventDefault();
           closeOptionsPanel();
-          frappe.set_route(slug);
         });
         $items.append($a);
       });
@@ -1067,6 +1211,126 @@
     });
   }
 
+  function installWorkspaceBlockPickerLayerFix() {
+    if (ST._workspaceBlockPickerLayerFix) return;
+    ST._workspaceBlockPickerLayerFix = true;
+
+    var activeBlock = null;
+    var refreshQueued = false;
+    var clearTimer = null;
+
+    function isWorkspaceEditor() {
+      return document.body.getAttribute("data-page-route") === "Workspaces" &&
+             !!document.querySelector("#editorjs");
+    }
+
+    function clearActiveBlock() {
+      if (activeBlock) {
+        activeBlock.classList.remove("st-editorjs-popover-host");
+        activeBlock = null;
+      }
+    }
+
+    function promoteBlock(block) {
+      if (!block) return;
+      if (activeBlock && activeBlock !== block) {
+        activeBlock.classList.remove("st-editorjs-popover-host");
+      }
+      activeBlock = block;
+      activeBlock.classList.add("st-editorjs-popover-host");
+    }
+
+    function closestBlockFromY(y) {
+      var blocks = Array.prototype.slice.call(document.querySelectorAll("#editorjs .ce-block"));
+      var nearest = null;
+      var nearestDistance = Infinity;
+
+      blocks.forEach(function (block) {
+        var rect = block.getBoundingClientRect();
+        if (rect.top <= y && y <= rect.bottom) {
+          nearest = block;
+          nearestDistance = 0;
+          return;
+        }
+        var distance = Math.min(Math.abs(rect.top - y), Math.abs(rect.bottom - y));
+        if (distance < nearestDistance) {
+          nearest = block;
+          nearestDistance = distance;
+        }
+      });
+
+      return nearest;
+    }
+
+    function eventBlock(e) {
+      var target = e.target && e.target.closest ? e.target : null;
+      var block = target && target.closest("#editorjs .ce-block");
+      return block || closestBlockFromY(e.clientY || 0);
+    }
+
+    function hasVisiblePopover() {
+      var popovers = Array.prototype.slice.call(document.querySelectorAll("#editorjs .ce-popover, #editorjs .ce-popover--opened"));
+      return popovers.some(function (popover) {
+        var style = window.getComputedStyle(popover);
+        var rect = popover.getBoundingClientRect();
+        return style.display !== "none" &&
+               style.visibility !== "hidden" &&
+               rect.width > 0 &&
+               rect.height > 0;
+      });
+    }
+
+    function scheduleClearIfClosed() {
+      if (clearTimer) clearTimeout(clearTimer);
+      clearTimer = setTimeout(function () {
+        if (!hasVisiblePopover()) clearActiveBlock();
+      }, 160);
+    }
+
+    function refresh() {
+      refreshQueued = false;
+      if (!isWorkspaceEditor()) {
+        clearActiveBlock();
+        return;
+      }
+      if (!hasVisiblePopover()) scheduleClearIfClosed();
+    }
+
+    function queueRefresh() {
+      if (refreshQueued) return;
+      refreshQueued = true;
+      requestAnimationFrame(refresh);
+    }
+
+    document.addEventListener("pointerdown", function (e) {
+      if (!isWorkspaceEditor()) return;
+      var target = e.target && e.target.closest ? e.target : null;
+      if (!target || !target.closest(".ce-toolbar__plus, .ce-toolbar__settings-btn")) return;
+      if (clearTimer) clearTimeout(clearTimer);
+      promoteBlock(eventBlock(e));
+      queueRefresh();
+    }, true);
+
+    document.addEventListener("focusin", function (e) {
+      if (!isWorkspaceEditor()) return;
+      var target = e.target && e.target.closest ? e.target : null;
+      var block = target && target.closest("#editorjs .ce-block");
+      if (block && hasVisiblePopover()) promoteBlock(block);
+    }, true);
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") scheduleClearIfClosed();
+    }, true);
+
+    var observer = new MutationObserver(queueRefresh);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class", "style"]
+    });
+  }
+
   /* Capture-phase interceptor — fires before Frappe's bubbling click on Search item */
   document.addEventListener("click", function (e) {
     var anchor = e.target.closest(".body-sidebar .item-anchor, .body-sidebar .sidebar-item");
@@ -1108,10 +1372,12 @@
     injectBranding();
     setupTitleUpdate();
     injectTopToolbar();
+    installWorkspaceBlockPickerLayerFix();
 
     sidebarReady(function () {
       injectSidebarCollapseToggle();
       injectSidebarBrandingHeader();   /* retry — branding may already be cached */
+      injectWorkspaceRail();
       patchNativeSidebar();
       injectPoweredBy();
     });
@@ -1121,46 +1387,15 @@
     /* Move Frappe's native notification bell into toolbar after desktop page renders */
     setTimeout(moveNativeBell, 800);
     $(document).on("page-change", function () {
+      injectWorkspaceRail();
       patchNativeSidebar();
       injectPoweredBy();
       injectSetupGuide();
       setTimeout(moveNativeBell, 400);
     });
 
-    /* One-time redirect: if the page loaded at a bare /desk URL (empty route),
-       send the user to Today's View. This does NOT listen on every navigation —
-       so sidebar items, workspace links, Desktop page, etc. are never intercepted.
-       Frappe's boot.home_page = "smart-home" already handles the normal first-load
-       redirect; this is only a safety net for edge cases (direct URL visits).
-
-       frappe.router.route() is async — it only sets frappe.router.current_route
-       (what frappe.get_route() reads) AFTER its internal parse() resolves, which
-       can require an async doctype-meta round trip. Checking synchronously here
-       can run before that first resolution, reading a stale/empty route while
-       core's own routing for the real target is still in flight — hijacking the
-       URL to smart-home while the real page renders underneath it, unrelated to
-       the URL. But we also must not just wait for the next "change" event
-       unconditionally: if core's first route() has ALREADY resolved by the time
-       this runs, current_route is already correct and there's no later "change"
-       coming for THIS load — a bare .once() would sit armed and misfire on
-       whatever the user navigates to next (confirmed live: it fired on a later,
-       unrelated SPA navigation instead of the initial load). So: check directly
-       if current_route is already populated (no race); only if it's genuinely
-       still pending (current_route null — the initial route() hasn't resolved
-       yet) do we wait for the "change" that resolution is guaranteed to fire. */
-    var checkAndRedirectHome = function () {
-      var route = (frappe.get_route && frappe.get_route()) || [];
-      var isEmptyOrWorkspace = route.length === 0 ||
-        (route.length === 1 && (route[0] === "" || route[0] === "workspace"));
-      if (isEmptyOrWorkspace) {
-        frappe.set_route("smart-home");
-      }
-    };
-    if (frappe.router && frappe.router.current_route) {
-      checkAndRedirectHome();
-    } else {
-      frappe.router.once("change", checkAndRedirectHome);
-    }
+    /* bootinfo.home_page owns the initial Smart Home redirect. Redirecting here
+       can race Frappe's asynchronous deep-link parser and replace the target page. */
   }
 
   $(document).ready(onDeskReady);
@@ -1172,20 +1407,25 @@
   ──────────────────────────────────────────────────────────────────────────── */
   $(document).ready(function () {
     frappe.realtime.on("st_theme_changed", function (data) {
+      if (data && data.refresh && !data.css) {
+        frappe.call({
+          method: "solvronix_desk.theme_api.get_resolved_theme_runtime",
+          callback: function (response) {
+            var runtime = response && response.message;
+            var refreshedCss = runtime && runtime.css;
+            if (!runtime) return;
+            window.stApplyThemeCss(refreshedCss);
+            if (runtime.preferred_mode && window.stApplyResolvedThemeMode) {
+              window.stApplyResolvedThemeMode(String(runtime.preferred_mode).toLowerCase());
+            }
+            window.dispatchEvent(new CustomEvent("st-theme-runtime-refresh", { detail: runtime }));
+          },
+        });
+      }
       /* 1. Apply new CSS variables immediately — update in-place, no flash */
       var css = data && data.css;
       if (css) {
-        var dynEl = document.getElementById("st-dynamic-theme");
-        var inlineEl = document.getElementById("st-inline-theme");
-        if (dynEl)         { dynEl.textContent = css; }
-        else if (inlineEl) { inlineEl.textContent = css; }
-        else {
-          var s = document.createElement("style");
-          s.id = "st-dynamic-theme";
-          s.textContent = css;
-          document.head.appendChild(s);
-        }
-        try { localStorage.setItem("st_theme_css", css); } catch (e) {}
+        window.stApplyThemeCss(css);
       }
 
       /* 2. Refresh branding header if company/logo changed */
@@ -1217,17 +1457,7 @@
         callback: function (r) {
           var css = r && r.message;
           if (!css) return;
-          var dynEl    = document.getElementById("st-dynamic-theme");
-          var inlineEl = document.getElementById("st-inline-theme");
-          if (dynEl)         dynEl.textContent = css;
-          else if (inlineEl) inlineEl.textContent = css;
-          else {
-            var s = document.createElement("style");
-            s.id = "st-dynamic-theme";
-            s.textContent = css;
-            document.head.appendChild(s);
-          }
-          try { localStorage.setItem("st_theme_css", css); } catch (e) {}
+          window.stApplyThemeCss(css);
 
           /* Refresh sidebar branding header with latest doc values */
           ST._branding = {

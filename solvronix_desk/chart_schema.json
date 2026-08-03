@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "groups": {
+    "chart": {
+      "type": {"type": "enum", "default": "source", "values": ["source", "bar", "line", "area", "pie", "donut", "percentage"], "applies_to": ["full"], "label": "Chart type"},
+      "height": {"type": "integer", "default": 240, "min": 80, "max": 900, "unit": "px", "applies_to": ["full", "sparkline"], "label": "Height"},
+      "orientation": {"type": "enum", "default": "vertical", "values": ["vertical", "horizontal"], "applies_to": ["bar"], "label": "Orientation"},
+      "responsive": {"type": "boolean", "default": true, "applies_to": ["full", "sparkline"], "label": "Responsive sizing"},
+      "stacked": {"type": "boolean", "default": false, "applies_to": ["bar", "area"], "label": "Stack series"}
+    },
+    "surface": {
+      "background": {"type": "color", "default": "#FFFFFF", "applies_to": ["full", "sparkline"], "label": "Chart background"},
+      "card_background": {"type": "color", "default": "#FFFFFF", "applies_to": ["full", "sparkline"], "label": "Card background"},
+      "border_color": {"type": "color", "default": "#E1E5EA", "applies_to": ["full", "sparkline"], "label": "Border color"},
+      "border_width": {"type": "integer", "default": 1, "min": 0, "max": 8, "unit": "px", "applies_to": ["full", "sparkline"], "label": "Border width"},
+      "radius": {"type": "integer", "default": 10, "min": 0, "max": 40, "unit": "px", "applies_to": ["full", "sparkline"], "label": "Corner radius"},
+      "padding": {"type": "integer", "default": 16, "min": 0, "max": 64, "unit": "px", "applies_to": ["full", "sparkline"], "label": "Padding"},
+      "shadow": {"type": "enum", "default": "soft", "values": ["none", "soft", "elevated"], "applies_to": ["full", "sparkline"], "label": "Shadow"}
+    },
+    "series_defaults": {
+      "palette": {"type": "palette", "default": ["#1B3F7E", "#F57C00", "#238A57", "#2D72B8", "#6B4AA0"], "max_items": 8, "applies_to": ["full", "sparkline"], "label": "Chart palette"},
+      "color": {"type": "optional_color", "default": "", "applies_to": ["full", "sparkline"], "label": "Series color"},
+      "fill_color": {"type": "optional_color", "default": "", "applies_to": ["line", "area", "bar"], "label": "Fill color"},
+      "opacity": {"type": "integer", "default": 100, "min": 0, "max": 100, "unit": "%", "applies_to": ["full", "sparkline"], "label": "Opacity"},
+      "fill_opacity": {"type": "integer", "default": 28, "min": 0, "max": 100, "unit": "%", "applies_to": ["line", "area", "bar"], "label": "Fill opacity"},
+      "line_width": {"type": "number", "default": 2, "min": 0, "max": 12, "step": 0.5, "unit": "px", "applies_to": ["line", "area", "sparkline"], "label": "Line width"},
+      "line_style": {"type": "enum", "default": "solid", "values": ["solid", "dashed", "dotted"], "applies_to": ["line", "area", "sparkline"], "label": "Line style"},
+      "smooth": {"type": "boolean", "default": false, "applies_to": ["line", "area", "sparkline"], "label": "Smooth line"},
+      "point_shape": {"type": "enum", "default": "circle", "values": ["none", "circle", "square", "diamond"], "applies_to": ["line", "area"], "label": "Point shape"},
+      "point_size": {"type": "integer", "default": 4, "min": 0, "max": 16, "unit": "px", "applies_to": ["line", "area"], "label": "Point size"},
+      "bar_width": {"type": "integer", "default": 18, "min": 2, "max": 80, "unit": "px", "applies_to": ["bar"], "label": "Bar width"},
+      "bar_radius": {"type": "integer", "default": 4, "min": 0, "max": 30, "unit": "px", "applies_to": ["bar"], "label": "Bar radius"},
+      "bar_gap": {"type": "integer", "default": 10, "min": 0, "max": 80, "unit": "%", "applies_to": ["bar"], "label": "Bar gap"},
+      "stack": {"type": "text", "default": "", "max_length": 80, "applies_to": ["bar", "area"], "label": "Stack group"}
+    },
+    "axes": {
+      "x_visible": {"type": "boolean", "default": true, "applies_to": ["axis"], "label": "Show X axis"},
+      "y_visible": {"type": "boolean", "default": true, "applies_to": ["axis"], "label": "Show Y axis"},
+      "scale": {"type": "enum", "default": "linear", "values": ["linear", "logarithmic"], "applies_to": ["axis"], "label": "Scale"},
+      "y_min": {"type": "optional_number", "default": null, "min": -1000000000000, "max": 1000000000000, "applies_to": ["axis"], "label": "Minimum"},
+      "y_max": {"type": "optional_number", "default": null, "min": -1000000000000, "max": 1000000000000, "applies_to": ["axis"], "label": "Maximum"},
+      "interval": {"type": "optional_number", "default": null, "min": 0.000001, "max": 1000000000000, "applies_to": ["axis"], "label": "Interval"},
+      "axis_color": {"type": "color", "default": "#A8B0BC", "applies_to": ["axis"], "label": "Axis color"},
+      "grid_color": {"type": "color", "default": "#E4E7EB", "applies_to": ["axis"], "label": "Grid color"},
+      "grid_width": {"type": "number", "default": 1, "min": 0, "max": 8, "step": 0.5, "unit": "px", "applies_to": ["axis"], "label": "Grid width"},
+      "label_color": {"type": "color", "default": "#697386", "applies_to": ["axis"], "label": "Axis label color"},
+      "label_size": {"type": "integer", "default": 11, "min": 8, "max": 24, "unit": "px", "applies_to": ["axis"], "label": "Axis label size"},
+      "label_rotation": {"type": "integer", "default": 0, "min": -90, "max": 90, "unit": "°", "applies_to": ["axis"], "label": "Label rotation"},
+      "number_format": {"type": "text", "default": "", "max_length": 80, "applies_to": ["axis"], "label": "Number format"}
+    },
+    "legend": {
+      "visible": {"type": "boolean", "default": true, "applies_to": ["full"], "label": "Show legend"},
+      "position": {"type": "enum", "default": "bottom", "values": ["top", "right", "bottom", "left"], "applies_to": ["full"], "label": "Position"},
+      "alignment": {"type": "enum", "default": "center", "values": ["start", "center", "end"], "applies_to": ["full"], "label": "Alignment"},
+      "marker_style": {"type": "enum", "default": "circle", "values": ["circle", "square", "line"], "applies_to": ["full"], "label": "Marker style"},
+      "text_color": {"type": "color", "default": "#697386", "applies_to": ["full"], "label": "Text color"},
+      "text_size": {"type": "integer", "default": 12, "min": 8, "max": 24, "unit": "px", "applies_to": ["full"], "label": "Text size"}
+    },
+    "labels": {
+      "title_visible": {"type": "boolean", "default": true, "applies_to": ["full"], "label": "Show title"},
+      "data_labels_visible": {"type": "boolean", "default": false, "applies_to": ["full"], "label": "Show data labels"},
+      "font_family": {"type": "text", "default": "", "max_length": 120, "applies_to": ["full"], "label": "Font family"},
+      "text_color": {"type": "color", "default": "#19202D", "applies_to": ["full"], "label": "Text color"},
+      "font_size": {"type": "integer", "default": 12, "min": 8, "max": 32, "unit": "px", "applies_to": ["full"], "label": "Font size"},
+      "number_format": {"type": "text", "default": "", "max_length": 80, "applies_to": ["full"], "label": "Number format"},
+      "decimals": {"type": "integer", "default": 2, "min": 0, "max": 8, "applies_to": ["full"], "label": "Decimals"}
+    },
+    "tooltip": {
+      "visible": {"type": "boolean", "default": true, "applies_to": ["full"], "label": "Show tooltip"},
+      "background": {"type": "color", "default": "#FFFFFF", "applies_to": ["full"], "label": "Background"},
+      "text_color": {"type": "color", "default": "#19202D", "applies_to": ["full"], "label": "Text color"},
+      "border_color": {"type": "color", "default": "#E1E5EA", "applies_to": ["full"], "label": "Border color"},
+      "border_width": {"type": "integer", "default": 1, "min": 0, "max": 8, "unit": "px", "applies_to": ["full"], "label": "Border width"},
+      "number_format": {"type": "text", "default": "", "max_length": 80, "applies_to": ["full"], "label": "Number format"},
+      "shared": {"type": "boolean", "default": false, "applies_to": ["axis"], "label": "Shared tooltip"}
+    },
+    "animation": {
+      "enabled": {"type": "boolean", "default": true, "applies_to": ["full", "sparkline"], "label": "Enable animation"},
+      "duration": {"type": "integer", "default": 400, "min": 0, "max": 5000, "unit": "ms", "applies_to": ["full", "sparkline"], "label": "Duration"},
+      "easing": {"type": "enum", "default": "ease", "values": ["linear", "ease", "ease-in", "ease-out", "ease-in-out"], "applies_to": ["full", "sparkline"], "label": "Easing"}
+    },
+    "interaction": {
+      "hover_emphasis": {"type": "boolean", "default": true, "applies_to": ["full", "sparkline"], "label": "Hover emphasis"},
+      "selectable_values": {"type": "boolean", "default": false, "applies_to": ["full"], "label": "Selectable values"}
+    },
+    "advanced": {
+      "truncateLegends": {"type": "boolean", "default": true, "applies_to": ["full"], "label": "Truncate legends"},
+      "maxLegendPoints": {"type": "integer", "default": 20, "min": 1, "max": 200, "applies_to": ["full"], "label": "Maximum legend points"},
+      "maxSlices": {"type": "integer", "default": 20, "min": 2, "max": 100, "applies_to": ["pie", "donut", "percentage"], "label": "Maximum slices"}
+    }
+  },
+  "advanced_allowlist": ["truncateLegends", "maxLegendPoints", "maxSlices"]
+}

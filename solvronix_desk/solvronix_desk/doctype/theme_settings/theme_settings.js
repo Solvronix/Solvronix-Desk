@@ -1,6 +1,7 @@
 // Copyright (c) 2026, Solvronix and contributors
 // For license information, please see license.txt
 
+/* ── 1. BUILT-IN PRESET CATALOG ─────────────────────────────────────────────── */
 const ST_PRESETS = [
 	{ name: "Solvronix", brand: "#1B3F7E", accent: "#F57C00" },
 	{ name: "Forest",    brand: "#1A4731", accent: "#D97706" },
@@ -8,6 +9,7 @@ const ST_PRESETS = [
 	{ name: "Plum",      brand: "#6B2D6E", accent: "#F0A500" },
 ];
 
+/* Render one safe swatch; custom entries share the same interaction contract. */
 function st_swatch_html(p, custom) {
 	return `
 	<div class="st-preset-swatch${custom ? " st-preset-custom" : ""}"
@@ -27,6 +29,7 @@ function st_swatch_html(p, custom) {
 	</div>`;
 }
 
+/* ── 2. PRESET PICKER FACTORY ──────────────────────────────────────────────── */
 function st_build_preset_wrapper(frm) {
 	const builtin = ST_PRESETS.map((p) => st_swatch_html(p, false)).join("");
 	const custom = (frm.doc.custom_presets || [])
@@ -58,6 +61,7 @@ function st_build_preset_wrapper(frm) {
 	`);
 }
 
+/* Active state is derived from the exact brand/accent pair, not preset name. */
 function st_highlight_active(wrapper, brand, accent) {
 	wrapper.find(".st-preset-swatch").each(function () {
 		const match =
@@ -67,6 +71,7 @@ function st_highlight_active(wrapper, brand, accent) {
 	});
 }
 
+/* ── 3. CUSTOM PRESET CREATION ────────────────────────────────────────────── */
 function st_save_current_as_preset(frm) {
 	if (!frm.doc.brand_color || !frm.doc.accent_color) {
 		frappe.show_alert({ message: __("Set brand and accent colors first"), indicator: "orange" });
@@ -95,13 +100,14 @@ function st_save_current_as_preset(frm) {
 	);
 }
 
+/* Re-render from document state so refresh never leaves stale swatches. */
 function st_render_presets(frm) {
-	// Remove stale presets from a previous refresh before re-injecting
+	/* Remove stale presets from a previous refresh before re-injecting. */
 	frm.$wrapper.find(".st-presets").remove();
 
 	const wrapper = st_build_preset_wrapper(frm);
 
-	// Insert before the Colors section (above brand_color + accent_color)
+	/* Insert before the Colors section, above brand_color and accent_color. */
 	frm.fields_dict["brand_color"].$wrapper
 		.closest(".form-section")
 		.before(wrapper);
@@ -122,8 +128,32 @@ function st_render_presets(frm) {
 	st_highlight_active(wrapper, frm.doc.brand_color, frm.doc.accent_color);
 }
 
+/* ── 4. THEME SETTINGS FORM LIFECYCLE ─────────────────────────────────────── */
 frappe.ui.form.on("Theme Settings", {
 	refresh(frm) {
+		/* Theme Studio is the canonical settings UI. A one-session bypass is set
+		   only by its explicit "Open raw Theme Settings" maintenance action. */
+		let allow_raw = !!frm.__st_allow_raw_settings;
+		try {
+			allow_raw = allow_raw || sessionStorage.getItem("st_allow_raw_theme_settings") === "1";
+			sessionStorage.removeItem("st_allow_raw_theme_settings");
+		} catch (e) {}
+		if (!allow_raw) {
+			frappe.set_route("theme-studio");
+			return;
+		}
+		frm.__st_allow_raw_settings = true;
+
+		if (frm.dashboard && typeof frm.dashboard.set_headline_alert === "function") {
+			frm.dashboard.set_headline_alert(
+				__("Advanced storage view. Use Theme Studio for normal theme and feature configuration."),
+				"blue"
+			);
+		}
+		frm.add_custom_button(__("Back to Theme Studio"), function () {
+			frappe.set_route("theme-studio");
+		}, __("Actions"));
+
 		frm.add_custom_button(__("Preview Theme"), function () {
 			frappe.call({
 				method: "solvronix_desk.api.get_theme_css",

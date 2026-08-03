@@ -24,10 +24,43 @@ ERPNext is powerful. But the default interface is overwhelming — too many menu
 Press `Ctrl+K` from anywhere. Type what you're looking for — a document, a list, a setting — and navigate instantly. No menu hunting. No memorizing paths.
 
 ### White-Label Branding
-Go to Theme Settings, enter your company name, upload your logo, pick your two brand colors. Save. The entire system — sidebar, navbar, login page, buttons — instantly becomes your brand.
+Open Theme Studio, enter your company name, upload your logo, pick your two brand colors, then publish. The entire system — sidebar, navbar, login page, buttons — instantly becomes your brand.
+
+### Theme Studio — Visual Drag & Drop Editor
+Open **Theme Studio** from `Ctrl+K` or `/desk/theme-studio`. It is now the single user-facing home for theme settings, branding, feature toggles, and visual editing. Preview the result on dashboard, form, table, and login scenes; drag dashboard blocks into a new order; compare desktop/tablet/mobile and Frappe Default views; undo or reset changes; save a draft; then publish.
+
+Theme Studio includes Light, Dark, High Contrast, Frappe Default, Solvronix, and Forest profiles. System Managers can create, duplicate, rename, update, delete, import, export, schedule, and restore profiles. Themes can be assigned site-wide or by user, role, and company, while optional per-user profile selection and administrator locking control who can personalize the Desk.
+
+Every Studio token is rendered into the real Desk and login page, including the top toolbar and actual Frappe sidebar. Publishing creates a restorable backup and refreshes connected sessions without requiring an asset rebuild.
+
+#### Theme Studio visual guide
+
+See the [complete Theme Studio visual guide](docs/theme-studio.md) for every settings group, responsive preview mode, publishing workflow, and contextual property editor.
+
+[![Theme Studio contextual property editor](docs/screenshots/theme-studio/floating/05-dashboard-chart.png)](docs/theme-studio.md)
+
+#### Theme Studio capability map
+
+| Area | Included controls |
+|---|---|
+| Presets and profiles | Bundled presets, custom profiles, duplicate, rename, delete, import/export |
+| Main colours | Brand, accent, page/card/text/link/border, and semantic status colours |
+| Navbar and sidebar | Background/text/icon/active/hover colours, width, mode, auto-collapse, logo placement |
+| Buttons and forms | Button sizing/shape, inputs, focus, checkbox/toggle, dropdown, read-only/disabled |
+| Typography | Font family or web font, base/heading/label/table sizes, weight, line height |
+| Cards, lists, and tables | Surface, shadow, radius, row height/states, density, report grid |
+| Workspace and dashboard | Cards, shortcuts, number cards, chart system, icons, width, empty states |
+| Login branding | Logo, image/gradient, card opacity, title, copy, favicon, footer, optional platform credit |
+| Layout | Full/boxed width, margins, gaps, spacing, global radius, header height, sticky regions |
+| Assignment and activation | Site/user/role/company profiles, user permission, admin lock, scheduled activation |
+| Preview and recovery | Live Desk preview, four scenes, devices, draft, undo/redo, versions, reset, cache reload |
+| Accessibility | WCAG AA warning/enforcement, high contrast, large text, focus outlines, colour-blind palettes |
+| Developer tools | Custom CSS/JS, CSS variables, DocType/page/workspace rules, class mappings, raw JSON |
+
+Custom JavaScript is disabled by default and should only be enabled for trusted administrator-authored code. Hiding platform branding should only be used where your licensing and implementation permit it.
 
 ### Quick Color Presets
-Four one-click color presets appear above the color pickers in Theme Settings. Pick a preset — Brand Color and Accent Color update instantly. Includes Solvronix (Navy + Orange), Forest (Green + Gold), Midnight (Slate + Violet), and Plum (Purple + Amber). Use as-is or as a starting point before tweaking.
+Four one-click starting points appear in Theme Studio. Pick one and the brand and accent colors update instantly. Includes Solvronix (Navy + Orange), Forest (Green + Gold), Midnight (Slate + Violet), and Plum (Purple + Amber). Use as-is or fine-tune every token afterward.
 
 ### Auto Color System
 You set one brand color. The system automatically generates your complete color palette — backgrounds, hover states, borders, shadows — using CSS `color-mix()`. Change your brand color and everything updates instantly. No developer needed.
@@ -39,10 +72,10 @@ A 64px icon rail instead of the default wide sidebar. Expands to 240px on click.
 One click cycles between light, dark, and auto. Auto follows your operating system theme and switches live when the OS does. Both modes respect your brand colors. Works on every page.
 
 ### Display Density — Comfortable / Compact
-A display density toggle. Compact mode tightens list rows, forms, and menus so power users see more data per screen. Per-user, with a site-wide default in Theme Settings.
+A display density toggle. Compact mode tightens list rows, forms, and menus so power users see more data per screen. Per-user, with a site-wide default in Theme Studio.
 
 ### Font Size Control
-Set a site-wide base font size (Small / Default / Large) in Theme Settings, and let each user fine-tune with A− / A / A+ from the All Options panel.
+Set a site-wide base font size in Theme Studio, and let each user fine-tune with A− / A / A+ from the All Options panel.
 
 ### Modern Login Page
 A full-screen branded login experience with your company logo and colors, a slow-drifting ambient color backdrop generated from your brand palette, and a soft card entrance animation. First impression that sets the right tone for your team.
@@ -76,13 +109,15 @@ Clicking the user avatar opens a dropdown with an installed apps grid, edit prof
 Press `Ctrl+M` from anywhere to open a searchable workspace switcher. Type a module name and press Enter to jump to it instantly.
 
 ### Named Theme Presets
-Save your current brand colors as a named preset from Theme Settings. Custom presets appear as swatches next to the built-in ones (Solvronix, Forest, Midnight, Plum) — switch your whole site's look in two clicks.
+Save visual configurations as reusable profiles in Theme Studio. Built-in starting points (Solvronix, Forest, Midnight, Plum) make it quick to establish a base before refining the full design system.
 
 ### Real-Time Theme Sync
-When a System Manager saves Theme Settings, the color, branding, and font-size changes propagate instantly to all connected users via Frappe's realtime layer — no reload required.
+When a System Manager publishes Theme Studio, color, branding, layout, and feature changes propagate to connected users through Frappe's realtime layer.
 
 ### Refined Data & Charts
 Tabular numerals keep columns of figures perfectly aligned in list views, report grids, and dashboard number cards. Charts get softer gridlines, hover focus on bars, and elevated tooltips that stay fully readable in dark mode.
+
+Theme Studio's **Chart System** can now edit global chart defaults and permission-visible individual ERPNext charts. Supported surfaces include Dashboard Charts, Dashboard Graphs, Query/Script Report charts, and Number Card sparklines. Controls cover chart structure, surfaces, series and palettes, axes, legends, labels, tooltips, animation, interaction, and the safe advanced allowlist. A selected runtime chart also exposes stable per-series line/bar/fill overrides. Resetting one property or one chart falls back to the global chart layer; resetting global charts falls back to the built-in system defaults.
 
 ### Details Everywhere
 Keycap-styled keyboard hints, thin floating scrollbars, brand-tinted text selection, shimmer on loading placeholders, and a brand accent on the selected command-palette row.
@@ -98,7 +133,7 @@ On first launch, a checklist banner guides System Manager users through the init
 |:---:|:---:|
 | ![Login Page](docs/screenshots/login.png) | ![Today's View](docs/screenshots/smart-home.png) |
 
-| Theme Settings | Dark Mode |
+| Theme Studio / Settings | Dark Mode |
 |:---:|:---:|
 | ![Theme Settings](docs/screenshots/theme-settings.png) | ![Dark Mode](docs/screenshots/dark-mode.png) |
 
@@ -121,7 +156,7 @@ On first launch, a checklist banner guides System Manager users through the init
 
 ## Setup Your Branding (5 minutes)
 
-Open **Theme Settings** — search for it with `Ctrl+K` or find it in the sidebar.
+Open **Theme Studio** with `Ctrl+K` or visit `/desk/theme-studio`.
 
 | Field | What it does |
 |---|---|
