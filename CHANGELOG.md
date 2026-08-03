@@ -1,29 +1,18 @@
 # Changelog
 
-## [Unreleased]
+## [2.0.1] — 2026-08-03
+
+### Fixed
+- Today's View header still linked "All Workspaces" to the old broken `/desk/home` route after the widget-based dashboard rewrite landed; it now points at the stable `/desk/all-apps` page like the "Your Apps" widget already did
+- Dashboard chart grid (`.grid-col-2`) grew unbounded across resize cycles — Frappe Charts' own resize observer fed back into a grid track sized by content instead of the container, pushing the second column off-screen over time. Tracks are now capped at their fair share of the container
+- Theme Studio's floating widget-inspector panel stayed open when switching sections in the left control panel, stranding a stale panel referencing the previous widget; section switches now close it the same way its own close button does
+
+## [2.0.0] — 2026-07-29 — Complete Theme Studio
 
 ### Added
 - Theme Studio Chart System with schema-driven global defaults and permission-filtered individual editors for Dashboard Charts, Dashboard Graphs, Query/Script Report charts, and Number Card sparklines
 - Visual, structural, and behavioral chart controls for surfaces, palettes, individual series, axes, legends, labels, tooltips, animation, interaction, and safe advanced options
 - Layered chart reset behavior: property and chart resets inherit global values, while the global reset restores built-in system defaults
-
-### Changed
-- Theme Studio is now the single user-facing configuration experience for visual themes, branding, Smart Home, and Command Palette settings
-- Opening Theme Settings redirects to Theme Studio; administrators retain an explicit raw-settings maintenance action
-- Branding image controls in Theme Studio now use Frappe attachment fields instead of requiring manually entered URLs
-- Theme Studio now uses a readable control and preview typography scale instead of 6–10px interface text
-- Theme Studio's login scene now mirrors the public login card, branding, image background, fields, links, and light/dark token behavior
-- Dashboard, Form, Table, and Login previews now support click-to-select property editing in a floating inspector beside the selected item
-- Published profile and realtime theme refreshes now update chart configuration atomically without changing chart data or callbacks
-
-### Fixed
-- Public login now applies Theme Studio's Light/Dark/Auto mode and uses equal border-box sizing for the card head and form body
-- Hide-powered now removes generated footer content; login branding replaces Frappe's cube and enforces symmetric card geometry across Frappe versions
-- Frappe v16's nested login card head now stays inside one clipped, rounded outer card instead of extending past its right edge
-
-## [2.0.0] — 2026-07-29 — Complete Theme Studio
-
-### Added
 - A complete searchable visual editor spanning colours, navigation, form controls, typography, cards, tables, dashboards, login branding, layout, accessibility, and advanced overrides
 - Frappe Default, Light, Dark, High Contrast, Solvronix, and Forest profiles, plus custom profile create, update, duplicate, rename, delete, import, and export workflows
 - Live Dashboard, Form, Table, and Login preview scenes with desktop/tablet/mobile modes, Frappe comparison, drag-and-drop layout, undo/redo, draft saving, and section reset
@@ -37,8 +26,18 @@
 - The full theme is resolved per request, so scheduled, user, role, and company profiles can produce different Desk CSS on the same site
 - Theme settings now drive the real Frappe navbar, sidebar, controls, data views, workspaces, login page, branding, typography, and layout
 - Theme publishing preserves legacy Theme Settings fields, broadcasts a refresh to connected users, and generates flash-free first-paint CSS
+- Theme Studio is now the single user-facing configuration experience for visual themes, branding, Smart Home, and Command Palette settings
+- Opening Theme Settings redirects to Theme Studio; administrators retain an explicit raw-settings maintenance action (Theme Studio's `...` menu → "Open raw Theme Settings")
+- Branding image controls in Theme Studio now use Frappe attachment fields instead of requiring manually entered URLs
+- Theme Studio now uses a readable control and preview typography scale instead of 6–10px interface text
+- Theme Studio's login scene now mirrors the public login card, branding, image background, fields, links, and light/dark token behavior
+- Dashboard, Form, Table, and Login previews now support click-to-select property editing in a floating inspector beside the selected item
+- Published profile and realtime theme refreshes now update chart configuration atomically without changing chart data or callbacks
 
 ### Fixed
+- Public login now applies Theme Studio's Light/Dark/Auto mode and uses equal border-box sizing for the card head and form body
+- Hide-powered now removes generated footer content; login branding replaces Frappe's cube and enforces symmetric card geometry across Frappe versions
+- Frappe v16's nested login card head now stays inside one clipped, rounded outer card instead of extending past its right edge
 - Actual sidebar and top-toolbar colours now match Theme Studio preview tokens, including readable automatic foreground colours for active items
 - Sticky toolbar settings no longer turn the toolbar into a body flex item or split the Desk into a large blank column
 - Profile action buttons now reflect the selected profile, explain unavailable actions, and can duplicate the current unsaved theme instead of failing silently
