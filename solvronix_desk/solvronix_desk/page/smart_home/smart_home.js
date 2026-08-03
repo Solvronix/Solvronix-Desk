@@ -108,7 +108,7 @@ solvronix_desk.SmartHome = class SmartHome {
 							this._icon("edit", "sm") +
 							'<span class="st-sh-customize-label">' + __("Customize layout") + '</span>' +
 						'</button>' +
-						'<a href="/desk/home" class="st-sh-all-ws">' +
+						'<a href="/desk/all-apps" class="st-sh-all-ws">' +
 							__("All Workspaces") + ' <span aria-hidden="true">&rarr;</span>' +
 						'</a>' +
 					'</div>' +
