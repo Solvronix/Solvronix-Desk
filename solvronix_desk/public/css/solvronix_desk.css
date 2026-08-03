@@ -2460,3 +2460,21 @@ html[dir="rtl"] #st-lang-dropdown {
   background: var(--st-brand);
   color: white;
 }
+
+/* ── DASHBOARD CHART GRID OVERFLOW FIX ───────────────────────────────────────
+   Frappe's own .widget-group .grid-col-2 uses bare `1fr 1fr` tracks, which
+   default to minmax(auto, 1fr) — the track's minimum is its content's
+   max-content size, not 0. Frappe Charts' own ResizeObserver reads the
+   rendered chart container width to redraw responsively; because the track
+   can grow to fit content instead of being capped at the container, each
+   redraw can nudge the track wider, which nudges the chart wider next time —
+   a feedback loop that pushes the second column further right on every
+   resize cycle until it's cut off past the viewport edge. minmax(0, 1fr)
+   hard-caps the track at its fair share of the container, breaking the
+   loop; min-width: 0 does the same for the grid item itself. */
+.widget-group .grid-col-2 {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+}
+.widget-group .grid-col-2 > .widget.dashboard-widget-box {
+  min-width: 0;
+}
