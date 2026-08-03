@@ -11,6 +11,20 @@
   var sessionSequence = 0;
   var FULL_GROUPS = ["chart", "surface", "series_defaults", "axes", "legend", "labels", "tooltip", "animation", "interaction", "advanced"];
   var SPARKLINE_GROUPS = ["chart", "surface", "series_defaults", "animation", "interaction"];
+  var DARK_SYSTEM_DEFAULTS = {
+    "surface.background": "#1A1D27",
+    "surface.card_background": "#20242F",
+    "surface.border_color": "#343A46",
+    "series_defaults.palette": ["#7AA2F7", "#FF9E64", "#73DACA", "#7DCFFF", "#BB9AF7"],
+    "axes.axis_color": "#6F7A8A",
+    "axes.grid_color": "#343A46",
+    "axes.label_color": "#AEB7C5",
+    "legend.text_color": "#D8DEE8",
+    "labels.text_color": "#E8EDF5",
+    "tooltip.background": "#232834",
+    "tooltip.text_color": "#F3F5F8",
+    "tooltip.border_color": "#3B4352"
+  };
 
   function clone(value) {
     return value == null ? value : JSON.parse(JSON.stringify(value));
@@ -32,6 +46,19 @@
       });
     });
     return result;
+  }
+
+  function isDarkMode() {
+    try {
+      return document.documentElement.getAttribute("data-theme") === "dark";
+    } catch (ignored) { return false; }
+  }
+
+  function setPath(target, path, value) {
+    var parts = path.split(".");
+    var leaf = parts.pop();
+    parts.forEach(function (part) { target = target[part] || (target[part] = {}); });
+    target[leaf] = clone(value);
   }
 
   function deepOverlay(base, owned) {
@@ -62,6 +89,11 @@
 
   function resolveEffective(chartId) {
     var values = defaultsFromSchema();
+    if (isDarkMode()) {
+      Object.keys(DARK_SYSTEM_DEFAULTS).forEach(function (path) {
+        setPath(values, path, DARK_SYSTEM_DEFAULTS[path]);
+      });
+    }
     var ownership = {};
     markOwnership(ownership, values, "system", "");
     var globals = config.chart_defaults || {};
@@ -143,7 +175,8 @@
     record.structuralSignature = signature;
   }
 
-  function applyPresentation(record, values) {
+  function applyPresentation(record, effective) {
+    var values = effective.values;
     var root = record.root;
     var surface = values.surface || {};
     var axes = values.axes || {};
@@ -214,7 +247,7 @@
       },
       apply: function (record, effective) {
         if (kind !== "number_card") applyStructure(record, effective.values);
-        applyPresentation(record, effective.values);
+        applyPresentation(record, effective);
       },
       dispose: function (record) {
         if (record && record.root && record.root.dataset) {
@@ -435,6 +468,9 @@
         refresh({ force: true });
       });
       observer.observe(document.body, { childList: true, subtree: true });
+      if (document.documentElement) {
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+      }
     }
     if (frappe.router && frappe.router.on) {
       frappe.router.on("change", function () {

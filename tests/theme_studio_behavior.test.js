@@ -302,6 +302,22 @@ test("chart editor resolves system then global then individual ownership", () =>
   assert.equal(resolved.ownership["chart.responsive"], "system");
 });
 
+test("dark chart preview derives system colors and preserves explicit overrides", () => {
+  const studio = loadThemeStudio();
+  installChartState(studio);
+  studio.workspace_preview_theme = "dark";
+
+  const individual = studio._chart_effective_state("chart-1");
+  const global = studio._chart_effective_state("");
+
+  assert.equal(individual.values.surface.background, "#112233");
+  assert.equal(individual.ownership["surface.background"], "individual");
+  assert.deepEqual(Array.from(global.values.series_defaults.palette), [
+    "#7AA2F7", "#FF9E64", "#73DACA", "#7DCFFF", "#BB9AF7",
+  ]);
+  assert.equal(global.ownership["series_defaults.palette"], "system");
+});
+
 test("chart resets fall back from individual to global and global to system", () => {
   const studio = loadThemeStudio();
   installChartState(studio);
@@ -329,6 +345,9 @@ test("chart controls are generated from schema and filtered by capability", () =
   assert.match(full, /data-chart-path="surface\.background"/);
   assert.match(full, /data-chart-reset-property="surface\.background"/);
   assert.doesNotMatch(sparkline, /data-chart-path="axes\./);
+  assert.match(full, /Quick settings/);
+  assert.match(full, /Advanced settings/);
+  assert.doesNotMatch(full, /class="sts-chart-group" open/);
 });
 
 test("workspace chart classification takes precedence and preserves runtime identity", () => {
@@ -360,7 +379,7 @@ test("chart editor panel exposes global controls and permission-filtered registr
 
   const html = studio._chart_system_html();
 
-  assert.match(html, /Global chart defaults/);
+  assert.match(html, /Defaults for all charts/);
   assert.match(html, /Sales/);
   assert.match(html, /Revenue/);
   assert.match(html, /data-select-chart="chart-1"/);

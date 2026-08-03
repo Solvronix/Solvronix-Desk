@@ -28,7 +28,7 @@ app_include_css = [
     "/assets/solvronix_desk/css/dark_mode.css?v=14",
     "/assets/solvronix_desk/css/module_cards.css?v=2",
     "/assets/solvronix_desk/css/density.css?v=2",
-    "/assets/solvronix_desk/css/theme_studio.css?v=15",
+    "/assets/solvronix_desk/css/theme_studio.css?v=16",
 ]
 app_include_js = [
     "/assets/solvronix_desk/js/dark_mode.js?v=10",
@@ -40,7 +40,7 @@ app_include_js = [
     "/assets/solvronix_desk/js/notification_center.js?v=4",
     "/assets/solvronix_desk/js/module_cards.js?v=10",
     "/assets/solvronix_desk/js/theme_runtime.js?v=8",
-    "/assets/solvronix_desk/js/chart_runtime.js?v=3",
+    "/assets/solvronix_desk/js/chart_runtime.js?v=4",
 ]
 
 # ── BOOT / INSTALL / DOCUMENT LIFECYCLE HOOKS ──────────────────────────────────

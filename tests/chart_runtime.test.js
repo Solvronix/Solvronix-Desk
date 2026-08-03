@@ -42,7 +42,9 @@ function loadRuntime(options = {}) {
   const document = {
     readyState: "complete",
     body: {},
-    documentElement: {},
+    documentElement: {
+      getAttribute(name) { return name === "data-theme" && options.dark ? "dark" : "light"; },
+    },
     addEventListener(type, callback) { listeners[type] = callback; },
     dispatchEvent(event) { warnings.push(event.detail); },
     querySelectorAll() { return options.nodes || []; },
@@ -112,6 +114,27 @@ test("individual values retain ownership even when equal to global", () => {
 
   assert.equal(effective.values.chart.height, 300);
   assert.equal(effective.ownership["chart.height"], "individual");
+});
+
+test("dark mode derives readable system colors without replacing explicit chart colors", () => {
+  const chartId = "v1|dashboard_chart|4:Test";
+  const { runtime } = loadRuntime({
+    dark: true,
+    config: {
+      chart_system_version: 1,
+      chart_defaults: { tooltip: { background: "#550000" } },
+      chart_overrides: { [chartId]: { surface: { background: "#123456" } } },
+    },
+  });
+
+  const effective = runtime.resolveEffective(chartId);
+
+  assert.equal(effective.values.surface.background, "#123456");
+  assert.equal(effective.values.tooltip.background, "#550000");
+  assert.deepEqual(Array.from(effective.values.series_defaults.palette), [
+    "#7AA2F7", "#FF9E64", "#73DACA", "#7DCFFF", "#BB9AF7",
+  ]);
+  assert.equal(effective.ownership["series_defaults.palette"], "system");
 });
 
 test("registration applies once per configuration revision", () => {

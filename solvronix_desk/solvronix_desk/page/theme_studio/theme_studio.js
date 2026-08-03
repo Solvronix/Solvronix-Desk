@@ -777,6 +777,19 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		return result;
 	}
 
+	_chart_mode_defaults() {
+		var system = this._chart_system_defaults();
+		if (this.workspace_preview_theme !== "dark") return system;
+		return this._chart_merge(system, {
+			surface: { background: "#1A1D27", card_background: "#20242F", border_color: "#343A46" },
+			series_defaults: { palette: ["#7AA2F7", "#FF9E64", "#73DACA", "#7DCFFF", "#BB9AF7"] },
+			axes: { axis_color: "#6F7A8A", grid_color: "#343A46", label_color: "#AEB7C5" },
+			legend: { text_color: "#D8DEE8" },
+			labels: { text_color: "#E8EDF5" },
+			tooltip: { background: "#232834", text_color: "#F3F5F8", border_color: "#3B4352" },
+		});
+	}
+
 	_chart_merge(target, source) {
 		target = target || {};
 		Object.keys(source || {}).forEach(function (key) {
@@ -810,7 +823,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	}
 
 	_chart_effective_state(chartId) {
-		var system = this._chart_system_defaults();
+		var system = this._chart_mode_defaults();
 		var globalValues = (this.config && this.config.chart_defaults) || {};
 		var individual = ((this.config && this.config.chart_overrides) || {})[chartId] || {};
 		var values = this._chart_merge(this._chart_merge(this._clone(system), globalValues), individual);
@@ -908,17 +921,40 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	_chart_controls_html(scope, chartId, capability) {
 		var self = this, groups = this._chart_schema().groups || {};
 		var resolved = this._chart_effective_state(chartId || "");
-		return Object.keys(groups).map(function (group) {
+		var quickPaths = [
+			"chart.type", "chart.height", "surface.background",
+			"series_defaults.palette", "legend.visible",
+			"labels.data_labels_visible", "animation.enabled",
+		];
+		var quick = [], advanced = [];
+		var groupLabels = {
+			chart: __("Chart layout"), surface: __("Card & surface"),
+			series_defaults: __("Series styling"), axes: __("Axes & grid"),
+			legend: __("Legend"), labels: __("Labels"), tooltip: __("Tooltip"),
+			animation: __("Motion"), interaction: __("Interaction"), advanced: __("Technical limits"),
+		};
+		Object.keys(groups).forEach(function (group) {
 			self._chart_rendering_group = group;
-			var controls = Object.keys(groups[group] || {}).map(function (key) {
+			var groupAdvanced = [];
+			Object.keys(groups[group] || {}).forEach(function (key) {
 				var definition = groups[group][key], path = group + "." + key;
-				if (!self._chart_capability_allows(definition, capability)) return "";
+				if (!self._chart_capability_allows(definition, capability)) return;
 				var value = self._chart_path(resolved.values, path);
 				var owner = scope === "global" ? (self._chart_has_path(self.config.chart_defaults || {}, path) ? "global" : "system") : resolved.ownership[path];
-				return self._chart_control_html(scope, chartId, path, definition, value, owner);
-			}).join("");
-			return controls ? '<details class="sts-chart-group" open><summary>' + self._esc(group.replace(/_/g, " ")) + "</summary>" + controls + "</details>" : "";
-		}).join("");
+				var control = self._chart_control_html(scope, chartId, path, definition, value, owner);
+				if (quickPaths.indexOf(path) !== -1) quick.push(control);
+				else groupAdvanced.push(control);
+			});
+			if (groupAdvanced.length) advanced.push(
+				'<details class="sts-chart-group"><summary>' + self._esc(groupLabels[group] || group.replace(/_/g, " ")) + "</summary>" +
+				groupAdvanced.join("") + "</details>"
+			);
+		});
+		return '<div class="sts-chart-quick"><div class="sts-chart-quick-head"><b>' + __("Quick settings") + '</b><span>' +
+			__("The controls most people need") + "</span></div>" + quick.join("") + "</div>" +
+			'<details class="sts-chart-advanced"><summary><span>' + __("Advanced settings") + '</span><small>' +
+			__("Axes, tooltips, spacing and fine details") + '</small></summary><div class="sts-chart-advanced-body">' +
+			advanced.join("") + "</div></details>";
 	}
 
 	_chart_series_controls_html(chartId, series) {
@@ -950,8 +986,9 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		else input = '<input type="' + (type.indexOf("number") !== -1 || type === "integer" ? "number" : "text") + '" value="' + this._esc(value == null ? "" : value) + '"' +
 			(definition.min != null ? ' min="' + definition.min + '"' : "") + (definition.max != null ? ' max="' + definition.max + '"' : "") +
 			(definition.step != null ? ' step="' + definition.step + '"' : "") + attrs + ">";
+		var ownerLabels = { system: __("Default"), global: __("All charts"), individual: __("This chart") };
 		return '<div class="sts-field sts-chart-field" data-chart-owner="' + owner + '"><label><span>' + this._esc(definition.label || path) +
-			'<em>' + this._esc((definition.applies_to || []).join(", ")) + '</em></span><small>' + this._esc(owner) + '</small></label><div class="sts-chart-input">' + input +
+			'</span><small>' + this._esc(ownerLabels[owner] || owner) + '</small></label><div class="sts-chart-input">' + input +
 			'<button type="button" data-chart-reset-property="' + path + '" data-chart-scope="' + scope + '" data-chart-id="' + this._esc(chartId || "") + '" title="' +
 			this._esc(scope === "global" ? "Use system default" : "Use global default") + '">↺</button></div><span class="sts-chart-error" role="alert"></span></div>';
 	}
@@ -959,9 +996,9 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	_chart_system_html() {
 		if (!this.state || !this.state.chart_schema) return "";
 		var self = this, registry = this.state.chart_registry || [];
-		return '<div class="sts-chart-system"><div class="sts-section-title"><span>CH</span>' + __("Chart System") +
+		return '<div class="sts-chart-system"><div class="sts-section-title"><span>CH</span>' + __("Chart appearance") +
 			'<button type="button" data-reset-global-charts>' + __("Reset global charts") + '</button></div><p class="sts-section-copy">' +
-			__("Set defaults for every supported ERPNext chart, then override individual charts below.") + '</p><details open><summary>' + __("Global chart defaults") +
+			__("Start with a few common settings. Open Advanced only when you need precise control.") + '</p><details open><summary>' + __("Defaults for all charts") +
 			'</summary><div class="sts-chart-controls">' + this._chart_controls_html("global", "", "full") + '</div></details>' +
 			'<div class="sts-chart-registry"><label>' + __("Individual charts") + '</label><input type="search" data-chart-search placeholder="' + __("Search charts…") + '"><div data-chart-registry-list>' +
 			registry.map(function (entry) {
