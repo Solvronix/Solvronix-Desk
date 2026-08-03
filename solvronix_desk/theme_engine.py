@@ -780,8 +780,34 @@ def resolve_mode_surface(config, dark):
         "navbar_background": "#090D16",
         "sidebar_background": "#121826",
     }
+    light_backgrounds = {
+        "page_background", "card_background", "secondary_button_color",
+        "input_background", "dropdown_background", "readonly_background",
+        "alternate_row_color", "table_header_color", "selected_row_color",
+        "row_hover_color", "workspace_card_color", "number_card_color",
+        "chart_background",
+    }
+    light_foregrounds = {
+        "text_color", "muted_text_color", "link_color", "secondary_button_text",
+    }
     for key, value in DEFAULT_CONFIG.items():
-        if key in canonical_dark and resolved.get(key) == canonical_dark[key]:
+        current = resolved.get(key)
+        is_canonical_dark = key in canonical_dark and current == canonical_dark[key]
+        is_dark_background = (
+            key in light_backgrounds and HEX_COLOR.fullmatch(str(current or ""))
+            and relative_luminance(current) < 0.22
+        )
+        is_dark_border = (
+            key in {"border_color", "input_border_color", "report_grid_color"}
+            and HEX_COLOR.fullmatch(str(current or ""))
+            and relative_luminance(current) < 0.22
+        )
+        foreground_limit = 0.3 if key in {"muted_text_color", "link_color"} else 0.55
+        is_light_foreground = (
+            key in light_foregrounds and HEX_COLOR.fullmatch(str(current or ""))
+            and relative_luminance(current) > foreground_limit
+        )
+        if is_canonical_dark or is_dark_background or is_dark_border or is_light_foreground:
             resolved[key] = value
     return resolved
 
@@ -794,10 +820,6 @@ def render_css(config, enabled=True):
     # The selected colour mode is not proof that the stored palette itself is
     # dark. A light custom theme may select Dark and should receive our derived
     # dark surfaces instead of reusing white cards inside data-theme="dark".
-    has_dark_surfaces = (
-        relative_luminance(config["page_background"]) < 0.18
-        and relative_luminance(config["card_background"]) < 0.22
-    )
     dark_surface = resolve_mode_surface(config, dark=True)
     light_surface = resolve_mode_surface(config, dark=False)
     sidebar_text = config["sidebar_text_color"] or contrast_text(config["sidebar_background"])
@@ -940,9 +962,7 @@ def render_css(config, enabled=True):
         "{content:none!important;display:none!important}"
         if config["hide_powered"] else ""
     )
-    light_mode_override = ""
-    if has_dark_surfaces:
-        light_mode_override = f"""
+    light_mode_override = f"""
 html:not([data-theme="dark"]) {{
   --st-navbar-bg: {light_surface["navbar_background"]};
   --st-toolbar-bg: {light_surface["navbar_background"]};

@@ -31,9 +31,9 @@ app_include_css = [
     "/assets/solvronix_desk/css/theme_studio.css?v=16",
 ]
 app_include_js = [
-    "/assets/solvronix_desk/js/dark_mode.js?v=10",
+    "/assets/solvronix_desk/js/dark_mode.js?v=12",
     "/assets/solvronix_desk/js/personalization.js?v=1",
-    "/assets/solvronix_desk/js/solvronix_desk.js?v=49",
+    "/assets/solvronix_desk/js/solvronix_desk.js?v=51",
     "/assets/solvronix_desk/js/sidebar.js?v=3",
     "/assets/solvronix_desk/js/command_palette.js?v=9",
     "/assets/solvronix_desk/js/progressive_forms.js?v=4",

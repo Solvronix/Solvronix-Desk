@@ -2036,6 +2036,17 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 					self.apply();
 				}
 			});
+		$(window).off("st:user-theme-mode-changed.stsThemeMode")
+			.on("st:user-theme-mode-changed.stsThemeMode", function (event) {
+				var nativeEvent = event.originalEvent || event;
+				var mode = nativeEvent.detail && nativeEvent.detail.mode;
+				var preferred = { light: "Light", dark: "Dark", auto: "Auto" }[mode];
+				if (!self.page_active || !self.config || !preferred || self.config.preferred_mode === preferred) return;
+				self._checkpoint();
+				self.config.preferred_mode = preferred;
+				self.$root.find('[data-setting="preferred_mode"]').val(preferred);
+				self.changed();
+			});
 		this.$root.find(".sts-stage,.sts-preview-page").on("scroll.stsInspector", function () {
 			self._restore_inspector_highlight();
 		});
@@ -2760,6 +2771,9 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.$root.find('[data-action="undo"]').prop("disabled", !this.history.length);
 		this.$root.find('[data-action="redo"]').prop("disabled", !this.future.length);
 		this._update_wcag();
+		/* Theme mode is one shared state: Studio changes update the surrounding
+		   Desk, while st:user-theme-mode-changed keeps the reverse direction in
+		   sync for toolbar and All Options changes. */
 		if (window.stApplyThemeMode) window.stApplyThemeMode(c.preferred_mode);
 		else if (window.stApplyDark) window.stApplyDark(!!previewDark);
 		this._apply_draft_to_desk(visual);
@@ -2828,9 +2842,26 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				navbar_background: "#090D16",
 				sidebar_background: "#121826",
 			});
+			var lightBackgrounds = [
+				"page_background", "card_background", "secondary_button_color", "input_background",
+				"dropdown_background", "readonly_background", "alternate_row_color", "table_header_color",
+				"selected_row_color", "row_hover_color", "workspace_card_color", "number_card_color",
+				"chart_background",
+			];
+			var lightForegrounds = ["text_color", "muted_text_color", "link_color", "secondary_button_text"];
 			Object.keys(canonicalDark).forEach(function (key) {
-				if (c[key] === canonicalDark[key] && defaults[key] !== undefined) c[key] = defaults[key];
-			});
+				var value = c[key];
+				var isCanonical = value === canonicalDark[key];
+				var isDarkBackground = lightBackgrounds.indexOf(key) !== -1 && this._color_luminance(value) < 0.22;
+				var isDarkBorder = ["border_color", "input_border_color", "report_grid_color"].indexOf(key) !== -1 &&
+					this._color_luminance(value) < 0.22;
+				var foregroundLimit = ["muted_text_color", "link_color"].indexOf(key) !== -1 ? 0.3 : 0.55;
+				var isLightForeground = lightForegrounds.indexOf(key) !== -1 &&
+					this._color_luminance(value) > foregroundLimit;
+				if ((isCanonical || isDarkBackground || isDarkBorder || isLightForeground) && defaults[key] !== undefined) {
+					c[key] = defaults[key];
+				}
+			}, this);
 		}
 		var palettes = {
 			Deuteranopia: {
@@ -3027,7 +3058,6 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 					window.dispatchEvent(new CustomEvent("st-theme-runtime-refresh", {
 						detail: {
 							config: response.message.config,
-							preferred_mode: response.message.config.preferred_mode,
 							preview: true,
 						},
 					}));
@@ -3149,7 +3179,15 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 
 	_apply_draft_to_desk(visualConfig) {
 		if (!this.config) return;
-		var c = visualConfig || this._resolved_visual_config(this.config);
+		var self = this;
+		var activeDark = document.documentElement.getAttribute("data-theme") === "dark";
+		/* Keep both palettes in the temporary sheet. Previously the draft wrote
+		   only the palette that was active when Theme Studio last rendered, so
+		   toolbar/All Options mode changes updated the DOM attribute but kept the
+		   old surface colours until a profile was loaded again. */
+		var light = !activeDark && visualConfig ? visualConfig : this._resolved_visual_config(this.config, false);
+		var dark = activeDark && visualConfig ? visualConfig : this._resolved_visual_config(this.config, true);
+		var c = this.config;
 		var declarations = [
 			"--st-brand:" + c.brand_color,
 			"--st-primary:" + c.brand_color,
@@ -3160,25 +3198,6 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"--st-sidebar-width:" + c.sidebar_width + "px",
 			"--sidebar-width:" + c.sidebar_width + "px",
 		];
-		if (c.sidebar_background) {
-			var sidebarText = this._contrast(c.sidebar_background);
-			declarations.push("--st-sidebar-bg:" + c.sidebar_background);
-			declarations.push("--st-sidebar-text:" + sidebarText);
-			declarations.push("--st-sidebar-text-muted:color-mix(in srgb," + sidebarText + " 62%,transparent)");
-			declarations.push("--st-sidebar-hover:color-mix(in srgb," + sidebarText + " 9%,transparent)");
-			declarations.push("--st-sidebar-border:color-mix(in srgb," + sidebarText + " 12%,transparent)");
-		}
-		if (c.navbar_background) {
-			declarations.push("--st-navbar-bg:" + c.navbar_background);
-			declarations.push("--st-toolbar-bg:" + c.navbar_background);
-			declarations.push("--st-toolbar-text:" + this._contrast(c.navbar_background));
-		}
-		if (c.page_background) declarations.push("--st-page-bg:" + c.page_background);
-		if (c.card_background) declarations.push("--st-card-bg:" + c.card_background);
-		if (c.text_color) {
-			declarations.push("--st-text:" + c.text_color);
-			declarations.push("--st-text-primary:" + c.text_color);
-		}
 		var shadow = {
 			None: ["none", "none", "none"],
 			Soft: [
@@ -3196,17 +3215,47 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		declarations.push("--st-shadow-md:" + shadow[1]);
 		declarations.push("--st-shadow-lg:" + shadow[2]);
 
+		function modeDeclarations(mode) {
+			var sidebarText = mode.sidebar_text_color || self._contrast(mode.sidebar_background);
+			var toolbarText = mode.toolbar_text_color || self._contrast(mode.navbar_background);
+			return [
+				"--st-sidebar-bg:" + mode.sidebar_background,
+				"--st-sidebar-text:" + sidebarText,
+				"--st-sidebar-text-muted:color-mix(in srgb," + sidebarText + " 62%,transparent)",
+				"--st-sidebar-hover:" + mode.sidebar_hover_color,
+				"--st-sidebar-border:color-mix(in srgb," + sidebarText + " 12%,transparent)",
+				"--st-navbar-bg:" + mode.navbar_background,
+				"--st-toolbar-bg:" + mode.navbar_background,
+				"--st-toolbar-text:" + toolbarText,
+				"--st-page-bg:" + mode.page_background,
+				"--st-card-bg:" + mode.card_background,
+				"--st-text:" + mode.text_color,
+				"--st-text-primary:" + mode.text_color,
+				"--st-text-muted:" + mode.muted_text_color,
+				"--st-border:" + mode.border_color,
+				"--st-card-border:" + mode.border_color,
+				"--st-input-bg:" + mode.input_background,
+				"--st-input-border:" + mode.input_border_color,
+				"--bg-color:" + mode.page_background,
+				"--fg-color:" + mode.card_background,
+				"--card-bg:" + mode.card_background,
+				"--control-bg:" + mode.input_background,
+				"--input-bg:" + mode.input_background,
+				"--text-color:" + mode.text_color,
+				"--text-muted:" + mode.muted_text_color,
+				"--border-color:" + mode.border_color,
+			];
+		}
+
 		var el = document.getElementById("st-studio-draft");
 		if (!el) {
 			el = document.createElement("style");
 			el.id = "st-studio-draft";
 			document.head.appendChild(el);
 		}
-		var dark = [];
-		if (c.sidebar_background) dark.push("--st-sidebar-bg:" + c.sidebar_background);
-		if (c.navbar_background) dark.push("--st-navbar-bg:" + c.navbar_background);
 		el.textContent = ":root{" + declarations.join(";") + "}" +
-			(dark.length ? '[data-theme="dark"]{' + dark.join(";") + "}" : "");
+			'html:not([data-theme="dark"]){' + modeDeclarations(light).join(";") + "}" +
+			'html[data-theme="dark"]{' + modeDeclarations(dark).join(";") + "}";
 	}
 
 	/* Restore the pre-Studio runtime when navigation leaves the editor. */
@@ -3218,11 +3267,6 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				window.dispatchEvent(new CustomEvent("st-theme-runtime-refresh", {
 					detail: { config: this.saved, preview: true },
 				}));
-			}
-			if (window.stApplyThemeMode) {
-				window.stApplyThemeMode(this.original_mode || (this.original_dark ? "dark" : "light"));
-			} else if (window.stApplyDark) {
-				window.stApplyDark(this.original_dark);
 			}
 		}
 	}

@@ -20,6 +20,7 @@ PAGE = ROOT / "solvronix_desk" / "solvronix_desk" / "page" / "theme_studio" / "t
 PAGE_JSON = PAGE.with_name("theme_studio.json")
 CSS = ROOT / "solvronix_desk" / "public" / "css" / "theme_studio.css"
 DESK_CSS = ROOT / "solvronix_desk" / "public" / "css" / "solvronix_desk.css"
+DESK_JS = ROOT / "solvronix_desk" / "public" / "js" / "solvronix_desk.js"
 SIDEBAR_CSS = ROOT / "solvronix_desk" / "public" / "css" / "sidebar.css"
 DARK_CSS = ROOT / "solvronix_desk" / "public" / "css" / "dark_mode.css"
 BOOT = ROOT / "solvronix_desk" / "boot.py"
@@ -248,7 +249,8 @@ class ThemeStudioTest(unittest.TestCase):
         hooks = HOOKS.read_text(encoding="utf-8")
         self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=16", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
-        self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=10", hooks)
+        self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=12", hooks)
+        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=51", hooks)
         self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=8", hooks)
         self.assertIn("/assets/solvronix_desk/js/chart_runtime.js?v=4", hooks)
         self.assertIn("/assets/solvronix_desk/css/login.css?v=11", hooks)
@@ -278,6 +280,7 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("scoped_rules", engine)
         self.assertIn("def resolve_profile_id(", engine)
         self.assertIn('"preferred_mode", "Theme mode"', js)
+        self.assertIn("change.st_theme_mode_bridge", DESK_JS.read_text(encoding="utf-8"))
         self.assertIn("_sync_profile_actions()", js)
         self.assertIn('__("Current Theme Copy")', js)
         self.assertIn('data-profile-action="apply"', js)

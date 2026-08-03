@@ -1048,11 +1048,20 @@
       refreshActive();
     });
 
+    /* Theme Studio is lazy-loaded and its page script can remain cached across
+       app upgrades. Bridge its mode control from this versioned global asset so
+       Studio -> toolbar/All Options synchronization is reliable as well. */
+    $(document).off("change.st_theme_mode_bridge", '.st-theme-studio [data-setting="preferred_mode"]')
+      .on("change.st_theme_mode_bridge", '.st-theme-studio [data-setting="preferred_mode"]', function () {
+        if (window.stSetThemeMode) window.stSetThemeMode($(this).val());
+      });
+
     /* Stay in sync when the theme is changed from the toolbar toggle */
     document.addEventListener("st:density-changed", refreshActive);
     document.addEventListener("st:font-changed", refreshActive);
+    window.addEventListener("st:theme-changed", refreshActive);
     refreshActive();
-    /* Toolbar dark toggle has no event — refresh whenever the panel opens */
+    /* Refresh on open as well, including after another tab changes the user. */
     $sec.data("st-refresh", refreshActive);
 
     return $sec;

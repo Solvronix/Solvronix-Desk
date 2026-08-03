@@ -28,6 +28,22 @@ def load_engine():
 
 
 class ThemeSurfaceResolutionTest(unittest.TestCase):
+    def test_light_surface_repairs_mixed_dark_tokens_individually(self):
+        engine = load_engine()
+        config = dict(engine.DEFAULT_CONFIG)
+        config.update(
+            preferred_mode="Light",
+            page_background="#1A1D27",
+            card_background="#FFFFFF",
+            muted_text_color="#FFFFFF",
+        )
+
+        resolved = engine.resolve_mode_surface(config, dark=False)
+
+        self.assertEqual(resolved["page_background"], engine.DEFAULT_CONFIG["page_background"])
+        self.assertEqual(resolved["card_background"], "#FFFFFF")
+        self.assertEqual(resolved["muted_text_color"], engine.DEFAULT_CONFIG["muted_text_color"])
+
     def test_dark_surface_derives_defaults_but_preserves_custom_colors(self):
         engine = load_engine()
         config = dict(engine.DEFAULT_CONFIG)

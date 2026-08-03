@@ -24,7 +24,11 @@
       (mode === "auto" && window.matchMedia &&
        window.matchMedia("(prefers-color-scheme: dark)").matches);
     var html = document.documentElement;
-    html.setAttribute("data-theme-mode", mode);
+    /* Frappe's own theme runtime only recognises the value "automatic".
+       Keep our shorter "auto" value for storage/API helpers, but expose the
+       native value in the DOM so a later frappe.ui.set_theme() call does not
+       replace data-theme="light" with the invalid data-theme="auto". */
+    html.setAttribute("data-theme-mode", stToFrappeThemeMode(mode));
     if (dark) {
       html.setAttribute("data-theme", "dark");
       /* Set background immediately — CSS hasn't loaded yet, so without this
@@ -45,6 +49,11 @@ function stNormalizeThemeMode(mode) {
   mode = String(mode || "light").toLowerCase();
   if (mode === "automatic") mode = "auto";
   return mode === "dark" || mode === "auto" ? mode : "light";
+}
+
+function stToFrappeThemeMode(mode) {
+  mode = stNormalizeThemeMode(mode);
+  return mode === "auto" ? "automatic" : mode;
 }
 
 function stGetStoredThemeMode() {
@@ -94,9 +103,14 @@ function stApplyDark(dark) {
    this for previews, and runtime refreshes use it after resolving precedence. */
 function stApplyThemeMode(mode) {
   mode = stNormalizeThemeMode(mode);
-  document.documentElement.setAttribute("data-theme-mode", mode);
+  document.documentElement.setAttribute("data-theme-mode", stToFrappeThemeMode(mode));
   stApplyDark(stResolveDark(mode));
   stUpdateToggleIcon();
+  try {
+    window.dispatchEvent(new CustomEvent("st:theme-changed", {
+      detail: { mode: mode, dark: stResolveDark(mode) }
+    }));
+  } catch (e) {}
   return mode;
 }
 
@@ -115,6 +129,13 @@ function stSetThemeMode(mode) {
     localStorage.setItem("st_dark_mode", stResolveDark(mode) ? "1" : "0");
   } catch (e) {}
   stApplyThemeMode(mode);
+  /* Separate user intent from runtime/preview mode applications. Theme Studio
+     consumes this event to keep its Theme mode control in two-way sync. */
+  try {
+    window.dispatchEvent(new CustomEvent("st:user-theme-mode-changed", {
+      detail: { mode: mode, dark: stResolveDark(mode) }
+    }));
+  } catch (e) {}
 
   /* Persist to Frappe user preferences (non-blocking).
      Uses our own API (frappe.db.set_value) NOT frappe.client.set_value —

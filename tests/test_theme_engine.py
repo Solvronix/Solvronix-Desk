@@ -118,6 +118,16 @@ class ThemeEngineTest(unittest.TestCase):
         self.assertIn("--st-card-bg: #FFFFFF", light_rule)
         self.assertIn("--st-text: #19202D", light_rule)
 
+    def test_mixed_palette_always_emits_a_safe_light_mode_override(self):
+        config = dict(ENGINE.DEFAULT_CONFIG)
+        config.update(page_background="#1A1D27", card_background="#FFFFFF")
+
+        css = ENGINE.render_css(config)
+        light_rule = css.split('html:not([data-theme="dark"]) {', 1)[1].split("}", 1)[0]
+
+        self.assertIn("--st-page-bg: #F5F6F8", light_rule)
+        self.assertIn("--st-card-bg: #FFFFFF", light_rule)
+
     def test_high_contrast_profile_emits_accessibility_rules(self):
         high_contrast = next(
             profile["config"]

@@ -302,6 +302,31 @@ test("chart editor resolves system then global then individual ownership", () =>
   assert.equal(resolved.ownership["chart.responsive"], "system");
 });
 
+test("Theme Studio draft keeps light and dark palettes ready for toolbar switching", () => {
+  const studio = loadThemeStudio();
+  let draftStyle = null;
+  studio._context.document.createElement = () => (draftStyle = { parentNode: null, textContent: "" });
+  studio.config = {
+    ...studio.state.defaults,
+    preferred_mode: "Dark",
+    brand_color: "#1B3F7E",
+    accent_color: "#F57C00",
+    corner_radius: 8,
+    sidebar_width: 240,
+    shadow_style: "Soft",
+  };
+
+  studio._apply_draft_to_desk();
+
+  assert.ok(draftStyle);
+  assert.match(draftStyle.textContent, /html:not\(\[data-theme="dark"\]\)\{/);
+  assert.match(draftStyle.textContent, /--st-page-bg:#F5F6F8/);
+  assert.match(draftStyle.textContent, /html\[data-theme="dark"\]\{/);
+  assert.match(draftStyle.textContent, /--st-page-bg:#0F1117/);
+  assert.match(draftStyle.textContent, /--fg-color:#FFFFFF/);
+  assert.match(draftStyle.textContent, /--fg-color:#1A1D27/);
+});
+
 test("dark chart preview derives system colors and preserves explicit overrides", () => {
   const studio = loadThemeStudio();
   installChartState(studio);
@@ -724,6 +749,21 @@ test("dark preview derives each untouched token even with custom dark surfaces",
   assert.equal(resolved.card_background, "#18232E");
   assert.equal(resolved.text_color, "#E8EDF5");
   assert.notEqual(resolved.navbar_background, studio.state.defaults.navbar_background);
+});
+
+test("light preview repairs mixed dark tokens individually", () => {
+  const studio = loadThemeStudio();
+  const resolved = studio._resolved_visual_config({
+    ...studio.state.defaults,
+    preferred_mode: "Light",
+    page_background: "#1A1D27",
+    card_background: "#FFFFFF",
+    muted_text_color: "#FFFFFF",
+  }, false);
+
+  assert.equal(resolved.page_background, studio.state.defaults.page_background);
+  assert.equal(resolved.card_background, "#FFFFFF");
+  assert.equal(resolved.muted_text_color, studio.state.defaults.muted_text_color);
 });
 
 test("workspace document state writes live and synthetic shortcut style attributes", () => {
@@ -2868,8 +2908,30 @@ test("workspace reanchor sources include stage scroll window resize and device t
   assert.deepEqual(bindings.windowHandlers.off, [
     "resize.stsInspector",
     "st-theme-os-mode-change.stsThemeMode",
+    "st:user-theme-mode-changed.stsThemeMode",
   ]);
   assert.equal(schedules, 4);
+});
+
+test("toolbar theme choice updates Theme Studio mode and draft", () => {
+  const studio = loadThemeStudio();
+  studio.config = { preferred_mode: "Dark" };
+  let checkpoints = 0;
+  let changes = 0;
+  let selected = null;
+  studio._checkpoint = () => { checkpoints += 1; };
+  studio.changed = () => { changes += 1; };
+  const bindings = bindThemeStudio(studio);
+  studio.$root.find = () => ({ val(value) { selected = value; return this; } });
+
+  bindings.windowHandlers["st:user-theme-mode-changed.stsThemeMode"]({
+    originalEvent: { detail: { mode: "light", dark: false } },
+  });
+
+  assert.equal(studio.config.preferred_mode, "Light");
+  assert.equal(selected, "Light");
+  assert.equal(checkpoints, 1);
+  assert.equal(changes, 1);
 });
 
 test("workspace reanchor apply CSS injection and server callback schedule exactly once per update", () => {
