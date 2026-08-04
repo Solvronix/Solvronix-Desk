@@ -252,6 +252,18 @@ test("color-blind palette updates semantic preview colors", () => {
   assert.equal(resolved.info_color, "#56B4E9");
 });
 
+test("editing a semantic color switches the status palette to custom colors", () => {
+  const studio = loadThemeStudio();
+  const synced = [];
+  studio.config = { colorblind_palette: "Deuteranopia" };
+  studio._sync_setting_inputs = (key) => synced.push(key);
+
+  assert.equal(studio._use_custom_status_palette("warning_color"), true);
+  assert.equal(studio.config.colorblind_palette, "Default");
+  assert.deepEqual(synced, ["colorblind_palette"]);
+  assert.equal(studio._use_custom_status_palette("card_background"), false);
+});
+
 function installChartState(studio) {
   studio.state.chart_schema = {
     version: 1,

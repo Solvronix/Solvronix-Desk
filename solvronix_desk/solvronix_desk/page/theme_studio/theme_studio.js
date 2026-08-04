@@ -675,6 +675,14 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		$outputs.each(function () { $(this).text(value + ($(this).data("unit") || "")); });
 	}
 
+	_use_custom_status_palette(key) {
+		if (["success_color", "warning_color", "error_color", "info_color"].indexOf(key) === -1) return false;
+		if (this.config.colorblind_palette === "Default") return false;
+		this.config.colorblind_palette = "Default";
+		this._sync_setting_inputs("colorblind_palette");
+		return true;
+	}
+
 	_effective_color_values(visual) {
 		var c = visual || {};
 		var values = {};
@@ -2127,6 +2135,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			} else {
 				self.config[key] = this.value;
 			}
+			self._use_custom_status_palette(key);
 			if (key === "chart_background" || key === "chart_palette") {
 				self.config.chart_system_version = self._chart_schema().version || 1;
 				self.config.chart_defaults = self.config.chart_defaults || {};
@@ -2149,6 +2158,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			}
 			self._checkpoint();
 			self.config[key] = value;
+			self._use_custom_status_palette(key);
 			self._sync_setting_inputs(key, this);
 			self.changed();
 		});
