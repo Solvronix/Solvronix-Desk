@@ -2256,6 +2256,12 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				.filter('[data-section="' + self.active_section + '"]').addClass("active");
 			self.$root.find("#sts-control-search").val("");
 			self.$root.find(".sts-control-panel .sts-field,.sts-control-panel .sts-color-row,.sts-control-panel .sts-range-row,.sts-control-panel .sts-check").show();
+			/* A floating inspector opened from a previous scene has no reason
+			   to survive a section switch — leaving it open stranded a stale
+			   panel over whatever scene/section the user navigated to next. */
+			self._clear_workspace_selection(false);
+			self.selected_inspector = null;
+			self._render_inspector();
 		});
 		this.$root.on("input", "#sts-control-search", function () {
 			self._search_controls(this.value);
