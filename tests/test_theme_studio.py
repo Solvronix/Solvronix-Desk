@@ -247,10 +247,10 @@ class ThemeStudioTest(unittest.TestCase):
 
     def test_assets_are_versioned(self):
         hooks = HOOKS.read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=16", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=19", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=9", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=12", hooks)
-        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=51", hooks)
+        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=63", hooks)
         self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=8", hooks)
         self.assertIn("/assets/solvronix_desk/js/chart_runtime.js?v=4", hooks)
         self.assertIn("/assets/solvronix_desk/css/login.css?v=11", hooks)
@@ -338,6 +338,20 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("st_allow_raw_theme_settings", settings_js)
         self.assertIn('frappe.set_route("theme-studio")', settings_js)
         self.assertIn('/desk/theme-studio', desk_js)
+
+    def test_loading_a_profile_preserves_site_identity_in_the_editor(self):
+        """Regression test: loading ANY profile (built-in or custom) directly
+        replaces this.config with the profile's own stored config, which
+        always carries blank company_logo/app_title/favicon/tagline unless
+        the profile explicitly set them — confirmed live on
+        erp.solvronix.com, where loading a built-in profile then publishing
+        silently erased the real company logo/name. The editor must restore
+        these from what was there before loading, mirroring
+        theme_engine.resolve_profile_config()'s server-side fix."""
+        js = PAGE.read_text(encoding="utf-8")
+
+        self.assertIn("var previousIdentity = {", js)
+        self.assertIn("if (!self.config[field]) self.config[field] = previousIdentity[field];", js)
 
 
 if __name__ == "__main__":

@@ -21,6 +21,13 @@ SAFE_SCOPE = re.compile(r"^[a-zA-Z0-9 _./:-]{1,140}$")
 STUDIO_BLOCKS = ("metrics", "chart", "activity", "quick_actions")
 MAX_PROFILES = 40
 MAX_VERSIONS = 25
+# A profile is a reusable VISUAL theme, not a site's identity. Every
+# profile's stored config (see _profile()) is sanitized against
+# DEFAULT_CONFIG, which defaults these to "" — so applying any profile that
+# doesn't explicitly set them would otherwise silently blank out the site's
+# real company logo/name. resolve_profile_config() always preserves these
+# from the base config instead.
+IDENTITY_FIELDS = ("company_logo", "app_title", "favicon", "tagline")
 
 
 DEFAULT_CONFIG = {
@@ -52,6 +59,10 @@ DEFAULT_CONFIG = {
     "sidebar_width": 240,
     "sidebar_mode": "Compact",
     "sidebar_auto_collapse": False,
+    "sidebar_layout": "Icon Rail",
+    "icon_rail_width": 72,
+    "icon_rail_background": "",
+    "icon_rail_active_color": "",
     "logo_size": 28,
     "logo_position": "Left",
     # Buttons and form controls
@@ -157,10 +168,11 @@ COLOR_FIELDS = {
     "selected_row_color", "row_hover_color", "report_grid_color",
     "workspace_card_color", "number_card_color", "chart_background",
     "login_background", "login_gradient_to",
+    "icon_rail_background", "icon_rail_active_color",
 }
 OPTIONAL_COLOR_FIELDS = {
     "toolbar_text_color", "sidebar_text_color", "sidebar_icon_color",
-    "sidebar_active_text_color",
+    "sidebar_active_text_color", "icon_rail_background", "icon_rail_active_color",
 }
 BOOL_FIELDS = {
     "sidebar_auto_collapse", "sticky_navbar", "sticky_form_toolbar",
@@ -170,6 +182,7 @@ BOOL_FIELDS = {
 }
 INT_RANGES = {
     "sidebar_width": (200, 360),
+    "icon_rail_width": (60, 120),
     "logo_size": (16, 64),
     "button_radius": (0, 24),
     "button_height": (26, 52),
@@ -196,6 +209,7 @@ INT_RANGES = {
 ENUM_FIELDS = {
     "preferred_mode": {"Light", "Dark", "Auto"},
     "sidebar_mode": {"Compact", "Expanded"},
+    "sidebar_layout": {"Tree", "Icon Rail"},
     "logo_position": {"Left", "Center"},
     "shadow_style": {"None", "Soft", "Elevated"},
     "density": {"Comfortable", "Compact"},
@@ -562,11 +576,22 @@ def legacy_config(settings):
         "corner_radius": "corner_radius",
         "shadow_style": "shadow_style",
         "sidebar_width": "sidebar_width",
+        "sidebar_layout": "sidebar_layout",
+        "icon_rail_width": "icon_rail_width",
+        "icon_rail_background": "icon_rail_background",
+        "icon_rail_active_color": "icon_rail_active_color",
     }
     for target, source in mapping.items():
         value = getattr(settings, source, None)
         if value not in (None, ""):
             config[target] = value
+    # Int Single fields that were never explicitly set serialize to 0 (not
+    # None) the first time ANY save() touches this document (frappe.utils.cint
+    # coercion) — 0 is below icon_rail_width's valid range and would
+    # otherwise silently clamp up to the range minimum instead of falling
+    # back to the documented default.
+    if not isinstance(config["icon_rail_width"], int) or config["icon_rail_width"] < INT_RANGES["icon_rail_width"][0]:
+        config["icon_rail_width"] = DEFAULT_CONFIG["icon_rail_width"]
     config["layout"] = clean_layout(getattr(settings, "studio_layout", ""))
     config["company_logo"] = clean_url(getattr(settings, "logo", ""))
     config["favicon"] = clean_url(getattr(settings, "favicon", ""))
@@ -710,7 +735,37 @@ def resolve_profile_config(base, selected):
         for key in ("chart_system_version", "chart_defaults", "chart_overrides"):
             resolved[key] = deepcopy(selected.get(key, DEFAULT_CONFIG[key]))
         resolved = chart_config.normalize_payload(resolved)
+    if base:
+        for field in IDENTITY_FIELDS:
+            if not resolved[field]:
+                resolved[field] = base.get(field, resolved[field])
     return resolved
+
+
+def protect_identity_on_profile_switch(settings, clean, profile_id):
+    """Defense-in-depth backstop for IDENTITY_FIELDS at the publish API.
+
+    Theme Studio's own editor (theme_studio.js) already merges the site's
+    real identity back in the moment a profile is loaded, so a publish
+    reached through the normal UI never needs this. This guards the
+    whitelisted publish_theme_config API itself — callable directly,
+    independent of that client-side merge — against the same bug: applying
+    a profile whose stored config leaves identity blank must not erase the
+    site's real company logo/name/favicon/tagline. Scoped to an actual
+    profile switch (previous active_profile != incoming) so a deliberate
+    clear on a normal, same-profile publish is never overridden.
+    """
+    incoming_profile_id = str(profile_id or "")
+    previous_profile_id = str(getattr(settings, "active_profile", "") or "")
+    if not incoming_profile_id or incoming_profile_id == previous_profile_id:
+        return clean
+    source_profile = profile_by_id(settings, incoming_profile_id)
+    source_config = (source_profile or {}).get("config") or {}
+    current = published_config(settings)
+    for field in IDENTITY_FIELDS:
+        if not clean.get(field) and not source_config.get(field):
+            clean[field] = current.get(field, clean.get(field))
+    return clean
 
 
 def resolve_profile_id(settings, user=None):
@@ -876,6 +931,10 @@ def render_css(config, enabled=True):
         "--st-sidebar-border": f"color-mix(in srgb, {sidebar_text} 13%, transparent)",
         "--st-sidebar-width": f'{config["sidebar_width"]}px',
         "--sidebar-width": f'{config["sidebar_width"]}px',
+        "--st-rail-width": f'{config["icon_rail_width"]}px',
+        "--st-rail-bg": config["icon_rail_background"] or config["accent_color"],
+        "--st-rail-icon-color": contrast_text(config["icon_rail_background"] or config["accent_color"]),
+        "--st-rail-active": config["icon_rail_active_color"] or config["accent_color"],
         "--st-logo-size": f'{config["logo_size"]}px',
         "--st-btn-primary": config["primary_button_color"],
         "--st-btn-primary-text": contrast_text(config["primary_button_color"]),

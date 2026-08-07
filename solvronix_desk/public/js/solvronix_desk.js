@@ -140,18 +140,16 @@
     var b = ST._branding;
     if (!b) return;                 /* branding not fetched yet — injectBranding() will retry */
 
-    /* Nothing set → show nothing (blank space avoided by keeping header absent) */
-    if (!b.logo && !b.company_name) return;
+    /* Text-only by design: the logo icon already has its own dedicated,
+       permanent home in the Icon Rail's brand tile (.st-rail-brand) at the
+       far-left edge — showing it a second time here, next to the company
+       name, duplicated it. This header is the company NAME only, nothing
+       else, regardless of layout. */
+    if (!b.company_name) return;    /* Nothing set → show nothing */
 
-    var html = '<div id="st-company-header">';
-    if (b.logo) {
-      html += '<img src="' + b.logo + '" alt="' + (b.company_name || "Logo") + '">';
-    }
-    if (b.company_name) {
-      html += '<span class="st-company-name">' +
-              frappe.utils.escape_html(b.company_name) + '</span>';
-    }
-    html += '</div>';
+    var html = '<div id="st-company-header">' +
+      '<span class="st-company-name">' + frappe.utils.escape_html(b.company_name) + '</span>' +
+      '</div>';
 
     /* Prepend before .body-sidebar-top (the items list) */
     var top = sidebar.querySelector(".body-sidebar-top");
@@ -182,82 +180,204 @@
     /* Frappe v16 handles sidebar collapse natively. */
   }
 
-  /* A focused start section keeps Today, New, and accessible workspaces together. */
-  function injectWorkspaceRail() {
+  /* ────────────────────────────────────────────────────────────────────────────
+     4b. ICON RAIL — opt-in second sidebar column (Theme Studio: Sidebar Layout)
+     Frappe's own frappe.ui.Sidebar still renders the workspace list column;
+     this only adds a slim, always-visible app-icon rail beside it and swaps
+     the list via normal frappe.set_route() routing — no second list renderer.
+  ──────────────────────────────────────────────────────────────────────────── */
+  function railEnabled() {
+    var cfg = frappe.boot && frappe.boot.st_theme_config;
+    return !!(cfg && cfg.sidebar_layout === "Icon Rail");
+  }
+
+  function removeIconRail() {
+    document.body.classList.remove("st-sidebar-layout-rail");
+    var el = document.getElementById("st-icon-rail");
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
+
+  /* frappe.ui.Sidebar.setup() stamps data-title on .body-sidebar with the
+     resolved workspace title (frappe/public/js/frappe/ui/sidebar/sidebar.js) —
+     reading the DOM attribute avoids depending on the frappe.app.sidebar
+     instance directly and matches this file's existing DOM-read approach
+     (see patchNativeSidebar). */
+  function activeSidebarTitle() {
     var $sidebar = $(".body-sidebar").first();
-    if (!$sidebar.length || $sidebar.find("#st-workspace-rail").length || $sidebar.data("st-rail-loading")) return;
-    $sidebar.data("st-rail-loading", true);
+    return $sidebar.length ? String($sidebar.attr("data-title") || "").trim().toLowerCase() : "";
+  }
+
+  function syncRailHighlight() {
+    var $rail = $("#st-icon-rail");
+    if (!$rail.length) return;
+    /* Smart Home / Today's View is a cross-app dashboard, not a real
+       Workspace — Frappe's own sidebar has nothing to resolve for it and
+       keeps showing whichever workspace's list was last active (e.g. the
+       "Home" workspace's own Dashboard/Stock Entry/etc. items), which made
+       the rail misleadingly highlight that workspace's app as if Today's
+       View belonged to it. Show no active app here instead. */
+    var route = frappe.get_route ? frappe.get_route() : [];
+    var onSmartHome = route && route[0] === "smart-home";
+    var active = onSmartHome ? "" : activeSidebarTitle();
+    var titleToApp = ST._railTitleToApp || {};
+    var activeApp = titleToApp[active] || "";
+    $rail.find(".st-rail-app").each(function () {
+      var appKey = String($(this).attr("data-app") || "");
+      $(this).toggleClass("st-rail-active", !!appKey && appKey === activeApp);
+    });
+  }
+
+  /* Sole place that renders the rail's logo tile — called at initial build
+     AND whenever ST._branding changes live, so a published logo/name change
+     never leaves the rail showing stale artwork the way a one-shot render
+     would (the rest of injectIconRail() only runs once per page load). */
+  function renderRailBrand() {
+    var $brand = $("#st-icon-rail .st-rail-brand");
+    if (!$brand.length) return;
+    function esc(value) {
+      return frappe.utils.escape_html(String(value || ""));
+    }
+    var branding = ST._branding || {};
+    var brandInner = branding.logo
+      ? '<img src="' + esc(branding.logo) + '" alt="' + esc(branding.company_name || "Logo") + '">'
+      : '<span class="st-rail-brand-fallback">' + esc(String(branding.company_name || "S").charAt(0)) + '</span>';
+    $brand.attr("title", branding.company_name || __("Home")).html(brandInner);
+  }
+
+  function keepListColumnExpanded() {
+    /* The list column always shows fully expanded alongside the rail
+       (matching the two-column reference layout) — reuse Frappe's own
+       .expanded class/state rather than inventing new width/label CSS, since
+       that's the exact mechanism classic Tree mode already uses correctly
+       today. Re-applied on every injectIconRail() call (boot, page-change,
+       live theme refresh) since it's harmless to repeat and cheap to check.
+
+       Below Frappe's own sidebar breakpoint (frappe/public/scss/desk/
+       sidebar.scss's media-breakpoint-down(sm), 768px) core CSS repurposes
+       ".expanded" into a full-screen overlay + dimming scrim toggled by the
+       user tapping the navbar brand. Forcing it here on every page-change
+       would re-open that overlay right after the user taps it closed —
+       leaving mobile Desk permanently covered by the list column and scrim
+       under Icon Rail layout. Desktop/tablet-landscape keep the original
+       always-expanded behavior; mobile keeps its native collapsed/overlay
+       toggle untouched. */
+    if (window.matchMedia && window.matchMedia("(max-width: 767px)").matches) return;
+    var $container = $(".body-sidebar-container").first();
+    if (!$container.length) return;
+    $container.addClass("expanded");
+    try { localStorage.setItem("sidebar-expanded", "true"); } catch (err) {}
+  }
+
+  function injectIconRail() {
+    if (!railEnabled()) {
+      if (document.getElementById("st-icon-rail")) removeIconRail();
+      return;
+    }
+    document.body.classList.add("st-sidebar-layout-rail");
+    keepListColumnExpanded();
+    if (document.getElementById("st-icon-rail")) {
+      syncRailHighlight();
+      return;
+    }
+
+    var $container = $(".body-sidebar-container").first();
+    if (!$container.length) return; /* sidebarReady() retries until it exists */
 
     frappe.call({
       method: "solvronix_desk.api.get_workspaces",
-      callback: function (response) {
-        $sidebar.removeData("st-rail-loading");
-        if (!$sidebar.closest("body").length || $sidebar.find("#st-workspace-rail").length) return;
-        var message = (response && response.message) || {};
-        var pages = (message.pages || []).concat(message.private_pages || []);
-        var seen = {};
-        pages = pages.filter(function (page) {
-          var title = String(page.title || page.name || "").trim();
-          if (!title || seen[title]) return false;
-          seen[title] = true;
-          return true;
-        }).slice(0, 9);
+      callback: function (r) {
+        if (document.getElementById("st-icon-rail")) return;
+        var message = (r && r.message) || {};
+        /* Rail = one icon per installed app (not per workspace) — ERPNext
+           alone can contribute a dozen top-level workspaces, which is too
+           many to show as separate rail entries. get_workspaces() already
+           tags each page with its owning app; group by that instead. */
+        var pages = (message.pages || []).filter(function (page) {
+          return !page.parent_page;
+        });
+        if (!pages.length) return;
 
         function esc(value) {
           return frappe.utils.escape_html(String(value || ""));
         }
         function routeFor(page) {
-          var route = page.route || String(page.title || page.name || "")
-            .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-          return "/desk/" + encodeURIComponent(route).replace(/%2F/gi, "/");
+          return page.route ||
+            ((frappe.router && frappe.router.slug) ? frappe.router.slug(page.name || page.title || "") : "");
         }
 
-        var createOrder = ["Sales Invoice", "Quotation", "Sales Order", "Purchase Order", "Customer", "Supplier", "Task", "ToDo"];
-        var canCreate = ((frappe.boot && frappe.boot.user && frappe.boot.user.can_create) || []);
-        var createItems = createOrder.filter(function (doctype) {
-          return canCreate.indexOf(doctype) !== -1;
-        }).slice(0, 6);
-
-        var html =
-          '<nav id="st-workspace-rail" aria-label="' + esc(__("Start and workspaces")) + '">' +
-            '<div class="st-rail-primary">' +
-              '<a class="st-rail-link st-rail-today" href="/desk/smart-home" title="' + esc(__("Today")) + '">' +
-                '<span class="st-rail-icon">' + frappe.utils.icon("sun", "sm") + '</span><span class="st-rail-label">' + esc(__("Today")) + '</span></a>' +
-              '<button class="st-rail-link st-rail-new" type="button" title="' + esc(__("New")) + '" aria-expanded="false">' +
-                '<span class="st-rail-icon">' + frappe.utils.icon("add", "sm") + '</span><span class="st-rail-label">' + esc(__("New")) + '</span>' +
-                '<span class="st-rail-new-plus">+</span></button>' +
-            '</div>' +
-            '<div class="st-rail-create" hidden>' +
-              (createItems.length ? createItems.map(function (doctype) {
-                return '<button type="button" data-new-doctype="' + esc(doctype) + '"><span>+</span>' + esc(__(doctype)) + '</button>';
-              }).join("") : '<small>' + esc(__("No create permissions found.")) + '</small>') +
-            '</div>' +
-            '<div class="st-rail-section-title"><span>' + esc(__("Workspaces")) + '</span><a href="/desk/home" title="' + esc(__("All Workspaces")) + '">&rarr;</a></div>' +
-            '<div class="st-rail-workspaces">' +
-              pages.map(function (page, index) {
-                var title = page.title || page.name;
-                return '<a class="st-rail-workspace" href="' + routeFor(page) + '" title="' + esc(title) + '">' +
-                  '<span class="st-rail-dot st-rail-dot-' + (index % 5) + '"></span><span class="st-rail-label">' + esc(title) + '</span></a>';
-              }).join("") +
-            '</div>' +
-          '</nav>';
-
-        var $top = $sidebar.find(".body-sidebar-top").first();
-        ($top.length ? $top : $sidebar).prepend(html);
-        var $rail = $sidebar.find("#st-workspace-rail");
-        $rail.on("click", ".st-rail-new", function () {
-          var $menu = $rail.find(".st-rail-create");
-          var open = $menu.prop("hidden");
-          $menu.prop("hidden", !open);
-          $(this).attr("aria-expanded", open ? "true" : "false");
+        /* First page per app (in the order the admin already arranged
+           workspaces in) supplies the representative icon + fallback route;
+           every page's title maps back to its app for highlight-sync. */
+        var appOrder = [];
+        var appReps = {};
+        var titleToApp = {};
+        pages.forEach(function (page) {
+          var appKey = String(page.app || "");
+          titleToApp[String(page.title || page.name || "").trim().toLowerCase()] = appKey;
+          if (!appReps[appKey]) {
+            appReps[appKey] = page;
+            appOrder.push(appKey);
+          }
         });
-        $rail.on("click", "[data-new-doctype]", function () {
-          frappe.new_doc(this.dataset.newDoctype);
+        ST._railTitleToApp = titleToApp;
+
+        var appMeta = {};
+        ((frappe.boot && frappe.boot.app_data) || []).forEach(function (a) {
+          appMeta[a.app_name] = a;
         });
+
+        var items = appOrder.map(function (appKey) {
+          var rep = appReps[appKey];
+          var meta = appMeta[appKey];
+          var title = (meta && meta.app_title) || rep.title || rep.name;
+          var route = routeFor(rep);
+          return { appKey: appKey, title: title, route: route, icon: rep.icon };
+        }).filter(function (item) { return item.route; });
+        if (!items.length) return;
+
+        var isCollapsed = false;
+        try { isCollapsed = localStorage.getItem("st-rail-collapsed") === "true"; } catch (err) {}
+
+        var html = '<nav id="st-icon-rail" aria-label="' + esc(__("Apps")) + '"' +
+          (isCollapsed ? ' class="is-collapsed"' : '') + '>' +
+          '<a class="st-rail-brand" href="/desk/home"></a>' +
+          '<div class="st-rail-items">' +
+            items.map(function (item) {
+              var iconHtml = item.icon
+                ? frappe.utils.icon(item.icon, "md")
+                : '<span class="st-rail-app-fallback">' + esc(String(item.title).charAt(0)) + '</span>';
+              return '<a class="st-rail-app" href="/desk/' + encodeURIComponent(item.route).replace(/%2F/gi, "/") + '" ' +
+                'data-route="' + esc(item.route) + '" data-app="' + esc(item.appKey) + '" title="' + esc(item.title) + '">' +
+                '<span class="st-rail-app-icon">' + iconHtml + '</span>' +
+                '<span class="st-rail-app-label st-rail-label">' + esc(item.title) + '</span></a>';
+            }).join("") +
+          '</div>' +
+          '<button type="button" class="st-rail-collapse" title="' + esc(__("Toggle sidebar")) + '">' +
+            '<span class="st-rail-collapse-icon">' + frappe.utils.icon(isCollapsed ? "chevron-right" : "chevron-left", "sm") + '</span>' +
+            '<span class="st-rail-label">' + esc(__("Collapse")) + '</span>' +
+          '</button>' +
+        '</nav>';
+
+        $container.before(html);
+        var $rail = $("#st-icon-rail");
+        renderRailBrand();
+
+        $rail.on("click", ".st-rail-app", function (e) {
+          e.preventDefault();
+          var route = $(this).attr("data-route");
+          if (!route) return;
+          frappe.set_route(route);
+          setTimeout(syncRailHighlight, 0);
+        });
+
+        $rail.on("click", ".st-rail-collapse", function () {
+          var collapsed = $rail.toggleClass("is-collapsed").hasClass("is-collapsed");
+          try { localStorage.setItem("st-rail-collapsed", collapsed ? "true" : "false"); } catch (err) {}
+          $(this).find(".st-rail-collapse-icon").html(frappe.utils.icon(collapsed ? "chevron-right" : "chevron-left", "sm"));
+        });
+
+        syncRailHighlight();
       },
-      error: function () {
-        $sidebar.removeData("st-rail-loading");
-      }
     });
   }
 
@@ -1377,21 +1497,26 @@
     sidebarReady(function () {
       injectSidebarCollapseToggle();
       injectSidebarBrandingHeader();   /* retry — branding may already be cached */
-      injectWorkspaceRail();
+      injectIconRail();
       patchNativeSidebar();
       injectPoweredBy();
     });
 
     injectSetupGuide();
 
+    if (frappe.router && frappe.router.on) {
+      frappe.router.on("change", syncRailHighlight);
+    }
+
     /* Move Frappe's native notification bell into toolbar after desktop page renders */
     setTimeout(moveNativeBell, 800);
     $(document).on("page-change", function () {
-      injectWorkspaceRail();
+      injectIconRail();
       patchNativeSidebar();
       injectPoweredBy();
       injectSetupGuide();
       setTimeout(moveNativeBell, 400);
+      setTimeout(syncRailHighlight, 0);
     });
 
     /* bootinfo.home_page owns the initial Smart Home redirect. Redirecting here
@@ -1438,11 +1563,46 @@
         var old = document.getElementById("st-company-header");
         if (old) old.parentNode.removeChild(old);
         injectSidebarBrandingHeader();
+        renderRailBrand();
       }
 
       /* 3. Subtle confirmation */
       frappe.show_alert({ message: frappe._("Theme updated"), indicator: "green" }, 2);
     });
+  });
+
+  /* ── ICON RAIL: APPLY LAYOUT CHANGES LIVE, NO RELOAD ────────────────────────
+     frappe.boot.st_theme_config is only embedded once, at the last full page
+     load — it never refreshes on its own during SPA navigation. Every other
+     Theme Studio setting (colors, fonts) already applies live via CSS
+     variables; sidebar layout needs its own patch since railEnabled() reads
+     boot data, not CSS. Reuses the same "st-theme-runtime-refresh" event
+     theme_runtime.js/chart_runtime.js already listen for — runtime.config
+     already carries sidebar_layout/icon_rail_* since they're part of
+     DEFAULT_CONFIG. */
+  window.addEventListener("st-theme-runtime-refresh", function (event) {
+    var runtime = event.detail;
+    var config = runtime && runtime.config;
+    if (!config) return;
+    var cfg = (frappe.boot.st_theme_config = frappe.boot.st_theme_config || {});
+    cfg.sidebar_layout = config.sidebar_layout;
+    cfg.icon_rail_width = config.icon_rail_width;
+    cfg.icon_rail_background = config.icon_rail_background;
+    cfg.icon_rail_active_color = config.icon_rail_active_color;
+    /* config is the fully resolved theme (theme_engine.resolve_config),
+       so its identity fields are already protected against the profile-
+       blanking bug — a more reliable branding source than relying solely
+       on the ad-hoc "branding" payload the st_theme_changed socket event
+       carries, which no other code path (schedule/user/role switches) sends. */
+    ST._branding = {
+      company_name: config.app_title || "",
+      logo: config.company_logo || "",
+      favicon: config.favicon || "",
+      tagline: config.tagline || "",
+    };
+    injectIconRail();
+    renderRailBrand();
+    syncRailHighlight();
   });
 
   /* ── THEME SETTINGS FORM: LIVE APPLY ON SAVE ────────────────────────────────
@@ -1469,6 +1629,7 @@
           var old = document.getElementById("st-company-header");
           if (old) old.parentNode.removeChild(old);
           injectSidebarBrandingHeader();
+          renderRailBrand();
           if (frm.doc.favicon) {
             $('link[rel="shortcut icon"], link[rel="icon"]').attr("href", frm.doc.favicon);
           }

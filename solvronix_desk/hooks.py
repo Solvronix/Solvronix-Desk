@@ -7,7 +7,7 @@ app_email = "sales@solvronix.com"
 app_license = "MIT"
 app_color = "#E8610A"
 app_icon = "octicon octicon-paintcan"
-app_version = "2.0.1"
+app_version = "2.1.0"
 
 required_apps = []
 
@@ -19,7 +19,7 @@ web_include_js = ["/assets/solvronix_desk/js/login_theme.js?v=8"]
 # Query versions are bumped whenever an asset changes to invalidate browser cache.
 app_include_css = [
     "/assets/solvronix_desk/css/solvronix_desk.css?v=52",
-    "/assets/solvronix_desk/css/sidebar.css?v=21",
+    "/assets/solvronix_desk/css/sidebar.css?v=31",
     "/assets/solvronix_desk/css/command_palette.css?v=4",
     "/assets/solvronix_desk/css/smart_home.css?v=7",
     "/assets/solvronix_desk/css/progressive_forms.css?v=3",
@@ -28,12 +28,12 @@ app_include_css = [
     "/assets/solvronix_desk/css/dark_mode.css?v=14",
     "/assets/solvronix_desk/css/module_cards.css?v=2",
     "/assets/solvronix_desk/css/density.css?v=2",
-    "/assets/solvronix_desk/css/theme_studio.css?v=16",
+    "/assets/solvronix_desk/css/theme_studio.css?v=19",
 ]
 app_include_js = [
     "/assets/solvronix_desk/js/dark_mode.js?v=12",
     "/assets/solvronix_desk/js/personalization.js?v=1",
-    "/assets/solvronix_desk/js/solvronix_desk.js?v=51",
+    "/assets/solvronix_desk/js/solvronix_desk.js?v=63",
     "/assets/solvronix_desk/js/sidebar.js?v=3",
     "/assets/solvronix_desk/js/command_palette.js?v=9",
     "/assets/solvronix_desk/js/progressive_forms.js?v=4",

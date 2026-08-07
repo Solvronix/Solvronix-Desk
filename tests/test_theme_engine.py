@@ -1,6 +1,7 @@
 """Unit coverage for theme validation, profile resolution, and CSS rendering."""
 
 import importlib.util
+import json
 from pathlib import Path
 import sys
 import types
@@ -14,6 +15,16 @@ ENGINE_PATH = ROOT / "solvronix_desk" / "theme_engine.py"
 class FrappeStub(types.ModuleType):
     def throw(self, message):
         raise ValueError(message)
+
+
+class FakeSettings:
+    """Minimal stand-in for a Theme Settings doc — only the attributes a
+    test explicitly sets exist; theme_engine's getattr(..., default) calls
+    handle everything else exactly like an unset field would."""
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
 
 def load_engine():
@@ -253,6 +264,108 @@ class ThemeEngineTest(unittest.TestCase):
         self.assertIn("--st-chart-bg: #123456", css)
         self.assertIn("--st-chart-1: #111111", css)
         self.assertIn("--st-chart-2: #222222", css)
+
+    def test_applying_a_profile_never_blanks_out_site_identity(self):
+        """Regression test: every profile's stored config carries blank
+        company_logo/app_title/favicon/tagline unless it explicitly set them
+        (_profile() sanitizes overrides against DEFAULT_CONFIG, which
+        defaults these to "") — confirmed live on erp.solvronix.com, where
+        loading a built-in profile and publishing it silently erased the
+        site's real logo and company name. resolve_profile_config() must
+        always keep these from the base config regardless of what the
+        profile itself carries."""
+        base = ENGINE.sanitize_config(
+            {
+                "company_logo": "/files/my-logo.png",
+                "app_title": "Acme Inc",
+                "favicon": "/files/favicon.png",
+                "tagline": "Built for Acme",
+            },
+            validate_contrast=False,
+        )
+        builtin = next(
+            profile for profile in ENGINE.builtin_profiles() if profile["id"] == "builtin-frappe"
+        )
+        self.assertEqual(builtin["config"]["company_logo"], "")
+        self.assertEqual(builtin["config"]["app_title"], "")
+
+        resolved = ENGINE.resolve_profile_config(base, builtin["config"])
+
+        self.assertEqual(resolved["company_logo"], "/files/my-logo.png")
+        self.assertEqual(resolved["app_title"], "Acme Inc")
+        self.assertEqual(resolved["favicon"], "/files/favicon.png")
+        self.assertEqual(resolved["tagline"], "Built for Acme")
+        # The profile's own visual theme still applies normally.
+        self.assertEqual(resolved["brand_color"], "#2490EF")
+
+    def test_a_profile_that_explicitly_sets_identity_is_still_honored(self):
+        base = ENGINE.sanitize_config({"app_title": "Acme Inc"}, validate_contrast=False)
+        selected = ENGINE.sanitize_config({"app_title": "New Brand"}, validate_contrast=False)
+
+        resolved = ENGINE.resolve_profile_config(base, selected)
+
+        self.assertEqual(resolved["app_title"], "New Brand")
+
+    def test_publish_api_restores_identity_when_switching_to_a_profile_that_blanks_it(self):
+        """Regression test: resolve_profile_config() only protects the read
+        path (resolve_config, used for live CSS). publish_theme_config is a
+        separately whitelisted API a client can call directly with any
+        profile_id, bypassing theme_studio.js's own load-time merge — this
+        is the server-side backstop for that same bug at the publish/save
+        boundary."""
+        settings = FakeSettings(
+            active_profile="",
+            logo="/files/my-logo.png",
+            company_name="Acme Inc",
+            favicon="/files/favicon.png",
+            tagline="Built for Acme",
+        )
+        builtin = next(p for p in ENGINE.builtin_profiles() if p["id"] == "builtin-frappe")
+        self.assertEqual(builtin["config"]["company_logo"], "")
+
+        clean = {"company_logo": "", "app_title": "", "favicon": "", "tagline": ""}
+        result = ENGINE.protect_identity_on_profile_switch(settings, clean, "builtin-frappe")
+
+        self.assertEqual(result["company_logo"], "/files/my-logo.png")
+        self.assertEqual(result["app_title"], "Acme Inc")
+        self.assertEqual(result["favicon"], "/files/favicon.png")
+        self.assertEqual(result["tagline"], "Built for Acme")
+
+    def test_publish_api_respects_a_deliberate_clear_on_the_same_already_active_profile(self):
+        """A publish that doesn't switch profiles (profile_id matches what
+        was already active) must never restore a field the admin just
+        cleared on purpose via Theme Studio's own clear control."""
+        settings = FakeSettings(
+            active_profile="builtin-frappe",
+            logo="/files/my-logo.png",
+            company_name="Acme Inc",
+        )
+        clean = {"company_logo": "", "app_title": "Acme Inc", "favicon": "", "tagline": ""}
+
+        result = ENGINE.protect_identity_on_profile_switch(settings, clean, "builtin-frappe")
+
+        self.assertEqual(result["company_logo"], "")
+
+    def test_publish_api_honors_a_profile_that_explicitly_sets_identity_on_switch(self):
+        settings = FakeSettings(active_profile="", logo="/files/my-logo.png", company_name="Acme Inc")
+        settings.theme_profiles = json.dumps([
+            {"id": "custom-1", "name": "Rebrand", "config": {"app_title": "New Brand"}}
+        ])
+        clean = {"company_logo": "", "app_title": "New Brand", "favicon": "", "tagline": ""}
+
+        result = ENGINE.protect_identity_on_profile_switch(settings, clean, "custom-1")
+
+        self.assertEqual(result["app_title"], "New Brand")
+        # company_logo wasn't set by this profile, so it still falls back.
+        self.assertEqual(result["company_logo"], "/files/my-logo.png")
+
+    def test_publish_api_ignores_an_unknown_or_missing_profile_id(self):
+        settings = FakeSettings(active_profile="", logo="/files/my-logo.png", company_name="Acme Inc")
+        clean = {"company_logo": "", "app_title": "", "favicon": "", "tagline": ""}
+
+        result = ENGINE.protect_identity_on_profile_switch(settings, clean, "")
+
+        self.assertEqual(result["company_logo"], "")
 
 
 if __name__ == "__main__":
