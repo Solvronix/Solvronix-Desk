@@ -1,7 +1,5 @@
 # Changelog
 
-## [Unreleased]
-
 ## [2.1.0] — 2026-08-07 — Icon Rail Sidebar
 
 ### Added
