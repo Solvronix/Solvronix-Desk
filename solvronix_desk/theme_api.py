@@ -127,6 +127,11 @@ def sync_legacy_fields(settings, config):
         "brand_color", "accent_color", "sidebar_background", "navbar_background",
         "page_background", "card_background", "text_color", "corner_radius",
         "shadow_style", "sidebar_width", "chart_background", "chart_palette",
+        # icon_rail_background/icon_rail_active_color are OPTIONAL_COLOR_FIELDS
+        # (auto-if-empty, like sidebar_text_color) and are deliberately excluded
+        # from this sync for the same reason those are — see icon_rail_width's
+        # sibling sidebar_width above for the pattern this does follow.
+        "sidebar_layout", "icon_rail_width",
     ):
         settings.set(field, config[field])
     settings.studio_layout = frappe.as_json(config["layout"])
@@ -155,6 +160,7 @@ def publish_theme_config(config, label=None, profile_id=None):
     manager_only()
     settings = frappe.get_single("Theme Settings")
     clean = validate_persisted_config(config)
+    clean = theme_engine.protect_identity_on_profile_switch(settings, clean, profile_id)
     versions = theme_engine.json_field(settings, "theme_versions", [])
     versions.insert(
         0,

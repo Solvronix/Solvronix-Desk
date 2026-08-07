@@ -29,9 +29,11 @@ def get_theme_settings():
             "enable_command_palette": s.enable_command_palette,
             "enable_smart_home":      s.enable_smart_home,
             "dark_mode_default":      s.dark_mode_default,
+            "sidebar_layout":         s.sidebar_layout or "Icon Rail",
         }
     except Exception:
         return {
-            "brand_color":  "#1B3F7E",
-            "accent_color": "#F57C00",
+            "brand_color":    "#1B3F7E",
+            "accent_color":   "#F57C00",
+            "sidebar_layout": "Icon Rail",
         }

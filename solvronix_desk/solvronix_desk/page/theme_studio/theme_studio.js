@@ -31,6 +31,10 @@ solvronix_desk.theme_studio_sections = [
 			["sidebar_hover_color", "Menu hover", "color"], ["sidebar_width", "Expanded width", "range", 200, 360, "px"],
 			["sidebar_mode", "Initial sidebar", "select", ["Compact", "Expanded"]],
 			["sidebar_auto_collapse", "Auto-collapse on mouse leave", "check"],
+			["sidebar_layout", "Sidebar layout", "select", ["Tree", "Icon Rail"]],
+			["icon_rail_width", "Icon rail width", "range", 60, 120, "px"],
+			["icon_rail_background", "Icon rail background (auto if empty)", "optional-color"],
+			["icon_rail_active_color", "Icon rail active colour (auto if empty)", "optional-color"],
 			["logo_size", "Logo size", "range", 16, 64, "px"], ["logo_position", "Logo position", "select", ["Left", "Center"]],
 		],
 	},
@@ -406,7 +410,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	_inspector_catalog() {
 		var catalog = {
 			"navigation.toolbar": { title: "Top toolbar", scene: "Global", keys: ["navbar_background", "toolbar_text_color", "header_height", "sticky_navbar"] },
-			"navigation.sidebar": { title: "Sidebar", scene: "Global", keys: ["sidebar_background", "sidebar_text_color", "sidebar_icon_color", "sidebar_active_color", "sidebar_hover_color", "sidebar_width", "sidebar_mode"] },
+			"navigation.sidebar": { title: "Sidebar", scene: "Global", keys: ["sidebar_background", "sidebar_text_color", "sidebar_icon_color", "sidebar_active_color", "sidebar_hover_color", "sidebar_width", "sidebar_mode", "sidebar_layout", "icon_rail_width", "icon_rail_background", "icon_rail_active_color"] },
 			"dashboard.heading": { title: "Dashboard heading", scene: "Dashboard", keys: ["page_background", "text_color", "heading_scale", "primary_button_color", "button_radius"] },
 			"dashboard.metrics": { title: "Number cards", scene: "Dashboard", keys: ["number_card_color", "text_color", "muted_text_color", "card_radius", "shadow_style"] },
 			"dashboard.chart": { title: "Chart card", scene: "Dashboard", keys: ["chart_background", "chart_palette", "text_color", "card_radius", "shadow_style"] },
@@ -1127,14 +1131,31 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 
 	_range_control(key, label, min, max, unit, scope) {
 		var inputId = "sts-" + (scope ? scope + "-" : "") + key;
+		/* A stale stored config predating a newly-added field would otherwise
+		   render "undefined" here and, worse, feed that back into config on
+		   the next input/change event — fall back to min rather than trust
+		   this.config[key] blindly. */
+		var raw = this.config[key];
+		var value = (raw === undefined || raw === null || isNaN(raw)) ? min : raw;
 		return '<div class="sts-range-row"><div><label for="' + inputId + '">' + label +
-			'</label><output data-output="' + key + '" data-unit="' + unit + '">' + this.config[key] + unit + "</output></div>" +
+			'</label><output data-output="' + key + '" data-unit="' + unit + '">' + value + unit + "</output></div>" +
 			'<input id="' + inputId + '" type="range" min="' + min + '" max="' + max +
-			'" value="' + this.config[key] + '" data-setting="' + key + '"></div>';
+			'" value="' + value + '" data-setting="' + key + '"></div>';
 	}
 
 	_sidebar_html() {
-		return '<aside class="sts-preview-sidebar" data-inspector="navigation.sidebar">' +
+		/* Fake app rail — cosmetic-only preview mockup, toggled purely via CSS
+		   class in apply() (sidebar_layout === "Icon Rail"). It never calls a
+		   real API and never affects the actual Desk; the real rail lives in
+		   solvronix_desk.js's injectIconRail(), one tile per installed app. */
+		var rail = '<nav class="sts-preview-rail" data-inspector="navigation.sidebar">' +
+			[['home', 'ERPNext'], ['users', 'HR'], ['filter', 'CRM']].map(function (entry, index) {
+				return '<a class="' + (index === 0 ? "active" : "") + '" title="' + entry[1] + '">' +
+					'<span class="sts-preview-rail-icon">' + this._icon(entry[0]) + '</span><span>' + entry[1] + '</span></a>';
+			}, this).join("") +
+		'</nav>';
+		return rail +
+			'<aside class="sts-preview-sidebar" data-inspector="navigation.sidebar">' +
 			'<button type="button" class="sts-preview-logo sts-sidebar-toggle" title="' + __("Expand or collapse sidebar") + '"><b>S</b><span data-app-title>Solvronix Desk</span></button>' +
 			'<nav><small>' + __("MAIN") + '</small><a class="active">' + this._icon("home") + "<span>" + __("Overview") + "</span></a>" +
 			'<a>' + this._icon("chart") + "<span>" + __("Analytics") + "</span></a>" +
@@ -2381,7 +2402,21 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				return;
 			}
 			this._checkpoint();
+			/* Profiles are a reusable VISUAL theme, not a site's identity — every
+			   profile's stored config carries blank company_logo/app_title/
+			   favicon/tagline unless it explicitly set them (see
+			   theme_engine.IDENTITY_FIELDS), so loading one must not silently
+			   wipe the site's actual branding out of the editor. */
+			var previousIdentity = {
+				company_logo: this.config.company_logo,
+				app_title: this.config.app_title,
+				favicon: this.config.favicon,
+				tagline: this.config.tagline,
+			};
 			this.config = this._clone(profile.config);
+			Object.keys(previousIdentity).forEach(function (field) {
+				if (!self.config[field]) self.config[field] = previousIdentity[field];
+			});
 			this.active_profile = profile.id;
 			this.render();
 			this.changed();
@@ -2766,6 +2801,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.$preview.attr("data-density", String(c.density || "Comfortable").toLowerCase());
 		this.$preview.attr("data-shortcuts", String(c.shortcut_style || "Soft").toLowerCase());
 		this.$preview.find(".sts-preview-sidebar").toggleClass("is-expanded", c.sidebar_mode === "Expanded");
+		this.$preview.find(".sts-preview-rail").toggleClass("is-visible", c.sidebar_layout === "Icon Rail");
 		this.$root.find(".sts-segments button").removeClass("active")
 			.filter('[data-value="' + c.shadow_style + '"]').addClass("active");
 		this.$root.find('[data-action="undo"]').prop("disabled", !this.history.length);
@@ -3197,6 +3233,9 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"--st-radius-lg:" + (c.corner_radius + 4) + "px",
 			"--st-sidebar-width:" + c.sidebar_width + "px",
 			"--sidebar-width:" + c.sidebar_width + "px",
+			"--st-rail-width:" + c.icon_rail_width + "px",
+			"--st-rail-bg:" + (c.icon_rail_background || c.accent_color),
+			"--st-rail-active:" + (c.icon_rail_active_color || c.accent_color),
 		];
 		var shadow = {
 			None: ["none", "none", "none"],

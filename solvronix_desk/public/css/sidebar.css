@@ -32,22 +32,12 @@
   overflow: hidden;
 }
 
-/* In collapsed mode: center the logo, hide the name */
+/* Text-only header (no icon — the Icon Rail's own brand tile already
+   covers that at the far-left edge). A collapsed 64px classic sidebar has
+   no room to show a readable name, so hide the whole header rather than
+   leave an empty bordered strip. */
 .body-sidebar-container:not(.expanded) #st-company-header {
-  justify-content: center;
-  padding: 0;
-}
-
-.body-sidebar-container:not(.expanded) .st-company-name {
   display: none;
-}
-
-#st-company-header img {
-  height: 28px;
-  width: auto;
-  max-width: 100%;
-  object-fit: contain;
-  flex-shrink: 0;
 }
 
 .st-company-name {
@@ -314,125 +304,7 @@
   opacity: 1;
 }
 
-/* ---- Today / New / Workspaces start rail ---- */
-#st-workspace-rail {
-  margin: 8px 8px 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid color-mix(in srgb, var(--st-sidebar-text, #374151) 12%, transparent);
-}
-
-.st-rail-primary,
-.st-rail-workspaces {
-  display: grid;
-  gap: 3px;
-}
-
-.st-rail-link,
-.st-rail-workspace {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 36px;
-  padding: 6px 9px;
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--st-sidebar-text, #374151);
-  font-size: 12px;
-  font-weight: 550;
-  text-align: left;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.st-rail-link:hover,
-.st-rail-workspace:hover {
-  background: var(--st-sidebar-hover, rgba(0,0,0,.05));
-  color: var(--st-sidebar-hover-text, #111827);
-  text-decoration: none;
-}
-
-.st-rail-today {
-  background: color-mix(in srgb, var(--st-accent, #e8610a) 10%, transparent);
-  color: var(--st-accent, #e8610a);
-}
-
-.st-rail-icon {
-  display: grid;
-  place-items: center;
-  width: 18px;
-  flex: 0 0 18px;
-}
-.st-rail-icon svg { width: 16px; height: 16px; }
 .st-rail-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.st-rail-new-plus { margin-left: auto; color: var(--st-accent, #e8610a); font-size: 17px; }
-
-.st-rail-section-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 14px 9px 5px;
-  color: var(--st-sidebar-text-muted, #9ca3af);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-}
-.st-rail-section-title a { color: inherit; font-size: 14px; text-decoration: none; }
-
-.st-rail-dot {
-  width: 7px;
-  height: 7px;
-  margin-left: 5px;
-  flex: 0 0 7px;
-  border-radius: 50%;
-  background: #e8610a;
-}
-.st-rail-dot-1 { background: #2563eb; }
-.st-rail-dot-2 { background: #15915e; }
-.st-rail-dot-3 { background: #d97706; }
-.st-rail-dot-4 { background: #d64f4f; }
-
-.st-rail-create {
-  margin: 5px 0 8px 28px;
-  padding: 6px;
-  border: 1px solid color-mix(in srgb, var(--st-sidebar-text, #374151) 12%, transparent);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--st-sidebar-bg, #fff) 92%, var(--st-sidebar-text, #374151));
-}
-.st-rail-create[hidden] { display: none; }
-.st-rail-create button {
-  display: flex;
-  gap: 7px;
-  width: 100%;
-  padding: 7px 8px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--st-sidebar-text, #374151);
-  font-size: 11px;
-  text-align: left;
-}
-.st-rail-create button:hover { background: var(--st-sidebar-hover, rgba(0,0,0,.05)); }
-.st-rail-create button span { color: var(--st-accent, #e8610a); }
-.st-rail-create small { display: block; padding: 7px; color: var(--st-sidebar-text-muted, #9ca3af); }
-
-.body-sidebar-container:not(.expanded) #st-workspace-rail {
-  margin-inline: 6px;
-}
-.body-sidebar-container:not(.expanded) .st-rail-link,
-.body-sidebar-container:not(.expanded) .st-rail-workspace {
-  justify-content: center;
-  padding-inline: 0;
-}
-.body-sidebar-container:not(.expanded) .st-rail-label,
-.body-sidebar-container:not(.expanded) .st-rail-new-plus,
-.body-sidebar-container:not(.expanded) .st-rail-section-title,
-.body-sidebar-container:not(.expanded) .st-rail-create {
-  display: none !important;
-}
-.body-sidebar-container:not(.expanded) .st-rail-dot { margin-left: 0; width: 9px; height: 9px; flex-basis: 9px; }
 
 /* ---- Chevron toggle button rotation ---- */
 .body-sidebar .collapse-sidebar-link svg,
@@ -522,4 +394,175 @@ html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .sid
 html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .sidebar-item-icon .icon {
   color: var(--st-accent) !important;
   fill: var(--st-accent) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ICON RAIL — opt-in second sidebar column (Theme Studio: Sidebar Layout)
+   Everything below is additive and scoped under body.st-sidebar-layout-rail,
+   so the default Tree layout above is completely unaffected.
+   ═════════════════════════════════════════════════════════════════════════ */
+#st-icon-rail {
+  display: flex;
+  flex-direction: column;
+  width: var(--st-rail-width, 72px);
+  height: 100vh;
+  background: var(--st-sidebar-bg, #FFFFFF);
+  border-right: 1px solid var(--sidebar-border-color, #ededed);
+  flex-shrink: 0;
+  transition: width 0.2s ease;
+}
+/* Mirrors the equivalent .body-sidebar rule below — keeps the rail clear of
+   the fixed top toolbar this theme always adds via .st-has-toolbar. */
+body.st-has-toolbar #st-icon-rail {
+  margin-top: var(--st-header-height) !important;
+  height: calc(100vh - var(--st-header-height)) !important;
+}
+/* Company logo/icon, pinned at the top — its one dedicated home in the
+   entire sidebar chrome; the classic sidebar's own #st-company-header is
+   text-only by design so the logo is never shown twice. */
+#st-icon-rail .st-rail-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 100%;
+  height: 52px;
+  border-bottom: 1px solid var(--sidebar-border-color, #ededed);
+}
+#st-icon-rail .st-rail-brand img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+#st-icon-rail .st-rail-brand-fallback {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--st-rail-bg, var(--st-accent));
+  color: var(--st-rail-icon-color, #FFFFFF);
+  font-size: 13px;
+  font-weight: 700;
+}
+/* Scrollable item list above a pinned collapse toggle, not the whole rail —
+   so the toggle stays reachable regardless of list length. */
+#st-icon-rail .st-rail-items {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 10px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+/* One icon per installed app — icon sits in a theme-colored tile (driven by
+   --st-rail-bg, which defaults to the theme's own accent color, so it
+   updates automatically if the admin changes brand/accent colors), with the
+   app's friendly name below. The active app gets a ring around its tile
+   rather than an inverted color scheme, so label/tile contrast never has to
+   be recomputed per state. */
+#st-icon-rail .st-rail-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 4px;
+  border-radius: 9px;
+  text-decoration: none !important;
+  cursor: pointer;
+}
+#st-icon-rail .st-rail-app:hover {
+  background: var(--sidebar-hover-color, #f3f3f3);
+  text-decoration: none !important;
+}
+#st-icon-rail .st-rail-app-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--st-rail-bg, var(--st-accent));
+  color: var(--st-rail-icon-color, #FFFFFF);
+  /* frappe.utils.icon()'s <svg class="icon"> renders via the fill/stroke
+     custom properties Frappe's own icons.scss declares (--icon-fill/
+     --icon-stroke) — NOT via `color`/currentColor. Without this override
+     each tile's glyph silently inherits whatever --icon-stroke the page
+     happens to have ambient (a neutral gray meant for icons sitting
+     directly on the page background), uncoordinated with this tile's own
+     accent-colored background, making icons vanish rather than merely
+     look off. --icon-fill stays untouched: Frappe's icon set is already
+     transparent-fill/stroke-only in both light and dark mode. */
+  --icon-stroke: var(--st-rail-icon-color, #FFFFFF);
+}
+#st-icon-rail .st-rail-app-icon svg { width: 16px; height: 16px; }
+#st-icon-rail .st-rail-app-fallback { font-size: 13px; font-weight: 700; }
+#st-icon-rail .st-rail-app.st-rail-active .st-rail-app-icon {
+  box-shadow: 0 0 0 2px var(--st-sidebar-bg, #FFFFFF), 0 0 0 3px var(--st-rail-active, var(--st-accent));
+}
+#st-icon-rail .st-rail-app-label {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--st-sidebar-text, #374151);
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#st-icon-rail .st-rail-app.st-rail-active .st-rail-app-label {
+  color: var(--st-rail-active, var(--st-accent));
+}
+
+/* Collapse toggle — pinned at the bottom, mirrors Frappe core's own
+   .collapse-sidebar-link (chevron icon, same interaction pattern). */
+#st-icon-rail .st-rail-collapse {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 0;
+  border-top: 1px solid var(--sidebar-border-color, #ededed);
+  background: transparent;
+  color: var(--st-sidebar-text-muted, #9ca3af);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  /* See .st-rail-app-icon's --icon-stroke comment: frappe.utils.icon()'s
+     svg reads --icon-stroke, not `color`, so the chevron needs its own
+     explicit value to actually be visible. */
+  --icon-stroke: var(--st-sidebar-text-muted, #9ca3af);
+}
+#st-icon-rail .st-rail-collapse:hover {
+  background: var(--sidebar-hover-color, #f3f3f3);
+}
+#st-icon-rail .st-rail-collapse-icon svg { width: 14px; height: 14px; }
+
+/* Collapsed: icon tiles only, no labels, narrow fixed width — matching the
+   classic sidebar's own icon-only collapsed state. */
+#st-icon-rail.is-collapsed {
+  width: 60px;
+}
+#st-icon-rail.is-collapsed .st-rail-label,
+#st-icon-rail.is-collapsed .st-rail-collapse .st-rail-label {
+  display: none;
+}
+#st-icon-rail.is-collapsed .st-rail-collapse {
+  justify-content: center;
+}
+
+html[data-theme="dark"] #st-icon-rail {
+  border-right-color: rgba(255,255,255,0.08);
+}
+html[data-theme="dark"] #st-icon-rail .st-rail-app:hover {
+  background: rgba(255,255,255,0.06);
+}
+html[data-theme="dark"] #st-icon-rail .st-rail-collapse:hover {
+  background: rgba(255,255,255,0.06);
 }

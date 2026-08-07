@@ -20,6 +20,8 @@ def after_install():
             "corner_radius":          8,
             "shadow_style":           "Soft",
             "sidebar_width":          240,
+            "sidebar_layout":         "Icon Rail",
+            "icon_rail_width":        72,
             "studio_layout":          '["metrics","chart","activity","quick_actions"]',
             "theme_enabled":          1,
             "allow_user_theme":       1,
