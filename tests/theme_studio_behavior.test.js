@@ -111,7 +111,7 @@ function bindThemeStudio(studio) {
   const stageHandlers = {};
   const chain = {
     length: 1,
-    0: {},
+    0: { scrollIntoView() {} },
     off() { return this; },
     on(event, selector, handler) {
       if (typeof selector === "function") handler = selector;
@@ -2793,7 +2793,7 @@ test("workspace lifecycle clears stale selections at every document boundary", a
     assert.deepEqual(order, [["clear", false], ["selected", null], ["render"]]);
   });
 
-  await t.test("scene changes clear first and Workspace has no default inspector", () => {
+  await t.test("scene tabs close the current inspector without opening a default", () => {
     const studio = loadThemeStudio();
     const order = [];
     const bindings = bindThemeStudio(studio);
@@ -2821,7 +2821,16 @@ test("workspace lifecycle clears stale selections at every document boundary", a
     dashboardButton.__query = Object.assign({}, bindings.chain, { 0: dashboardButton });
     bindings.rootHandlers["click|[data-preview-scene]"].call(dashboardButton);
     assert.equal(order[0], "clear");
-    assert.deepEqual(order.find((entry) => Array.isArray(entry) && entry[0] === "select"), ["select", "dashboard.heading"]);
+    assert.equal(studio.selected_inspector, null);
+    assert.equal(order.some((entry) => Array.isArray(entry) && entry[0] === "select"), false);
+
+    order.length = 0;
+    studio._select_chart_preview = () => order.push(["select", "chart"]);
+    const chartsButton = { __data: { "preview-scene": "charts" } };
+    chartsButton.__query = Object.assign({}, bindings.chain, { 0: chartsButton });
+    bindings.rootHandlers["click|[data-preview-scene]"].call(chartsButton);
+    assert.equal(studio.selected_inspector, null);
+    assert.equal(order.some((entry) => Array.isArray(entry) && entry[0] === "select"), false);
   });
 
   await t.test("iframe load clears before its first guard and iframe error clears before state", () => {
@@ -2874,6 +2883,23 @@ test("workspace lifecycle clears stale selections at every document boundary", a
       assert.deepEqual(order, ["loading", "clear", outcome], name);
     }
   });
+});
+
+test("opening a full settings section closes the contextual inspector", () => {
+  const studio = loadThemeStudio();
+  studio.selected_inspector = "dashboard.metrics";
+  const order = [];
+  studio._clear_workspace_selection = (closeInspector) => order.push(["clear", closeInspector]);
+  studio._render_inspector = () => order.push(["render", studio.selected_inspector]);
+  const bindings = bindThemeStudio(studio);
+  const button = { __data: { "open-control-section": "colors" } };
+  button.__query = Object.assign({}, bindings.chain, { 0: button });
+
+  bindings.rootHandlers["click|[data-open-control-section]"].call(button);
+
+  assert.equal(studio.active_section, "colors");
+  assert.equal(studio.selected_inspector, null);
+  assert.deepEqual(order, [["clear", false], ["render", null]]);
 });
 
 test("workspace reanchor wiring covers successful movement and coalesces rapid sources", () => {

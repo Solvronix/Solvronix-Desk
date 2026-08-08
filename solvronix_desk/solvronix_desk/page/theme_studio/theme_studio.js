@@ -1485,27 +1485,21 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	}
 
 	_activate_preview_scene(scene) {
-		this._clear_workspace_selection();
+		/* Scene tabs only change the preview. Contextual settings should open
+		   after the user deliberately selects an editable preview element. */
+		this._clear_workspace_selection(false);
+		this.selected_inspector = null;
+		this.selected_chart_preview_element = null;
+		this._render_inspector();
 		this.$root.find("[data-preview-scene]").removeClass("active").filter('[data-preview-scene="' + scene + '"]').addClass("active");
 		this.$preview.attr("data-scene", scene);
 		this.$root.toggleClass("is-workspace-preview", scene === "workspace");
 		this.$preview.find(".sts-scene").removeClass("active").filter('[data-scene="' + scene + '"]').addClass("active");
-		if (scene === "workspace") {
-			this.selected_inspector = null;
-			this._render_inspector();
-			return;
-		}
+		if (scene === "workspace") return;
 		if (scene === "charts") {
 			if (!this.selected_chart_preview_kind) this.selected_chart_preview_kind = "line";
 			return;
 		}
-		if (this.selected_inspector === "charts.chart") {
-			this.selected_inspector = null;
-			this.selected_chart_preview_element = null;
-		}
-		var defaults = { dashboard: "dashboard.heading", form: "form.card", table: "table.grid", login: "login.background" };
-		var element = this.$preview.find('[data-inspector="' + defaults[scene] + '"]:visible').first()[0];
-		if (element) this._select_inspector(defaults[scene], element);
 	}
 
 	_workspace_scene_html() {
@@ -2098,6 +2092,9 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			self.$root.find("[data-section-tab]").removeClass("active").filter('[data-section-tab="' + section + '"]').addClass("active");
 			self.$root.find(".sts-control-panel").removeClass("active").filter('[data-section="' + section + '"]').addClass("active");
 			self.$root.find('[data-section="' + section + '"]')[0].scrollIntoView({ behavior: "smooth", block: "start" });
+			self._clear_workspace_selection(false);
+			self.selected_inspector = null;
+			self._render_inspector();
 		});
 		this.$root.on("input change", "[data-chart-path]", function () {
 			var $input = $(this), path = $input.data("chart-path");
@@ -2231,7 +2228,6 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		});
 		this.$root.on("click", "[data-preview-scene]", function () {
 			self._activate_preview_scene($(this).data("preview-scene"));
-			if ($(this).data("preview-scene") === "charts") self._select_chart_preview(self.selected_chart_preview_kind || "line");
 		});
 		this.$root.on("change", "#sts-workspace-select", function () {
 			self._select_workspace(this.value);
