@@ -93,7 +93,8 @@ class ThemeEngineTest(unittest.TestCase):
         self.assertNotIn("#st-top-toolbar { height: var(--st-header-height) !important; position:sticky", css)
 
     def test_actual_desk_status_pills_consume_semantic_theme_colors(self):
-        css = DESK_CSS_PATH.read_text(encoding="utf-8")
+        static_css = DESK_CSS_PATH.read_text(encoding="utf-8")
+        runtime_css = ENGINE.render_css(ENGINE.DEFAULT_CONFIG)
         selectors_by_token = {
             "--st-success": (".indicator-pill.green", ".badge-success"),
             "--st-warning": (".indicator-pill.orange", ".indicator-pill.yellow", ".badge-warning"),
@@ -103,10 +104,12 @@ class ThemeEngineTest(unittest.TestCase):
 
         for token, selectors in selectors_by_token.items():
             for selector in selectors:
-                self.assertIn(selector, css)
-            self.assertIn(f"--indicator-color: var({token})", css)
-            self.assertIn(f"color: var({token}) !important", css)
-            self.assertIn(f"color-mix(in srgb,var({token}) 12%,transparent)", css)
+                self.assertIn(selector, static_css)
+                self.assertIn(selector, runtime_css)
+            for css in (static_css, runtime_css):
+                self.assertIn(f"--indicator-color: var({token})", css)
+                self.assertIn(f"color: var({token}) !important", css)
+                self.assertIn(f"color-mix(in srgb,var({token}) 12%,transparent)", css)
 
     def test_non_sticky_toolbar_is_still_removed_from_flex_layout(self):
         config = dict(ENGINE.DEFAULT_CONFIG)
