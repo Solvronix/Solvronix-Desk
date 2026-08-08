@@ -1237,10 +1237,26 @@ body.st-has-toolbar .page-container {{ padding-top: var(--st-header-height) !imp
   color: var(--st-sidebar-hover-text) !important;
   stroke: currentColor !important;
 }}
-.indicator.green,.alert-success {{ --indicator-color: var(--st-success); }}
-.indicator.orange,.alert-warning {{ --indicator-color: var(--st-warning); }}
-.indicator.red,.alert-danger {{ --indicator-color: var(--st-error); }}
-.indicator.blue,.alert-info {{ --indicator-color: var(--st-info); }}
+.indicator.green,.indicator-pill.green,.badge-success,.alert-success {{ --indicator-color: var(--st-success); }}
+.indicator.orange,.indicator.yellow,.indicator-pill.orange,.indicator-pill.yellow,.badge-warning,.alert-warning {{ --indicator-color: var(--st-warning); }}
+.indicator.red,.indicator-pill.red,.badge-danger,.alert-danger {{ --indicator-color: var(--st-error); }}
+.indicator.blue,.indicator.cyan,.indicator-pill.blue,.indicator-pill.cyan,.badge-info,.alert-info {{ --indicator-color: var(--st-info); }}
+.indicator-pill.green,.badge-success {{
+  background-color: color-mix(in srgb,var(--st-success) 12%,transparent) !important;
+  color: var(--st-success) !important;
+}}
+.indicator-pill.orange,.indicator-pill.yellow,.badge-warning {{
+  background-color: color-mix(in srgb,var(--st-warning) 12%,transparent) !important;
+  color: var(--st-warning) !important;
+}}
+.indicator-pill.red,.badge-danger {{
+  background-color: color-mix(in srgb,var(--st-error) 12%,transparent) !important;
+  color: var(--st-error) !important;
+}}
+.indicator-pill.blue,.indicator-pill.cyan,.badge-info {{
+  background-color: color-mix(in srgb,var(--st-info) 12%,transparent) !important;
+  color: var(--st-info) !important;
+}}
 body:has(.for-login),body:has(.for-forgot),body:has(.for-email-login) {{
   background-color: var(--st-login-bg) !important; {bg_image}
   background-position:center!important;background-size:cover!important;
