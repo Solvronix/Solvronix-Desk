@@ -828,6 +828,7 @@ test("apply synchronizes every schema color control to the exact effective previ
     workspace_card_color: "--studio-workspace-card", number_card_color: "--studio-number-card",
     chart_background: "--studio-chart-bg", login_background: "--studio-login-bg",
     login_gradient_to: "--studio-login-to",
+    icon_rail_background: "--studio-rail-bg", icon_rail_active_color: "--studio-rail-active",
   };
   const definitions = studio._context.solvronix_desk.theme_studio_sections
     .flatMap((section) => section.controls)
@@ -835,9 +836,9 @@ test("apply synchronizes every schema color control to the exact effective previ
   const optionalKeys = Array.from(definitions
     .filter((definition) => definition[2] === "optional-color")
     .map((definition) => definition[0]));
-  assert.equal(definitions.length, 39);
-  assert.equal(Object.keys(cssVariableByKey).length, 39);
-  assert.deepEqual(optionalKeys, ["toolbar_text_color", "sidebar_text_color", "sidebar_icon_color", "sidebar_active_text_color"]);
+  assert.equal(definitions.length, 41);
+  assert.equal(Object.keys(cssVariableByKey).length, 41);
+  assert.deepEqual(optionalKeys, ["toolbar_text_color", "sidebar_text_color", "sidebar_icon_color", "sidebar_active_text_color", "icon_rail_background", "icon_rail_active_color"]);
 
   const inputsByKey = {};
   const controls = {};

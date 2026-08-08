@@ -32,6 +32,11 @@
   "column_break_visual_shape",
   "shadow_style",
   "sidebar_width",
+  "sidebar_layout",
+  "icon_rail_width",
+  "column_break_icon_rail",
+  "icon_rail_background",
+  "icon_rail_active_color",
   "studio_layout",
   "section_theme_engine",
   "theme_enabled",
@@ -215,6 +220,40 @@
    "fieldname": "sidebar_width",
    "fieldtype": "Int",
    "label": "Sidebar Width"
+  },
+  {
+   "default": "Icon Rail",
+   "description": "Icon Rail shows a slim app-icon column beside the workspace list, with each workspace's own items shown when its icon is selected. Tree reverts to Frappe's classic single-column sidebar.",
+   "fieldname": "sidebar_layout",
+   "fieldtype": "Select",
+   "label": "Sidebar Layout",
+   "options": "Tree\nIcon Rail"
+  },
+  {
+   "default": "72",
+   "depends_on": "eval:doc.sidebar_layout == \"Icon Rail\"",
+   "description": "Icon rail width in pixels (60–120).",
+   "fieldname": "icon_rail_width",
+   "fieldtype": "Int",
+   "label": "Icon Rail Width"
+  },
+  {
+   "fieldname": "column_break_icon_rail",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.sidebar_layout == \"Icon Rail\"",
+   "description": "Optional override. Leave empty to reuse the site's accent color.",
+   "fieldname": "icon_rail_background",
+   "fieldtype": "Color",
+   "label": "Icon Rail Background"
+  },
+  {
+   "depends_on": "eval:doc.sidebar_layout == \"Icon Rail\"",
+   "description": "Optional override. Leave empty to reuse the site's accent color.",
+   "fieldname": "icon_rail_active_color",
+   "fieldtype": "Color",
+   "label": "Icon Rail Active Color"
   },
   {
    "default": "[\"metrics\",\"chart\",\"activity\",\"quick_actions\"]",

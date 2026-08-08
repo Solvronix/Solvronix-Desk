@@ -65,8 +65,8 @@ Four one-click starting points appear in Theme Studio. Pick one and the brand an
 ### Auto Color System
 You set one brand color. The system automatically generates your complete color palette — backgrounds, hover states, borders, shadows — using CSS `color-mix()`. Change your brand color and everything updates instantly. No developer needed.
 
-### Slim Icon Sidebar
-A 64px icon rail instead of the default wide sidebar. Expands to 240px on click. Saves screen space, reduces visual clutter. State is saved per user.
+### Icon Rail Sidebar
+A slim, always-visible app-icon column sits beside the classic workspace list — one compact tile per installed app (ERPNext, CRM, Frappe HR, and so on), each using that app's own icon in a theme-colored tile that follows your brand/accent color automatically. New apps and workspaces appear on the rail automatically. Collapses to icon-only via its own toggle, independent of the classic sidebar. Switch back to the classic single-column Tree layout at any time from Theme Studio → Navbar & Sidebar → Sidebar Layout.
 
 ### Dark Mode — Light / Dark / Auto
 One click cycles between light, dark, and auto. Auto follows your operating system theme and switches live when the OS does. Both modes respect your brand colors. Works on every page.
@@ -133,13 +133,15 @@ On first launch, a checklist banner guides System Manager users through the init
 |:---:|:---:|
 | ![Login Page](docs/screenshots/login.png) | ![Today's View](docs/screenshots/smart-home.png) |
 
-| Theme Studio / Settings | Dark Mode |
+| Theme Studio | Dark Mode |
 |:---:|:---:|
-| ![Theme Settings](docs/screenshots/theme-settings.png) | ![Dark Mode](docs/screenshots/dark-mode.png) |
+| ![Theme Studio](docs/screenshots/theme-studio.png) | ![Dark Mode](docs/screenshots/dark-mode.png) |
 
-| Command Palette | Slim Sidebar |
+| Command Palette | Icon Rail Sidebar |
 |:---:|:---:|
-| ![Command Palette](docs/screenshots/command-palette.png) | ![Slim Sidebar](docs/screenshots/sidebar.png) |
+| ![Command Palette](docs/screenshots/command-palette.png) | ![Icon Rail Sidebar](docs/screenshots/sidebar.png) |
+
+![All Apps](docs/screenshots/All-apps.png)
 
 ---
 

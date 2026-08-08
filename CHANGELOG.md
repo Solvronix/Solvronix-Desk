@@ -1,5 +1,37 @@
 # Changelog
 
+## [2.1.0] — 2026-08-07 — Icon Rail Sidebar
+
+### Added
+- Icon Rail sidebar layout (Theme Studio → Navbar & Sidebar → Sidebar Layout), on by default: a slim, always-visible column topped with the company logo, with one compact icon per installed app (e.g. ERPNext, CRM, Frappe HR) below it, each using that app's own icon in a theme-colored tile that follows the site's brand/accent color automatically. Beside it, Frappe's own workspace sidebar list still renders normally. New apps/workspaces appear automatically; the rail can also collapse to icon-only. Administrators can switch back to the classic single-column Tree layout at any time.
+- Theme Studio Chart System with schema-driven global defaults and permission-filtered individual editors for Dashboard Charts, Dashboard Graphs, Query/Script Report charts, and Number Card sparklines
+- Visual, structural, and behavioral chart controls for surfaces, palettes, individual series, axes, legends, labels, tooltips, animation, interaction, and safe advanced options
+- Layered chart reset behavior: property and chart resets inherit global values, while the global reset restores built-in system defaults
+
+### Changed
+- Theme Studio is now the single user-facing configuration experience for visual themes, branding, Smart Home, and Command Palette settings
+- Opening Theme Settings redirects to Theme Studio; administrators retain an explicit raw-settings maintenance action
+- Branding image controls in Theme Studio now use Frappe attachment fields instead of requiring manually entered URLs
+- Theme Studio now uses a readable control and preview typography scale instead of 6–10px interface text
+- Theme Studio's login scene now mirrors the public login card, branding, image background, fields, links, and light/dark token behavior
+- Dashboard, Form, Table, and Login previews now support click-to-select property editing in a floating inspector beside the selected item
+- Published profile and realtime theme refreshes now update chart configuration atomically without changing chart data or callbacks
+
+### Fixed
+- The classic sidebar's own branding header (`#st-company-header`, shown beside the Icon Rail) no longer shows the company logo a second time next to the company name — it's text-only by design now, since the Icon Rail's own brand tile is the logo's one dedicated home in the sidebar chrome
+- Icon Rail app tiles and the collapse chevron are now actually visible — `frappe.utils.icon()`'s svg renders via the `--icon-fill`/`--icon-stroke` custom properties Frappe's own CSS declares, not `color`/currentColor, so setting `color` on the tile had no effect: every icon silently rendered with whichever `--icon-stroke` happened to be ambient on the page, invisible against the tile's own accent-colored background — every tile appeared as a blank color swatch
+- `publish_theme_config` (the whitelisted API Theme Studio's Publish action calls) now also protects the site's company logo/name/favicon/tagline when switching profiles, independent of the editor's own safeguard above — closing the same class of bug for any direct API call, script, or future code path that doesn't go through Theme Studio's UI, without overriding a deliberate clear on an already-active profile
+- The Icon Rail's own logo tile no longer goes stale after a live theme update — publishing a new company logo/name previously refreshed the classic sidebar's header on every open Desk tab but left the rail showing the old logo until a full reload
+- The Icon Rail's list column no longer gets forced open on mobile (≤767px) on every page change — that forced Frappe's own `.expanded` class into a full-screen overlay with a dimming scrim that reappeared immediately after being tapped shut, permanently covering Desk content; mobile now keeps its native collapsed/overlay toggle untouched
+- Icon Rail background/active-color field descriptions in Theme Settings now correctly describe the automatic fallback (the site's accent color) instead of a color that was never actually used
+- Loading a theme profile (built-in or custom) in Theme Studio no longer silently erases the site's company logo/name/favicon/tagline when published - every profile's stored config carries these as blank unless it explicitly sets them, since a profile is a reusable visual theme, not a site's identity; they're now always preserved from the current site config unless the profile deliberately overrides them
+- The active workspace's label in the Icon Rail no longer appears blank; padding is tighter throughout, and the rail can now collapse to dots-only via a toggle at its base, matching the classic sidebar's own collapse behavior
+- The classic sidebar's own "Workspaces" quick-list no longer duplicates the new Icon Rail column — it now only shows when Sidebar Layout is Tree, and updates immediately if the layout is changed live
+- Icon Rail's list column no longer renders broken (item labels bleeding out of a zero-width collapsed container) — it now stays fully expanded via Frappe's own `.expanded` sidebar state instead of a custom collapse/hide CSS rule
+- Sidebar layout changes (Tree ↔ Icon Rail) now apply live to every open Desk tab the moment a theme is published, matching every other Theme Studio setting — previously this required a full page reload, since it's the only setting read from boot data rather than applied via CSS variables
+- Icon rail no longer renders partly underneath the fixed top toolbar
+- Icon rail width no longer shows "undefined" or silently clamps to its minimum after a Theme Settings document is saved for the first time — Frappe's Int-field save serialization writes an unset field as 0 (not None), which was previously misread as a deliberate override
+
 ## [2.0.1] — 2026-08-03
 
 ### Fixed
@@ -10,9 +42,6 @@
 ## [2.0.0] — 2026-07-29 — Complete Theme Studio
 
 ### Added
-- Theme Studio Chart System with schema-driven global defaults and permission-filtered individual editors for Dashboard Charts, Dashboard Graphs, Query/Script Report charts, and Number Card sparklines
-- Visual, structural, and behavioral chart controls for surfaces, palettes, individual series, axes, legends, labels, tooltips, animation, interaction, and safe advanced options
-- Layered chart reset behavior: property and chart resets inherit global values, while the global reset restores built-in system defaults
 - A complete searchable visual editor spanning colours, navigation, form controls, typography, cards, tables, dashboards, login branding, layout, accessibility, and advanced overrides
 - Frappe Default, Light, Dark, High Contrast, Solvronix, and Forest profiles, plus custom profile create, update, duplicate, rename, delete, import, and export workflows
 - Live Dashboard, Form, Table, and Login preview scenes with desktop/tablet/mobile modes, Frappe comparison, drag-and-drop layout, undo/redo, draft saving, and section reset
