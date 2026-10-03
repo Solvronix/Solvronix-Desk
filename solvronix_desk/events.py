@@ -1,6 +1,19 @@
 import frappe
 
 
+# ── BRAND NAME FROM THE FIRST COMPANY ──────────────────────────────────────────
+def company_after_insert(doc, method):
+    """On a fresh site the setup wizard creates the Company after this app is
+    installed; pick its name up for Theme Settings if none is set yet."""
+    try:
+        from solvronix_desk.setup import fill_brand_name
+
+        fill_brand_name(company=doc.name)
+    except Exception:
+        # Never block creating a Company over a cosmetic default.
+        frappe.log_error("solvronix_desk: brand name from Company failed")
+
+
 # ── THEME SETTINGS REALTIME PROPAGATION ────────────────────────────────────────
 def theme_settings_on_update(doc, method):
     """Broadcast theme change to all connected desk users instantly.

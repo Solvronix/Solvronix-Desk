@@ -1,0 +1,49 @@
+{
+ "actions": [],
+ "creation": "2026-09-28 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "icon",
+  "title",
+  "subtitle"
+ ],
+ "fields": [
+  {
+   "fieldname": "icon",
+   "fieldtype": "Select",
+   "label": "Icon",
+   "options": "es-line-tiles\nes-line-dashboard\nes-line-chart\nes-line-reports\nes-line-plans\nes-line-notes\nes-line-support\nes-line-chat\nes-line-ticket\nes-line-people\nes-line-teams\nes-line-customer\nes-line-security\nes-line-lock\nes-line-cloud\nes-line-globe\nes-line-zap\nes-line-activity\nes-line-calender\nes-line-time\nes-line-payments\nes-line-folder\nes-line-settings\nes-line-star",
+   "default": "es-line-tiles",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Data",
+   "label": "Subtitle",
+   "in_list_view": 1,
+   "columns": 5
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-28 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Solvronix Desk",
+ "name": "Login Feature Card",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

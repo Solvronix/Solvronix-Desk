@@ -1,0 +1,280 @@
+{
+ "actions": [],
+ "creation": "2026-09-28 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "general_section",
+  "enabled",
+  "layout",
+  "column_break_general",
+  "auto_fetch_branding",
+  "branding_section",
+  "company_name",
+  "logo",
+  "hero_logo",
+  "column_break_branding",
+  "favicon",
+  "brand_color",
+  "accent_color",
+  "hero_section",
+  "badge_text",
+  "headline",
+  "description",
+  "column_break_hero",
+  "hero_bg_image",
+  "hero_gradient_from",
+  "hero_gradient_to",
+  "show_hero_pattern",
+  "features_section",
+  "show_feature_panel",
+  "feature_panel_title",
+  "column_break_features",
+  "feature_status_text",
+  "feature_cards",
+  "card_section",
+  "card_eyebrow",
+  "card_heading",
+  "card_subtitle",
+  "button_label",
+  "column_break_card",
+  "security_note",
+  "back_link_label",
+  "back_link_url"
+ ],
+ "fields": [
+  {
+   "fieldname": "general_section",
+   "fieldtype": "Section Break",
+   "label": "General"
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Use Login Page Designer",
+   "default": "1",
+   "description": "Off: the login page keeps its previous Theme Studio look."
+  },
+  {
+   "fieldname": "layout",
+   "fieldtype": "Select",
+   "label": "Layout",
+   "options": "Split Screen\nCentered Card",
+   "default": "Split Screen"
+  },
+  {
+   "fieldname": "column_break_general",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "auto_fetch_branding",
+   "fieldtype": "Check",
+   "label": "Auto-fill Branding",
+   "default": "1",
+   "description": "Name and logo come from your default Company (then Theme Studio / Website Settings). Untick to set your own name, logo and colours."
+  },
+  {
+   "fieldname": "branding_section",
+   "fieldtype": "Section Break",
+   "label": "Branding"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name",
+   "read_only_depends_on": "eval:doc.auto_fetch_branding"
+  },
+  {
+   "fieldname": "logo",
+   "fieldtype": "Attach Image",
+   "label": "Logo",
+   "read_only_depends_on": "eval:doc.auto_fetch_branding"
+  },
+  {
+   "fieldname": "hero_logo",
+   "fieldtype": "Attach Image",
+   "label": "Logo on Hero Panel",
+   "depends_on": "eval:doc.layout=='Split Screen'",
+   "description": "Optional light/white version shown on the colored panel. Falls back to Logo."
+  },
+  {
+   "fieldname": "column_break_branding",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "favicon",
+   "fieldtype": "Attach Image",
+   "label": "Favicon",
+   "read_only_depends_on": "eval:doc.auto_fetch_branding"
+  },
+  {
+   "fieldname": "brand_color",
+   "fieldtype": "Color",
+   "label": "Brand Color",
+   "read_only_depends_on": "eval:doc.auto_fetch_branding"
+  },
+  {
+   "fieldname": "accent_color",
+   "fieldtype": "Color",
+   "label": "Accent Color",
+   "read_only_depends_on": "eval:doc.auto_fetch_branding"
+  },
+  {
+   "fieldname": "hero_section",
+   "fieldtype": "Section Break",
+   "label": "Hero Panel",
+   "depends_on": "eval:doc.layout=='Split Screen'",
+   "description": "Use {company} anywhere to insert the company name."
+  },
+  {
+   "fieldname": "badge_text",
+   "fieldtype": "Data",
+   "label": "Badge Text"
+  },
+  {
+   "fieldname": "headline",
+   "fieldtype": "Small Text",
+   "label": "Headline"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "column_break_hero",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "hero_bg_image",
+   "fieldtype": "Attach Image",
+   "label": "Background Image"
+  },
+  {
+   "fieldname": "hero_gradient_from",
+   "fieldtype": "Color",
+   "label": "Gradient Start",
+   "description": "Defaults to Brand Color."
+  },
+  {
+   "fieldname": "hero_gradient_to",
+   "fieldtype": "Color",
+   "label": "Gradient End",
+   "description": "Defaults to a lighter Brand Color."
+  },
+  {
+   "fieldname": "show_hero_pattern",
+   "fieldtype": "Check",
+   "label": "Show Grid Pattern",
+   "default": "1"
+  },
+  {
+   "fieldname": "features_section",
+   "fieldtype": "Section Break",
+   "label": "Feature Cards",
+   "depends_on": "eval:doc.layout=='Split Screen'"
+  },
+  {
+   "fieldname": "show_feature_panel",
+   "fieldtype": "Check",
+   "label": "Show Feature Panel",
+   "default": "1"
+  },
+  {
+   "fieldname": "feature_panel_title",
+   "fieldtype": "Data",
+   "label": "Panel Title",
+   "depends_on": "eval:doc.show_feature_panel"
+  },
+  {
+   "fieldname": "column_break_features",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "feature_status_text",
+   "fieldtype": "Data",
+   "label": "Status Text",
+   "depends_on": "eval:doc.show_feature_panel",
+   "description": "Shown with a green dot, e.g. \"Securely connected\"."
+  },
+  {
+   "fieldname": "feature_cards",
+   "fieldtype": "Table",
+   "label": "Cards",
+   "options": "Login Feature Card",
+   "depends_on": "eval:doc.show_feature_panel",
+   "description": "Up to 4 cards. Leave empty to use the built-in cards."
+  },
+  {
+   "fieldname": "card_section",
+   "fieldtype": "Section Break",
+   "label": "Sign-in Card"
+  },
+  {
+   "fieldname": "card_eyebrow",
+   "fieldtype": "Data",
+   "label": "Eyebrow",
+   "depends_on": "eval:doc.layout=='Split Screen'"
+  },
+  {
+   "fieldname": "card_heading",
+   "fieldtype": "Data",
+   "label": "Heading"
+  },
+  {
+   "fieldname": "card_subtitle",
+   "fieldtype": "Small Text",
+   "label": "Subtitle"
+  },
+  {
+   "fieldname": "button_label",
+   "fieldtype": "Data",
+   "label": "Button Label",
+   "depends_on": "eval:doc.layout=='Split Screen'"
+  },
+  {
+   "fieldname": "column_break_card",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "security_note",
+   "fieldtype": "Data",
+   "label": "Security Note",
+   "depends_on": "eval:doc.layout=='Split Screen'"
+  },
+  {
+   "fieldname": "back_link_label",
+   "fieldtype": "Data",
+   "label": "Back Link Label",
+   "depends_on": "eval:doc.layout=='Split Screen'"
+  },
+  {
+   "fieldname": "back_link_url",
+   "fieldtype": "Data",
+   "label": "Back Link URL",
+   "depends_on": "eval:doc.layout=='Split Screen'",
+   "description": "e.g. / or https://example.com. Leave empty to hide the link."
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-09-28 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Solvronix Desk",
+ "name": "Login Page Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 0,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

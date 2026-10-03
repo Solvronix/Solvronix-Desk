@@ -96,11 +96,36 @@ class IconRailTest(unittest.TestCase):
         css = CSS.read_text(encoding="utf-8")
         engine = THEME_ENGINE.read_text(encoding="utf-8")
 
-        self.assertIn('class="st-rail-app-icon"', js)
+        self.assertIn('var iconClass = "st-rail-app-icon";', js)
         self.assertIn("frappe.utils.icon(item.icon", js)
         self.assertIn("st-rail-app-fallback", js)
         self.assertIn("background: var(--st-rail-bg, var(--st-accent));", css)
         self.assertIn('"--st-rail-bg": config["icon_rail_background"] or config["accent_color"]', engine)
+
+    def test_rail_prefers_official_app_logo_over_workspace_glyph(self):
+        """Apps that ship an official logo (App-type Desktop Icon logo_url,
+        then app_data.app_logo_url) show it instead of the generic workspace
+        glyph. Core's framework-logo fallback (a list, or the framework's own
+        logo for another app) is ignored so logo-less apps keep their glyph,
+        and a broken image drops back to the glyph tile."""
+        js = JS.read_text(encoding="utf-8")
+        css = CSS.read_text(encoding="utf-8")
+
+        self.assertIn("frappe.boot && frappe.boot.desktop_icons", js)
+        self.assertIn('icon.icon_type !== "App"', js)
+        self.assertIn("icon.logo_url || icon.icon_image", js)
+        self.assertIn('typeof url !== "string"', js)
+        self.assertIn('appKey !== "frappe" && frameworkLogo && url === frameworkLogo', js)
+        self.assertIn('iconClass += " has-logo"', js)
+        self.assertIn('removeClass("has-logo")', js)
+        self.assertIn("#st-icon-rail .st-rail-app-icon.has-logo {", css)
+        self.assertIn(".has-logo .st-rail-app-glyph { display: none; }", css)
+
+    def test_rail_labels_wrap_to_two_lines_instead_of_truncating(self):
+        css = CSS.read_text(encoding="utf-8")
+        label = css[css.index("#st-icon-rail .st-rail-app-label {"):css.index("#st-icon-rail .st-rail-app.st-rail-active .st-rail-app-label")]
+        self.assertIn("-webkit-line-clamp: 2;", label)
+        self.assertNotIn("white-space: nowrap", label)
 
     def test_rail_icons_are_actually_visible_not_just_correctly_colored_in_theory(self):
         """Regression test: frappe.utils.icon()'s <svg class="icon"> renders
@@ -317,8 +342,8 @@ class IconRailTest(unittest.TestCase):
     def test_rail_assets_are_cache_busted(self):
         hooks = HOOKS.read_text(encoding="utf-8")
 
-        self.assertIn("/assets/solvronix_desk/css/sidebar.css?v=31", hooks)
-        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=63", hooks)
+        self.assertIn("/assets/solvronix_desk/css/sidebar.css?v=32", hooks)
+        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=64", hooks)
         self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=19", hooks)
 
     def test_legacy_config_treats_never_set_icon_rail_width_as_unset_not_zero(self):

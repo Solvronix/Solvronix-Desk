@@ -1,0 +1,371 @@
+{#-
+	Split-screen login (Login Page Settings → Layout: Split Screen).
+	The form markup mirrors frappe/www/login.html so Frappe's own login.js keeps
+	driving every flow: password, forgot, signup, email link, LDAP, social, 2FA.
+-#}
+{% extends "templates/web.html" %}
+
+{% block navbar %}
+{% if show_language_picker %}
+	{{ super() }}
+{% endif %}
+{% endblock %}
+
+{% block favicon %}
+<link rel="shortcut icon" href="{{ (sl.favicon or favicon or '/assets/frappe/images/frappe-favicon.svg') | abs_url | e }}" type="image/x-icon">
+{% endblock %}
+
+{% block head_include %}
+{{ include_style('login.bundle.css') }}
+<link rel="stylesheet" href="/assets/solvronix_desk/css/login_split.css?v=6">
+<style>
+	body.sl-split {
+		--sl-brand: {{ sl.brand_color }};
+		--sl-accent: {{ sl.accent_color }};
+		{%- if sl.on_hero %}
+		--sl-on-hero: {{ sl.on_hero }};
+		{%- endif %}
+		{%- if sl.hero_from %}
+		--sl-hero-from: {{ sl.hero_from }};
+		{%- endif %}
+		{%- if sl.hero_to %}
+		--sl-hero-to: {{ sl.hero_to }};
+		{%- endif %}
+		{%- if sl.hero_bg_image %}
+		--sl-hero-image: url("{{ sl.hero_bg_image | e }}");
+		{%- endif %}
+	}
+</style>
+<script>
+	/* Resolve Theme Studio's Light/Dark/Auto before first paint. */
+	(function (mode) {
+		var dark = mode === "dark" ||
+			(mode === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+		document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+	})({{ (sl.preferred_mode or "Light") | lower | tojson }});
+</script>
+{% endblock %}
+
+{% macro brand_mark(src, class_name) -%}
+{% if src %}
+<img class="{{ class_name }} sl-mark" src="{{ src | e }}" alt="{{ sl.company_name | e }}" data-initials="{{ sl.initials | e }}">
+{% else %}
+<span class="{{ class_name }} sl-mark-fallback">{{ sl.initials | e }}</span>
+{% endif %}
+{%- endmacro %}
+
+{% macro card_head(title, subtitle=null, eyebrow=null) -%}
+<div class="sl-card-head">
+	{{ brand_mark(sl.logo, "sl-card-logo") }}
+	{% if eyebrow %}
+	<div class="sl-eyebrow">
+		<span class="sl-eyebrow-icon">
+			<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#es-line-security"></use></svg>
+		</span>
+		{{ eyebrow | e }}
+	</div>
+	{% endif %}
+	<h1 class="sl-card-title">{{ title | e }}</h1>
+	{% if subtitle %}
+	<p class="sl-card-subtitle">{{ subtitle | e }}</p>
+	{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro signup_prompt() -%}
+{%- if not disable_signup and not disable_user_pass_login -%}
+<div class="sign-up-message sl-switch">
+	{{ _("New to {0}?").format(sl.company_name | e) }}
+	<a href="#signup">{{ _("Create account") }}</a>
+</div>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro security_note() -%}
+{% if sl.security_note %}
+<div class="sl-security-note">
+	<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><use href="#es-line-security"></use></svg>
+	<span>{{ sl.security_note | e }}</span>
+</div>
+{% endif %}
+{%- endmacro %}
+
+{% macro email_login_body() -%}
+{% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
+<div class="page-card-body">
+	<div class="login-error-banner">
+		<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#es-line-alert-triangle"></use></svg>
+		<span></span>
+	</div>
+	<div class="form-group">
+		<label class="form-label" for="login_email">{{ login_label or _("Email") }}</label>
+		<div class="email-field">
+			<input type="text" id="login_email" class="form-control"
+				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder }}{% else %}{{ _('jane@example.com') }}{% endif %}"
+				required autofocus autocomplete="username">
+			<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+				<use class="es-lock" href="#es-line-email"></use>
+			</svg>
+		</div>
+		<p class="field-error"></p>
+	</div>
+
+	<div class="form-group">
+		<div class="sl-label-row">
+			<label class="form-label" for="login_password">{{ _("Password") }}</label>
+			{% if not disable_user_pass_login %}
+			<a class="sl-forgot" href="#forgot">{{ _("Forgot password?") }}</a>
+			{% endif %}
+		</div>
+		<div class="password-field">
+			<input type="password" id="login_password" class="form-control" placeholder="•••••"
+				autocomplete="current-password" required>
+			<svg class="field-icon password-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+				<use class="es-lock" href="#es-line-lock"></use>
+			</svg>
+			<svg toggle="#login_password" class="toggle-password" width="16" height="16" viewBox="0 0 16 16" fill="none">
+				<use href="#es-line-preview"></use>
+			</svg>
+		</div>
+		<p class="field-error"></p>
+	</div>
+</div>
+{% endif %}
+<div class="page-card-actions">
+	{% if not disable_user_pass_login %}
+	<button class="btn btn-block btn-login sl-btn-primary" type="submit">{{ sl.button_label | e }}</button>
+	{% endif %}
+	{% if ldap_settings and ldap_settings.enabled %}
+	<button class="btn btn-block btn-login btn-ldap-login {{ 'sl-btn-primary' if disable_user_pass_login else 'sl-btn-secondary' }}">
+		{{ _("Login with LDAP") }}</button>
+	{% endif %}
+	{% if login_with_email_link %}
+	<a href="#login-with-email-link" class="btn btn-block btn-login-option btn-login-with-email-link sl-btn-secondary">
+		{{ _("Login with Email Link") }}</a>
+	{% endif %}
+	{% if social_login %}
+	<div class="social-logins text-center">
+		<div class="sl-divider"><span>{{ _("or continue with") }}</span></div>
+		<div class="social-login-buttons">
+			{% for provider in provider_logins %}
+			<div class="login-button-wrapper">
+				<a href="{{ provider.auth_url }}" class="btn btn-block btn-login-option sl-btn-secondary btn-{{ provider.name }}">
+					{% if provider.icon %}{{ provider.icon }}{% endif %}
+					{{ _("Login with {0}").format(provider.provider_name) }}</a>
+			</div>
+			{% endfor %}
+		</div>
+	</div>
+	{% endif %}
+</div>
+{%- endmacro %}
+
+{% block page_content %}
+<noscript>
+	<div class="text-center my-5">
+		<h4>{{ _("Javascript is disabled on your browser") }}</h4>
+		<p class="text-muted">{{ _("You need to enable JavaScript for your app to work.") }}</p>
+	</div>
+</noscript>
+
+{% if sl_preview %}
+<div class="sl-preview-ribbon">{{ _("Preview — sign-in is disabled here, so this form won't change your session.") }}</div>
+{% endif %}
+
+<div class="sl-shell{% if sl.show_pattern %} sl-has-pattern{% endif %}">
+	<aside class="sl-hero" aria-label="{{ sl.company_name | e }}">
+		<div class="sl-hero-inner">
+			<div class="sl-hero-brand">
+				{{ brand_mark(sl.hero_logo, "sl-hero-logo") }}
+			</div>
+
+			{% if sl.badge_text %}
+			<div class="sl-badge"><span class="sl-dot"></span>{{ sl.badge_text | e }}</div>
+			{% endif %}
+			{% if sl.headline %}
+			<h2 class="sl-headline">{{ sl.headline | e }}</h2>
+			{% endif %}
+			{% if sl.description %}
+			<p class="sl-description">{{ sl.description | e }}</p>
+			{% endif %}
+
+			{% if sl.show_feature_panel %}
+			<div class="sl-feature-panel">
+				<div class="sl-feature-panel-head">
+					<span class="sl-feature-panel-title">
+						<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#es-line-activity"></use></svg>
+						{{ sl.feature_panel_title | e }}
+					</span>
+					{% if sl.feature_status_text %}
+					<span class="sl-feature-status"><span class="sl-dot"></span>{{ sl.feature_status_text | e }}</span>
+					{% endif %}
+				</div>
+				<div class="sl-feature-grid" style="--sl-feature-count: {{ sl.features | length }}">
+					{% for card in sl.features %}
+					<div class="sl-feature-card">
+						<span class="sl-feature-icon">
+							<svg width="18" height="18" viewBox="0 0 16 16" fill="none"><use href="#{{ card.icon | e }}"></use></svg>
+						</span>
+						<div class="sl-feature-title">{{ card.title | e }}</div>
+						{% if card.subtitle %}<div class="sl-feature-subtitle">{{ card.subtitle | e }}</div>{% endif %}
+					</div>
+					{% endfor %}
+				</div>
+			</div>
+			{% endif %}
+		</div>
+	</aside>
+
+	<div class="sl-auth">
+		<div class="sl-auth-inner">
+			{% if sl.back_link_url %}
+			<a class="sl-back-link" href="{{ sl.back_link_url | e }}">
+				<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#es-line-left-chevron"></use></svg>
+				{{ sl.back_link_label | e }}
+			</a>
+			{% endif %}
+
+			<section class="for-login">
+				<div class="login-content page-card sl-card">
+					{{ card_head(sl.card_heading, sl.card_subtitle, sl.card_eyebrow) }}
+					<form class="form-signin form-login" role="form" novalidate>
+						{{ email_login_body() }}
+					</form>
+					{{ signup_prompt() }}
+					{{ security_note() }}
+				</div>
+			</section>
+
+			{%- if social_login -%}
+			<section class="for-email-login">
+				<div class="login-content page-card sl-card">
+					{{ card_head(sl.card_heading, sl.card_subtitle, sl.card_eyebrow) }}
+					<form class="form-signin form-login" role="form" novalidate>
+						{{ email_login_body() }}
+					</form>
+					{{ signup_prompt() }}
+					{{ security_note() }}
+				</div>
+			</section>
+			{%- endif -%}
+
+			<section class="for-signup {{ 'signup-disabled' if disable_signup else '' }}">
+				<div class="login-content page-card sl-card">
+					{{ card_head(_("Create your account"), _("Let's set up your account."), sl.card_eyebrow) }}
+					{%- if not disable_signup -%}
+					{{ signup_form_template }}
+					{%- else -%}
+					<div class="signup-disabled-message">
+						<span class="indicator gray">{{ _("Signup Disabled") }}</span>
+						<p class="text-muted sign-up-message mt-1">{{ _("Signups have been disabled for this website.") }}</p>
+						<a href="#login" class="btn btn-block sl-btn-secondary">{{ _("Back to sign in") }}</a>
+					</div>
+					{%- endif -%}
+				</div>
+			</section>
+
+			<section class="for-forgot">
+				<div class="login-content page-card sl-card">
+					{{ card_head(_("Forgot password?"), _("Enter your email and we'll send you a password reset link."), sl.card_eyebrow) }}
+					<form class="form-signin form-forgot hide" role="form" novalidate>
+						<div class="page-card-body">
+							<div class="form-group">
+								<label class="form-label" for="forgot_email">{{ _("Email") }}</label>
+								<div class="email-field">
+									<input type="email" id="forgot_email" class="form-control"
+										placeholder="{{ _('jane@example.com') }}" required autofocus autocomplete="username">
+									<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+										<use class="es-lock" href="#es-line-email"></use>
+									</svg>
+								</div>
+								<p class="field-error"></p>
+							</div>
+						</div>
+						<div class="page-card-actions">
+							<button class="btn btn-block btn-primary btn-signup btn-forgot sl-btn-primary" type="submit" disabled>
+								{{ _("Send Link") }}</button>
+						</div>
+					</form>
+					<div class="sign-up-message sl-switch">
+						<a href="#login">{{ _("Back to sign in") }}</a>
+					</div>
+				</div>
+			</section>
+
+			<section class="for-login-with-email-link">
+				<div class="login-content page-card sl-card">
+					{{ card_head(sl.card_heading, _("We'll email you a one-time sign-in link."), sl.card_eyebrow) }}
+					<form class="form-signin form-login-with-email-link hide" role="form" novalidate>
+						<div class="page-card-body">
+							<div class="login-success-banner">
+								<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#es-line-alert-circle"></use></svg>
+								<span>{{ _("Please check your email.") }}</span>
+							</div>
+							<div class="form-group">
+								<label class="form-label" for="login_with_email_link_email">{{ _("Email") }}</label>
+								<div class="email-field">
+									<input type="email" id="login_with_email_link_email" class="form-control"
+										placeholder="{{ _('jane@example.com') }}" required autofocus autocomplete="username">
+									<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+										<use class="es-lock" href="#es-line-email"></use>
+									</svg>
+								</div>
+								<p class="field-error"></p>
+							</div>
+						</div>
+						<div class="page-card-actions">
+							<p class="resend-link">
+								{{ _("Didn't receive the link?") }} <a href="#" class="btn-resend-link">{{ _("Resend") }}</a>
+							</p>
+							<button class="btn btn-block btn-primary btn-login btn-login-with-email-link sl-btn-primary" type="submit">
+								{{ _("Send login link") }}</button>
+							<a href="#login" class="btn btn-block btn-login-option sl-btn-secondary">{{ _("Login with password") }}</a>
+						</div>
+					</form>
+					{{ signup_prompt() }}
+				</div>
+			</section>
+
+			{% if not sl.hide_powered or sl.footer_text %}
+			<div class="sl-auth-footer">
+				{% if sl.footer_text %}<span>{{ sl.footer_text | e }}</span>{% endif %}
+				{% if not sl.hide_powered %}<span class="powered-by">Powered by Solvronix</span>{% endif %}
+			</div>
+			{% endif %}
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>{% include "templates/includes/login/login.js" %}</script>
+{% if sl_preview %}
+<script>
+	/* Preview: every login.js flow (password, LDAP, signup, forgot, email link,
+	   2FA) goes through login.call — stub it so typing credentials here can
+	   never replace the signed-in admin's session. */
+	login.call = function () {
+		frappe.msgprint({{ _("Preview only — sign-in is disabled on this page.") | tojson }});
+		return new Promise(function () {});
+	};
+	document.addEventListener("click", function (e) {
+		if (e.target.closest(".social-login-buttons a")) e.preventDefault();
+	}, true);
+</script>
+{% endif %}
+<script>
+	/* Swap a logo that can't load (e.g. a private file seen by a guest) for the initials mark. */
+	document.querySelectorAll("img.sl-mark").forEach(function (img) {
+		function fallback() {
+			var mark = document.createElement("span");
+			mark.className = img.className.replace("sl-mark", "sl-mark-fallback");
+			mark.textContent = img.dataset.initials;
+			img.replaceWith(mark);
+		}
+		if (img.complete && !img.naturalWidth) fallback();
+		else img.addEventListener("error", fallback, { once: true });
+	});
+</script>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}

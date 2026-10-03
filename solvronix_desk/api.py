@@ -113,13 +113,36 @@ def get_branding():
     try:
         s = frappe.get_single("Theme Settings")
         config = theme_engine.resolve_config(s, getattr(frappe.session, "user", None))
-        return {
+        branding = {
             "company_name": config.get("app_title") or s.company_name,
             "logo":         config.get("company_logo") or s.logo,
             "favicon":      config.get("favicon") or s.favicon,
-            "tagline":      s.tagline,
             "login_heading": config.get("login_heading"),
             "login_description": config.get("login_description"),
+        }
+        # Login Page Settings (when switched on) owns the login identity; its
+        # card copy only applies to Split Screen, so Theme Studio's heading and
+        # description keep driving the Centered Card page.
+        from solvronix_desk.login_config import get_login_config, public_url
+        login = get_login_config()
+        if login.enabled:
+            branding.update({
+                "company_name": login.company_name,
+                "logo": login.logo,
+                "favicon": login.favicon,
+            })
+            if login.layout == "split":
+                branding.update({
+                    "login_heading": login.card_heading,
+                    "login_description": login.card_subtitle,
+                })
+        if getattr(frappe.session, "user", None) == "Guest":
+            # A /private/ file 403s for guests on the login page.
+            branding["logo"] = public_url(branding["logo"]) or login.logo
+            branding["favicon"] = public_url(branding["favicon"]) or login.favicon
+        return {
+            **branding,
+            "tagline":      s.tagline,
             "footer_text": config.get("footer_text"),
             "hide_powered": config.get("hide_powered"),
             "preferred_mode": config.get("preferred_mode") or "Light",

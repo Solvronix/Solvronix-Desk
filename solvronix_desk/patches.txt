@@ -3,3 +3,5 @@
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
+solvronix_desk.patches.v2_2.seed_login_page_settings
+solvronix_desk.patches.v2_4.clear_default_brand_name

@@ -326,12 +326,34 @@
           appMeta[a.app_name] = a;
         });
 
+        /* Official app logo: App-type Desktop Icons first (hidden ones
+           included — ERPNext's ships hidden), then app_data.app_logo_url.
+           Core falls back to the framework logo (as a list) for apps that
+           ship none; ignore that so those apps keep their workspace glyph. */
+        var frameworkMeta = appMeta.frappe;
+        var frameworkLogo = frameworkMeta && typeof frameworkMeta.app_logo_url === "string"
+          ? frameworkMeta.app_logo_url : "";
+        var appLogo = {};
+        ((frappe.boot && frappe.boot.desktop_icons) || []).forEach(function (icon) {
+          if (!icon || icon.icon_type !== "App" || !icon.app || appLogo[icon.app]) return;
+          var url = icon.logo_url || icon.icon_image;
+          if (typeof url === "string" && url) appLogo[icon.app] = url;
+        });
+        function logoFor(appKey) {
+          if (appLogo[appKey]) return appLogo[appKey];
+          var meta = appMeta[appKey];
+          var url = meta && meta.app_logo_url;
+          if (typeof url !== "string" || !url) return "";
+          if (appKey !== "frappe" && frameworkLogo && url === frameworkLogo) return "";
+          return url;
+        }
+
         var items = appOrder.map(function (appKey) {
           var rep = appReps[appKey];
           var meta = appMeta[appKey];
           var title = (meta && meta.app_title) || rep.title || rep.name;
           var route = routeFor(rep);
-          return { appKey: appKey, title: title, route: route, icon: rep.icon };
+          return { appKey: appKey, title: title, route: route, icon: rep.icon, logo: logoFor(appKey) };
         }).filter(function (item) { return item.route; });
         if (!items.length) return;
 
@@ -346,9 +368,15 @@
               var iconHtml = item.icon
                 ? frappe.utils.icon(item.icon, "md")
                 : '<span class="st-rail-app-fallback">' + esc(String(item.title).charAt(0)) + '</span>';
+              var iconClass = "st-rail-app-icon";
+              if (item.logo) {
+                iconClass += " has-logo";
+                iconHtml = '<img class="st-rail-app-logo" src="' + esc(item.logo) + '" alt="" loading="lazy" decoding="async">' +
+                  '<span class="st-rail-app-glyph">' + iconHtml + '</span>';
+              }
               return '<a class="st-rail-app" href="/desk/' + encodeURIComponent(item.route).replace(/%2F/gi, "/") + '" ' +
                 'data-route="' + esc(item.route) + '" data-app="' + esc(item.appKey) + '" title="' + esc(item.title) + '">' +
-                '<span class="st-rail-app-icon">' + iconHtml + '</span>' +
+                '<span class="' + iconClass + '">' + iconHtml + '</span>' +
                 '<span class="st-rail-app-label st-rail-label">' + esc(item.title) + '</span></a>';
             }).join("") +
           '</div>' +
@@ -361,6 +389,12 @@
         $container.before(html);
         var $rail = $("#st-icon-rail");
         renderRailBrand();
+
+        /* Broken logo URL: drop back to the workspace glyph tile. */
+        $rail.find(".st-rail-app-logo").on("error", function () {
+          $(this).closest(".st-rail-app-icon").removeClass("has-logo");
+          $(this).remove();
+        });
 
         $rail.on("click", ".st-rail-app", function (e) {
           e.preventDefault();
