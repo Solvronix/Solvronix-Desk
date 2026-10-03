@@ -1,39 +1,8 @@
 # Changelog
 
-## [2.3.0] — 2026-10-03
+## [2.4.0] — 2026-10-04 — Login Page Designer
 
-Affects Frappe v16.0+ (tested on v16.35).
-
-### Changed
-- The login page works out of the box on a fresh install: every text field falls back to built-in, business-neutral copy at render time (headline, description, sign-in card, security note, feature cards), so the page is never blank even if nothing has been saved. Clearing a field brings its default back; a new *Restore Default Text* button clears them all, and empty fields show the default as a placeholder
-- Default feature cards adapt to the site: business-operations cards when ERPNext is installed, general collaboration cards otherwise
-- Company name and logo are now taken from the site's default Company when no Theme Studio branding is set, resolved each time the page is shown (so a Company created after install is picked up). Framework placeholder names are skipped and an app's own logo is never used as the company logo; without a logo the page shows the company's initials
-- On desktop the split-screen login always fits on one screen — the hero, feature cards and sign-in card scale with the window height instead of scrolling the page
-- Theme Settings' Company Name is filled in automatically from the site's organisation the first time: on install when a Company already exists, otherwise as soon as the setup wizard creates the first Company. A name the admin has typed is never replaced
-- Theme Studio's login heading and description only override the Login Page defaults once an admin has changed them
-
-### Fixed
-- New installs no longer brand the customer's site with the vendor name: the install no longer stores a default company name, and a patch clears that untouched value on existing sites that have no Company of that name, and fills in the site's own default Company name instead
-- Fresh installs no longer depend on saving the full Login Page Settings form at install time; only the on/off switches are stored
-
-## [2.2.1] — 2026-10-03
-
-Affects Frappe v16.0+ (tested on v16.35).
-
-### Changed
-- Icon Rail shows each app's official logo (from the app's Desktop Icon, then its apps-screen logo) instead of a generic workspace glyph; apps without a logo keep the glyph tile, and a logo that fails to load falls back to it
-- Icon Rail app names wrap to two lines instead of truncating
-
-### Fixed
-- `bench migrate` could switch an upgraded site's login to the Split Screen layout when the v2.2 seed patch hadn't run first; migrations now only ever seed Centered Card
-- Login preview no longer signs the admin in as another account if credentials are typed into the preview form
-- The public login page no longer requests private logo/favicon/background files that guests can't load; it falls back to the next public branding source
-- The login favicon URL is now HTML-escaped
-- Theme Studio's login heading and description apply again on the Centered Card layout while the designer is on
-- Login Page Settings text is now translatable
-- Hero and sign-in button text switches to dark on light brand colors so it stays readable
-
-## [2.2.0] — 2026-09-28
+Affects Frappe v16.0+ (tested on v16.35). First release after 2.1.3; supersedes the mistaken `v2.3.4` tag, which pointed at 2.1.3 code.
 
 ### Added
 - **Login Page Designer** — new *Login Page Settings* doctype (`/desk/login-page-settings`) with a split-screen login layout: a branded hero panel (logo, badge, headline, description, up to 4 feature cards with icons, optional background image/gradient and grid pattern) beside a clean sign-in card (eyebrow, heading, subtitle, button label, security note, optional back link). The previous centered card stays available as the *Centered Card* layout, and unticking *Use Login Page Designer* restores the previous Theme Studio login exactly
@@ -43,8 +12,27 @@ Affects Frappe v16.0+ (tested on v16.35).
 - Saving warns when a login image is a private file, since visitors can't load it
 
 ### Changed
+- The login page works out of the box on a fresh install: every text field falls back to built-in, business-neutral copy at render time (headline, description, sign-in card, security note, feature cards), so the page is never blank even if nothing has been saved. Clearing a field brings its default back; a new *Restore Default Text* button clears them all, and empty fields show the default as a placeholder
+- Default feature cards adapt to the site: business-operations cards when ERPNext is installed, general collaboration cards otherwise
+- Company name and logo are now taken from the site's default Company when no Theme Studio branding is set, resolved each time the page is shown (so a Company created after install is picked up). Framework placeholder names are skipped and an app's own logo is never used as the company logo; without a logo the page shows the company's initials
+- On desktop the split-screen login always fits on one screen — the hero, feature cards and sign-in card scale with the window height instead of scrolling the page
+- Theme Settings' Company Name is filled in automatically from the site's organisation the first time: on install when a Company already exists, otherwise as soon as the setup wizard creates the first Company. A name the admin has typed is never replaced
+- Theme Studio's login heading and description only override the Login Page defaults once an admin has changed them
+- Icon Rail shows each app's official logo (from the app's Desktop Icon, then its apps-screen logo) instead of a generic workspace glyph; apps without a logo keep the glyph tile, and a logo that fails to load falls back to it
+- Icon Rail app names wrap to two lines instead of truncating
 - `get_branding` (public login branding API) now returns Login Page Settings' identity and copy when the designer is on
 - Existing sites are migrated to the *Centered Card* layout so nothing changes visually until an admin opts in; new installs default to *Split Screen*
+
+### Fixed
+- New installs no longer brand the customer's site with the vendor name: the install no longer stores a default company name, and a patch clears that untouched value on existing sites that have no Company of that name, and fills in the site's own default Company name instead
+- Fresh installs no longer depend on saving the full Login Page Settings form at install time; only the on/off switches are stored
+- `bench migrate` could switch an upgraded site's login to the Split Screen layout when the v2.2 seed patch hadn't run first; migrations now only ever seed Centered Card
+- Login preview no longer signs the admin in as another account if credentials are typed into the preview form
+- The public login page no longer requests private logo/favicon/background files that guests can't load; it falls back to the next public branding source
+- The login favicon URL is now HTML-escaped
+- Theme Studio's login heading and description apply again on the Centered Card layout while the designer is on
+- Login Page Settings text is now translatable
+- Hero and sign-in button text switches to dark on light brand colors so it stays readable
 
 ## [2.1.3] — 2026-08-31
 

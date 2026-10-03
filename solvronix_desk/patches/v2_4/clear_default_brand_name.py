@@ -4,7 +4,7 @@ SEEDED_NAME = "Solvronix"
 
 
 def execute():
-    # Before 2.3.0 every install stored the vendor name as the brand name, so
+    # Before 2.4.0 every install stored the vendor name as the brand name, so
     # customer sites showed it on the login page and Desk. Clear it only where
     # it is still that untouched seed and the site has no such Company, then
     # fill in the site's default Company name instead.

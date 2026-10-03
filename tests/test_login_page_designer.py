@@ -210,10 +210,10 @@ class FreshInstallSeedTest(unittest.TestCase):
         self.assertNotIn('"company_name":           "Solvronix"', source)
 
     def test_brand_name_patch_is_guarded(self):
-        patch = (APP / "patches" / "v2_3" / "clear_default_brand_name.py").read_text()
+        patch = (APP / "patches" / "v2_4" / "clear_default_brand_name.py").read_text()
         self.assertIn('frappe.db.exists("Company", SEEDED_NAME)', patch)
         self.assertIn("!= SEEDED_NAME", patch)
-        self.assertIn("solvronix_desk.patches.v2_3.clear_default_brand_name", (APP / "patches.txt").read_text())
+        self.assertIn("solvronix_desk.patches.v2_4.clear_default_brand_name", (APP / "patches.txt").read_text())
 
 
 class BrandNameAutofillTest(unittest.TestCase):
