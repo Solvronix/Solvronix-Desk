@@ -3,14 +3,74 @@
 from pathlib import Path
 import json
 import re
+import sys
+import types
 import unittest
 from unittest import mock
 
-import frappe
-
-from solvronix_desk import login_config
-
 ROOT = Path(__file__).resolve().parents[1]
+
+
+# CI runs these tests with only pytest installed (no Frappe), so the code under
+# test always gets this minimal stand-in; tests patch the calls they exercise.
+class _dict(dict):
+    def __getattr__(self, key):
+        return self.get(key)
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+
+def _cint(value):
+    try:
+        return int(float(value or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _install_frappe_stub():
+    frappe = types.ModuleType("frappe")
+    frappe._dict = _dict
+    frappe._ = lambda text, *args, **kwargs: text
+    frappe.throw = lambda message, *args, **kwargs: (_ for _ in ()).throw(ValueError(message))
+    frappe.log_error = lambda *args, **kwargs: None
+    frappe.get_installed_apps = lambda: []
+    frappe.get_website_settings = lambda key: None
+    frappe.get_system_settings = lambda key: None
+    frappe.get_cached_value = lambda *args, **kwargs: None
+    frappe.get_cached_doc = lambda *args, **kwargs: None
+    frappe.clear_cache = lambda *args, **kwargs: None
+    frappe.local = types.SimpleNamespace(site="")
+    frappe.session = types.SimpleNamespace(user="Guest")
+    frappe.db = mock.MagicMock()
+    frappe.defaults = types.SimpleNamespace(get_global_default=lambda key: None)
+
+    utils = types.ModuleType("frappe.utils")
+    utils.cint = _cint
+    frappe.utils = utils
+    model = types.ModuleType("frappe.model")
+    document = types.ModuleType("frappe.model.document")
+    document.clear_document_cache = lambda *args, **kwargs: None
+    model.document = document
+    frappe.model = model
+
+    sys.modules.update({
+        "frappe": frappe,
+        "frappe.utils": utils,
+        "frappe.model": model,
+        "frappe.model.document": document,
+    })
+    return frappe
+
+
+frappe = _install_frappe_stub()
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+for cached in ("solvronix_desk.login_config", "solvronix_desk.theme_engine"):
+    sys.modules.pop(cached, None)
+
+from solvronix_desk import login_config  # noqa: E402
+
 APP = ROOT / "solvronix_desk"
 TEMPLATE = APP / "templates" / "login" / "split_login.html"
 CSS = APP / "public" / "css" / "login_split.css"
