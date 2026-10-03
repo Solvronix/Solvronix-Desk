@@ -500,6 +500,20 @@ body.st-has-toolbar #st-icon-rail {
 }
 #st-icon-rail .st-rail-app-icon svg { width: 16px; height: 16px; }
 #st-icon-rail .st-rail-app-fallback { font-size: 13px; font-weight: 700; }
+/* Apps that ship an official logo show it as-is on a neutral surface; the
+   workspace glyph stays in the DOM (hidden) and returns if the image fails. */
+#st-icon-rail .st-rail-app-icon.has-logo {
+  background: var(--st-sidebar-bg, var(--bg-color));
+  box-shadow: inset 0 0 0 1px var(--sidebar-border-color, var(--border-color));
+  overflow: hidden;
+}
+#st-icon-rail .st-rail-app-icon.has-logo .st-rail-app-glyph { display: none; }
+#st-icon-rail .st-rail-app-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: inherit;
+}
 #st-icon-rail .st-rail-app.st-rail-active .st-rail-app-icon {
   box-shadow: 0 0 0 2px var(--st-sidebar-bg, #FFFFFF), 0 0 0 3px var(--st-rail-active, var(--st-accent));
 }
@@ -511,8 +525,14 @@ body.st-has-toolbar #st-icon-rail {
   text-align: center;
   max-width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Two lines, so "Frappe HR" / "Frappe Framework" wrap instead of
+     truncating to "Frappe ..." in the 72px rail. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 #st-icon-rail .st-rail-app.st-rail-active .st-rail-app-label {
   color: var(--st-rail-active, var(--st-accent));

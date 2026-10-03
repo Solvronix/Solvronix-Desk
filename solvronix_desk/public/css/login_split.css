@@ -1,0 +1,601 @@
+/* =============================================================================
+   Solvronix Desk — Split-screen Login (Login Page Settings → Split Screen)
+   Loaded only by templates/login/split_login.html. Everything is scoped to
+   body.sl-split and specific enough to win over login.css (the Centered Card
+   theme, loaded site-wide via web_include_css) and Frappe's login.bundle.css.
+   Brand/accent/hero colors are injected per site as inline CSS variables.
+   ============================================================================= */
+
+/* ── TOKENS ─────────────────────────────────────────────────────────────── */
+body.sl-split {
+  --sl-brand: #1B3F7E;
+  --sl-accent: #F57C00;
+  --sl-success: #34D399;
+  --sl-on-hero: #FFFFFF;
+  --sl-page-bg: #F3F6FA;
+  --sl-page-bg-2: #FFFFFF;
+  --sl-surface: #FFFFFF;
+  --sl-text: #0F172A;
+  --sl-muted: #5B6475;
+  --sl-border: #E3E8EF;
+  --sl-input-bg: #F8FAFC;
+  --sl-shadow: 0 30px 80px color-mix(in srgb, var(--sl-text) 10%, transparent);
+  --sl-hero-from: var(--sl-brand);
+  /* Lighter, same-hue end stop; oklch keeps saturation that an sRGB mix toward white loses. */
+  --sl-hero-to: color-mix(in oklch, var(--sl-brand) 62%, white);
+  --sl-hero-image: none;
+  --sl-brand-text: var(--sl-brand);
+  --sl-radius-card: 28px;
+  --sl-radius-control: 14px;
+}
+
+@supports (color: oklch(from red l c h)) {
+  body.sl-split { --sl-hero-to: oklch(from var(--sl-brand) calc(l + 0.2) calc(c * 1.25) h); }
+}
+
+html[data-theme="dark"] body.sl-split {
+  --sl-page-bg: #0E1219;
+  --sl-page-bg-2: #141923;
+  --sl-surface: #171C26;
+  --sl-text: #E8EDF5;
+  --sl-muted: #9AA7BA;
+  --sl-border: #2A3242;
+  --sl-input-bg: #1E2430;
+  --sl-shadow: 0 30px 80px color-mix(in srgb, black 45%, transparent);
+  --sl-brand-text: color-mix(in oklch, var(--sl-brand) 45%, var(--sl-text));
+}
+
+/* ── NEUTRALISE THE CENTERED-CARD THEME + FRAPPE PAGE CHROME ─────────────── */
+html body.sl-split {
+  display: block !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  background: var(--sl-page-bg) !important;
+  animation: none !important;
+  color: var(--sl-text);
+  overflow-x: hidden;
+}
+html body.sl-split::before { content: none !important; display: none !important; }
+
+html body.sl-split .page-content-wrapper,
+html body.sl-split main,
+html body.sl-split .page_content {
+  display: block !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+}
+html body.sl-split .page-breadcrumbs,
+html body.sl-split .page-header-wrapper,
+html body.sl-split .page-footer { display: none !important; }
+
+/* Frappe's login.js shows one section at a time with jQuery .toggle().
+   login.css forces .for-login visible, so honour the inline hide here. */
+html body.sl-split section.for-login,
+html body.sl-split section.for-forgot,
+html body.sl-split section.for-signup,
+html body.sl-split section.for-email-login,
+html body.sl-split section.for-login-with-email-link {
+  min-height: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+html body.sl-split section.for-login { display: block !important; }
+html body.sl-split section.for-login[style*="display: none"] { display: none !important; }
+html body.sl-split section::before { display: none !important; }
+
+/* ── SHELL ──────────────────────────────────────────────────────────────── */
+.sl-shell {
+  letter-spacing: normal;
+  display: grid;
+  grid-template-columns: minmax(0, 56fr) minmax(0, 44fr);
+  min-height: 100vh;
+}
+
+/* ── HERO PANEL ─────────────────────────────────────────────────────────── */
+.sl-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding: clamp(40px, 5vw, 80px);
+  color: var(--sl-on-hero);
+  background-color: var(--sl-hero-from);
+  background-image:
+    linear-gradient(135deg, color-mix(in srgb, var(--sl-hero-from) 90%, transparent), color-mix(in srgb, var(--sl-hero-to) 90%, transparent)),
+    var(--sl-hero-image);
+  background-size: cover;
+  background-position: center;
+}
+.sl-has-pattern .sl-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--sl-on-hero) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--sl-on-hero) 7%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 30% 40%, black 30%, transparent 85%);
+}
+.sl-has-pattern .sl-hero::after {
+  content: "";
+  position: absolute;
+  width: 140%;
+  height: 1px;
+  right: -40%;
+  top: 38%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--sl-on-hero) 35%, transparent), transparent);
+  transform: rotate(-32deg);
+  box-shadow: 0 180px 0 color-mix(in srgb, var(--sl-on-hero) 16%, transparent);
+}
+.sl-hero-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 760px;
+}
+
+.sl-hero-logo {
+  display: block;
+  max-width: min(300px, 70%);
+  max-height: 130px;
+  object-fit: contain;
+  margin-bottom: 28px;
+}
+.sl-hero-logo.sl-mark-fallback {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--sl-on-hero) 35%, transparent);
+  background: color-mix(in srgb, var(--sl-on-hero) 14%, transparent);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.sl-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--sl-on-hero) 38%, transparent);
+  background: color-mix(in srgb, var(--sl-on-hero) 8%, transparent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.sl-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--sl-success);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sl-success) 22%, transparent);
+}
+
+.sl-headline {
+  margin: 28px 0 0;
+  color: inherit;
+  font-size: clamp(34px, 3.7vw, 60px);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.sl-description {
+  margin: 24px 0 0;
+  max-width: 640px;
+  font-size: 17px;
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--sl-on-hero) 88%, transparent);
+}
+
+.sl-feature-panel {
+  margin-top: 44px;
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--sl-on-hero) 22%, transparent);
+  background: color-mix(in srgb, var(--sl-on-hero) 8%, transparent);
+  backdrop-filter: blur(10px);
+}
+.sl-feature-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 8px 16px;
+  font-size: 14px;
+}
+.sl-feature-panel-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+.sl-feature-panel-title svg,
+.sl-feature-icon svg { fill: currentColor; }
+.sl-feature-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: color-mix(in srgb, var(--sl-on-hero) 85%, transparent);
+}
+.sl-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--sl-feature-count, 3), minmax(0, 1fr));
+  gap: 10px;
+}
+.sl-feature-card {
+  padding: 20px 18px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--sl-on-hero) 16%, transparent);
+  background: color-mix(in srgb, var(--sl-on-hero) 7%, transparent);
+}
+.sl-feature-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--sl-on-hero) 30%, transparent);
+  background: color-mix(in srgb, var(--sl-on-hero) 10%, transparent);
+}
+.sl-feature-title { font-size: 15px; font-weight: 700; }
+.sl-feature-subtitle {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--sl-on-hero) 78%, transparent);
+}
+
+/* ── AUTH COLUMN ────────────────────────────────────────────────────────── */
+.sl-auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px clamp(20px, 4vw, 64px);
+  background: linear-gradient(160deg, var(--sl-page-bg-2), var(--sl-page-bg));
+}
+.sl-auth-inner { width: min(100%, 580px); }
+
+.sl-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 20px 12px;
+  color: var(--sl-text) !important;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none !important;
+}
+.sl-back-link:hover { color: var(--sl-brand-text) !important; }
+.sl-back-link svg { fill: currentColor; }
+
+/* The single card box (overrides login.css + login.bundle.css .page-card). */
+html body.sl-split .sl-card.page-card {
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 28px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 48px 56px 36px !important;
+  overflow: visible !important;
+  border: 1px solid var(--sl-border) !important;
+  border-radius: var(--sl-radius-card) !important;
+  background: var(--sl-surface) !important;
+  box-shadow: var(--sl-shadow) !important;
+  backdrop-filter: none !important;
+  animation: sl-card-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes sl-card-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.sl-card-head { display: flex; flex-direction: column; }
+.sl-card-logo { display: none; }
+.sl-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  color: var(--sl-brand-text);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.sl-eyebrow-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--sl-brand) 20%, transparent);
+  background: color-mix(in srgb, var(--sl-brand) 8%, transparent);
+}
+.sl-eyebrow-icon svg,
+.sl-security-note svg { fill: currentColor; }
+html body.sl-split .sl-card-title {
+  margin: 0;
+  color: var(--sl-text);
+  font-size: clamp(30px, 2.6vw, 40px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.sl-card-subtitle {
+  margin: 12px 0 0;
+  color: var(--sl-muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/* ── FORM ───────────────────────────────────────────────────────────────── */
+html body.sl-split .sl-card form { gap: 24px !important; }
+html body.sl-split .sl-card .page-card-body { gap: 22px !important; padding: 0 !important; }
+html body.sl-split .sl-card .form-group { gap: 10px !important; margin: 0 !important; }
+html body.sl-split .sl-card .form-label {
+  color: var(--sl-text) !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+}
+.sl-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+html body.sl-split .sl-forgot {
+  flex: none;
+  color: var(--sl-brand-text) !important;
+  font-size: 14px;
+  text-decoration: none !important;
+}
+html body.sl-split .sl-forgot:hover { text-decoration: underline !important; }
+
+html body.sl-split .sl-card .form-control {
+  height: 56px !important;
+  padding: 0 48px !important;
+  border: 1px solid var(--sl-border) !important;
+  border-radius: var(--sl-radius-control) !important;
+  background: var(--sl-input-bg) !important;
+  color: var(--sl-text) !important;
+  font-size: 16px !important;
+  box-shadow: none !important;
+}
+html body.sl-split .sl-card #login_token { padding: 0 18px !important; }
+html body.sl-split .sl-card .form-control:focus {
+  border-color: var(--sl-brand) !important;
+  background: var(--sl-surface) !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sl-brand) 14%, transparent) !important;
+}
+html body.sl-split .sl-card .page-card-body.invalid .form-control,
+html body.sl-split .sl-card .form-group.invalid .form-control {
+  border-color: var(--red-500, currentColor) !important;
+}
+html body.sl-split .sl-card .field-icon { left: 18px !important; fill: var(--sl-muted) !important; }
+html body.sl-split .sl-card .toggle-password { right: 18px !important; fill: var(--sl-muted) !important; }
+
+/* ── BUTTONS ────────────────────────────────────────────────────────────── */
+html body.sl-split .sl-card .sl-btn-primary,
+html body.sl-split .sl-card .btn-primary {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100% !important;
+  height: 56px !important;
+  margin: 0 !important;
+  padding: 0 20px !important;
+  border: none !important;
+  border-radius: var(--sl-radius-control) !important;
+  background: linear-gradient(90deg, var(--sl-brand), var(--sl-hero-to)) !important;
+  color: var(--sl-on-hero) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--sl-brand) 32%, transparent) !important;
+  transform: none !important;
+  transition: filter 160ms, box-shadow 160ms !important;
+}
+html body.sl-split .sl-card .sl-btn-primary:hover,
+html body.sl-split .sl-card .btn-primary:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--sl-brand) 40%, transparent) !important;
+}
+html body.sl-split .sl-card .btn-primary:disabled { opacity: 0.55 !important; box-shadow: none !important; }
+html body.sl-split .sl-card .sl-btn-secondary {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  height: 50px !important;
+  margin: 0 !important;
+  border: 1px solid var(--sl-border) !important;
+  border-radius: var(--sl-radius-control) !important;
+  background: var(--sl-surface) !important;
+  color: var(--sl-text) !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+}
+html body.sl-split .sl-card .sl-btn-secondary:hover { background: var(--sl-input-bg) !important; }
+html body.sl-split .sl-card .page-card-actions { gap: 14px !important; }
+html body.sl-split .sl-card .page-card-actions::after { content: none !important; display: none !important; }
+
+.sl-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--sl-muted);
+  font-size: 13px;
+}
+.sl-divider::before,
+.sl-divider::after { content: ""; flex: 1; height: 1px; background: var(--sl-border); }
+
+/* ── CARD FOOTER ────────────────────────────────────────────────────────── */
+html body.sl-split .sl-card .sign-up-message,
+html body.sl-split .sl-card .resend-link {
+  margin: 0 !important;
+  color: var(--sl-muted) !important;
+  font-size: 16px !important;
+  text-align: center;
+}
+html body.sl-split .sl-card .sign-up-message a,
+html body.sl-split .sl-card .resend-link a {
+  color: var(--sl-brand-text) !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+}
+html body.sl-split .sl-card .sign-up-message a:hover { text-decoration: underline !important; }
+
+.sl-security-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-top: 24px;
+  border-top: 1px solid var(--sl-border);
+  color: var(--sl-muted);
+  font-size: 13px;
+  text-align: center;
+}
+.sl-security-note svg { flex: none; color: var(--sl-brand-text); }
+
+.sl-auth-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 16px;
+  margin-top: 24px;
+  color: var(--sl-muted);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+}
+
+.sl-preview-ribbon {
+  position: fixed;
+  z-index: 1000;
+  bottom: 12px;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--sl-text);
+  color: var(--sl-surface);
+  font-size: 12px;
+  box-shadow: var(--sl-shadow);
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────────────── */
+@media (max-width: 1199px) {
+  .sl-feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html body.sl-split .sl-card.page-card { padding: 40px 36px 32px !important; }
+}
+
+@media (max-width: 991px) {
+  .sl-shell { grid-template-columns: minmax(0, 1fr); }
+  .sl-hero { display: none; }
+  .sl-auth { min-height: 100vh; }
+  .sl-card-logo {
+    display: block;
+    max-width: 180px;
+    max-height: 56px;
+    margin-bottom: 24px;
+    object-fit: contain;
+  }
+  .sl-card-logo.sl-mark-fallback {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--sl-brand);
+    color: var(--sl-on-hero);
+    font-size: 18px;
+    font-weight: 800;
+  }
+}
+
+@media (max-width: 575px) {
+  .sl-auth { padding: 24px 16px; align-items: flex-start; }
+  html body.sl-split .sl-card.page-card {
+    padding: 32px 22px 26px !important;
+    border-radius: 22px !important;
+  }
+  .sl-eyebrow { font-size: 12px; margin-bottom: 16px; }
+  .sl-card-subtitle { font-size: 15px; }
+  .sl-back-link { margin-left: 4px; }
+}
+
+/* ── ONE SCREEN ON DESKTOP ──────────────────────────────────────────────────
+   Hero and sign-in card always fit the viewport: the shell is locked to the
+   screen height and vertical spacing/type scale with it (vh), so a laptop or
+   a 1080p browser window never scrolls. Each column only scrolls internally
+   as a last resort on very short windows (or the longer sign-up form). */
+@media (min-width: 992px) {
+  html body.sl-split { height: 100vh; height: 100dvh; overflow: hidden; }
+  .sl-shell { height: 100vh; height: 100dvh; min-height: 0; }
+  .sl-hero,
+  .sl-auth { min-height: 0; overflow-y: auto; scrollbar-width: none; }
+  .sl-hero::-webkit-scrollbar,
+  .sl-auth::-webkit-scrollbar { display: none; }
+
+  .sl-hero { padding: clamp(24px, 6vh, 72px) clamp(40px, 5vw, 80px); }
+  .sl-hero-logo { max-height: clamp(40px, 9vh, 110px); margin-bottom: clamp(12px, 2.6vh, 28px); }
+  .sl-hero-logo.sl-mark-fallback { width: clamp(52px, 7vh, 72px); height: clamp(52px, 7vh, 72px); }
+  .sl-headline {
+    margin-top: clamp(14px, 2.6vh, 28px);
+    font-size: clamp(28px, min(3.7vw, 6.4vh), 60px);
+  }
+  .sl-description {
+    margin-top: clamp(10px, 2.2vh, 24px);
+    font-size: clamp(14px, 1.9vh, 17px);
+    line-height: 1.6;
+  }
+  .sl-feature-panel { margin-top: clamp(16px, 4vh, 44px); padding: clamp(10px, 1.6vh, 18px); }
+  .sl-feature-panel-head { padding-bottom: clamp(10px, 1.6vh, 16px); }
+  /* One row of cards at every desktop width (no 2×2 wrap). */
+  .sl-feature-grid { grid-template-columns: repeat(var(--sl-feature-count, 3), minmax(0, 1fr)); }
+  .sl-feature-card { padding: clamp(10px, 1.8vh, 20px) clamp(12px, 1.2vw, 18px); }
+  .sl-feature-icon {
+    width: clamp(30px, 4vh, 40px);
+    height: clamp(30px, 4vh, 40px);
+    margin-bottom: clamp(8px, 1.6vh, 18px);
+  }
+
+  .sl-auth { padding: clamp(16px, 4vh, 48px) clamp(20px, 4vw, 64px); }
+  html body.sl-split .sl-card.page-card {
+    gap: clamp(14px, 2.6vh, 28px) !important;
+    padding: clamp(24px, 4.4vh, 48px) clamp(28px, 3vw, 56px) clamp(20px, 3.4vh, 36px) !important;
+  }
+  .sl-eyebrow { margin-bottom: clamp(10px, 2vh, 22px); }
+  .sl-eyebrow-icon { width: clamp(28px, 3.4vh, 34px); height: clamp(28px, 3.4vh, 34px); }
+  html body.sl-split .sl-card-title { font-size: clamp(26px, min(2.6vw, 4.4vh), 40px); }
+  .sl-card-subtitle { margin-top: clamp(6px, 1.2vh, 12px); font-size: clamp(14px, 1.8vh, 16px); }
+  html body.sl-split .sl-card form { gap: clamp(14px, 2.2vh, 24px) !important; }
+  html body.sl-split .sl-card .page-card-body { gap: clamp(12px, 2vh, 22px) !important; }
+  html body.sl-split .sl-card .form-group { gap: clamp(6px, 1vh, 10px) !important; }
+  html body.sl-split .sl-card .form-control,
+  html body.sl-split .sl-card .btn-primary { height: clamp(44px, 5.4vh, 56px) !important; }
+  html body.sl-split .sl-card .sl-btn-secondary { height: clamp(40px, 4.8vh, 50px) !important; }
+  .sl-security-note { padding-top: clamp(12px, 2.2vh, 24px); }
+  .sl-auth-footer { margin-top: clamp(10px, 2.2vh, 24px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body.sl-split .sl-card.page-card { animation: none; }
+}

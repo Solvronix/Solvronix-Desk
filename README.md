@@ -66,7 +66,7 @@ Four one-click starting points appear in Theme Studio. Pick one and the brand an
 You set one brand color. The system automatically generates your complete color palette — backgrounds, hover states, borders, shadows — using CSS `color-mix()`. Change your brand color and everything updates instantly. No developer needed.
 
 ### Icon Rail Sidebar
-A slim, always-visible app-icon column sits beside the classic workspace list — one compact tile per installed app (ERPNext, CRM, Frappe HR, and so on), each using that app's own icon in a theme-colored tile that follows your brand/accent color automatically. New apps and workspaces appear on the rail automatically. Collapses to icon-only via its own toggle, independent of the classic sidebar. Switch back to the classic single-column Tree layout at any time from Theme Studio → Navbar & Sidebar → Sidebar Layout.
+A slim, always-visible app-icon column sits beside the classic workspace list — one compact tile per installed app (ERPNext, CRM, Frappe HR, and so on), each showing that app's official logo (apps without one fall back to their workspace icon in a theme-colored tile that follows your brand/accent color). New apps and workspaces appear on the rail automatically. Collapses to icon-only via its own toggle, independent of the classic sidebar. Switch back to the classic single-column Tree layout at any time from Theme Studio → Navbar & Sidebar → Sidebar Layout.
 
 ### Slide-In Row Editor
 Child table rows (Sales Invoice Items, and any other grid) open in a full-height panel that slides in from the right instead of expanding inline in the table — header stays pinned with row actions (Duplicate, Move, Insert Above/Below, Delete), footer stays pinned with keyboard shortcut hints. Closes via the dimming backdrop, `Esc`, or Frappe's own controls; row switching and `Ctrl+↑`/`Ctrl+↓` navigation work exactly as before. Toggle it off in Theme Studio → Layout to fall back to the classic inline row editor.
@@ -82,6 +82,8 @@ Set a site-wide base font size in Theme Studio, and let each user fine-tune with
 
 ### Modern Login Page
 A full-screen branded login experience with your company logo and colors, a slow-drifting ambient color backdrop generated from your brand palette, and a soft card entrance animation. First impression that sets the right tone for your team.
+
+**Login Page Designer** (*Login Page Settings*): works out of the box — your default Company's name and logo are picked up automatically and every text field has ready-made, business-neutral copy you can rename. Switch to a split-screen layout with a branded hero panel (headline, badge, up to 4 feature cards, background image or gradient) beside the sign-in card. Branding is auto-filled from Theme Studio, and every stock sign-in flow (password, forgot password, sign up, email link, LDAP, social, 2FA) keeps working. *Preview Login* shows either layout to admins before it goes live; sign-in is disabled while previewing.
 
 ### Premium Motion & Depth
 A polish layer across the whole desk: smooth, consistent transitions on every interactive element, layered card shadows with a subtle hover lift, gradient primary buttons with press feedback, and brand-colored keyboard focus rings. All animations respect your operating system's reduced-motion setting.

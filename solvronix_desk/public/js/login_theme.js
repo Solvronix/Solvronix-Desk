@@ -6,6 +6,8 @@
 (function () {
   /* Exit on non-authentication website pages where these selectors do not exist. */
   if (!document.querySelector('.for-login, .for-forgot, .for-signup, .for-email-login')) return;
+  /* The split-screen layout renders branding, theme mode and layout on the server. */
+  if (document.body.classList.contains('sl-split')) return;
 
   /* Public pages do not run Desk's dark-mode runtime. Resolve the published
      Light/Dark/Auto preference here so /login matches Theme Studio. */
