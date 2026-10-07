@@ -222,11 +222,11 @@ This means any company — whether their brand is navy, green, red, or black —
 
 | Frappe Version | Status |
 |---|---|
-| v16 (all releases, v16.0 – v16.27+) | ✅ Fully supported |
+| v16 (all releases, v16.0 – v16.50+) | ✅ Fully supported — the split-screen login is checked against Frappe's login styles from both before and after the v16.26 login redesign, and the Icon Rail against both the classic sidebar and the v16.50 Dock navigation |
 | v15 | ⚠️ Not tested |
 | v14 | ❌ Not supported |
 
-Solvronix Desk tracks Frappe v16 API changes across minor releases — internal shims resolve renamed core methods automatically, so the app works on older production benches and the latest releases alike.
+Solvronix Desk tracks Frappe v16 API changes across minor releases — internal shims resolve renamed core methods automatically, so the app works on older production benches and the latest releases alike. All Desk navigation access goes through one compatibility layer (`public/js/frappe_compat.js`) that detects Frappe's navigation by feature rather than version; `tests/frappe_compat/check_frappe_surface.py` checks a new Frappe release against it before you update.
 
 Works with ERPNext and any other Frappe-based application.
 

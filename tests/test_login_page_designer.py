@@ -222,6 +222,38 @@ class SplitTemplateContractTest(unittest.TestCase):
         self.assertIn("login.call = function ()", source)
 
 
+class FrappeVersionResilienceTest(unittest.TestCase):
+    """The split login sets its own box model so Frappe's login.bundle, which
+    changed in the v16.26 login redesign, can't reshape it. Pre-v16.26 builds
+    cap forms at 320px, add an actions top margin, leave error rows visible
+    and pin the password eye icon to the top."""
+
+    def rule(self, css, selector):
+        body = css[css.index(selector + " {"):]
+        return body[:body.index("}")]
+
+    def test_form_fills_the_card_on_every_frappe_build(self):
+        css = CSS.read_text()
+        form = self.rule(css, "html body.sl-split .sl-card form")
+        self.assertIn("max-width: none !important", form)
+        self.assertIn("margin: 0 !important", form)
+        self.assertIn("width: 100%", form)
+        self.assertIn("html body.sl-split .sl-card .page-card-actions { margin: 0 !important; }", css)
+
+    def test_idle_message_rows_are_hidden_until_login_js_shows_them(self):
+        css = CSS.read_text()
+        self.assertIn("html body.sl-split .sl-card .login-success-banner { display: none;", css)
+        self.assertIn("html body.sl-split .sl-card .field-error { display: none;", css)
+        self.assertIn("html body.sl-split .sl-card .form-group.invalid .field-error { display: block; }", css)
+
+    def test_field_icons_are_centred_explicitly(self):
+        css = CSS.read_text()
+        self.assertIn("top: 50% !important;", css)
+        self.assertIn("transform: translateY(-50%) !important;", css)
+
+    def test_stylesheet_is_cache_busted(self):
+        self.assertIn("login_split.css?v=7", TEMPLATE.read_text())
+
 class BrandingSourcesTest(unittest.TestCase):
     def sources(self, theme=None, company="Acme Trading", company_logo="/files/acme.png",
                 website=None, system=None, navbar_logo=None):

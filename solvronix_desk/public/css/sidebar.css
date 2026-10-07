@@ -457,6 +457,15 @@ body.st-has-toolbar #st-icon-rail {
   flex-direction: column;
   gap: 4px;
 }
+/* Still scrolls (wheel, touch, keyboard), but without a bar: on Frappe 16.50
+   the active app's modules make the list taller than the window, and a
+   visible bar narrows the 72px column enough to split labels mid-word. */
+#st-icon-rail .st-rail-items {
+  scrollbar-width: none;
+}
+#st-icon-rail .st-rail-items::-webkit-scrollbar {
+  display: none;
+}
 /* One icon per installed app — icon sits in a theme-colored tile (driven by
    --st-rail-bg, which defaults to the theme's own accent color, so it
    updates automatically if the admin changes brand/accent colors), with the
@@ -536,6 +545,129 @@ body.st-has-toolbar #st-icon-rail {
 }
 #st-icon-rail .st-rail-app.st-rail-active .st-rail-app-label {
   color: var(--st-rail-active, var(--st-accent));
+}
+
+/* Modules of the active app (Frappe 16.50+, where module switching moved
+   into Frappe's Dock). Listed right under the active app's tile, as smaller
+   ghost tiles on a recessed track, so the app → module hierarchy reads at a
+   glance and the rail stays one column. */
+#st-icon-rail .st-rail-modules {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 6px;
+  padding: 4px 2px;
+  border-radius: 10px;
+  background: var(--sidebar-hover-color, var(--st-hover));
+}
+#st-icon-rail .st-rail-module {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  padding: 4px 2px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--st-sidebar-text-muted, var(--text-muted));
+  cursor: pointer;
+  --icon-stroke: var(--st-sidebar-text-muted, var(--text-muted));
+}
+#st-icon-rail .st-rail-module:hover {
+  background: var(--st-sidebar-bg, var(--bg-color));
+  color: var(--st-sidebar-text, var(--text-color));
+  --icon-stroke: var(--st-sidebar-text, var(--text-color));
+}
+#st-icon-rail .st-rail-module:focus-visible {
+  outline: 2px solid var(--st-rail-active, var(--st-accent));
+  outline-offset: -2px;
+}
+#st-icon-rail .st-rail-module-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+}
+#st-icon-rail .st-rail-module-icon svg { width: 16px; height: 16px; }
+#st-icon-rail .st-rail-module-label {
+  max-width: 100%;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.15;
+  text-align: center;
+  white-space: nowrap;
+}
+#st-icon-rail .st-rail-module.st-rail-module-active {
+  color: var(--st-rail-active, var(--st-accent));
+  --icon-stroke: var(--st-rail-active, var(--st-accent));
+}
+#st-icon-rail .st-rail-module.st-rail-module-active .st-rail-module-icon {
+  background: var(--st-sidebar-bg, var(--bg-color));
+  box-shadow: inset 0 0 0 1px var(--st-rail-active, var(--st-accent));
+}
+#st-icon-rail .st-rail-module.st-rail-module-active .st-rail-module-label {
+  font-weight: 700;
+}
+
+/* Phones: Frappe 16.50 closes the sidebar drawer by making .body-sidebar
+   transparent and click-through (sidebar.scss, media-breakpoint-down(sm)).
+   The theme's forced sidebar background would keep painting the closed
+   drawer as an empty strip over the page, so let it stay transparent. */
+/* Phones (Frappe's sm breakpoint): a permanent 72px rail took a fifth of a
+   390px screen and squeezed every list and form. The rail now lives in
+   Frappe's own sidebar drawer instead — hidden with the drawer, and shown at
+   the drawer's left edge (apps + modules beside the module's sidebar) while
+   ☰ has it open. Frappe still owns opening/closing and the scrim. */
+@media (max-width: 767.98px) {
+  body #st-icon-rail {
+    display: none;
+  }
+  body:has(.body-sidebar-container.expanded) #st-icon-rail {
+    display: flex;
+    position: fixed;
+    left: 0;
+    top: var(--st-header-height, 0px);
+    bottom: 0;
+    width: var(--st-rail-width, 72px);
+    height: auto !important;
+    margin-top: 0 !important;
+    z-index: 1023;
+  }
+  body:has(#st-icon-rail) .body-sidebar-container.expanded .body-sidebar {
+    left: var(--st-rail-width, 72px);
+  }
+  body:has(#st-icon-rail) .body-sidebar-container.expanded .overlay {
+    left: calc(var(--sidebar-width) + var(--st-rail-width, 72px));
+    width: calc(100vw - var(--sidebar-width) - var(--st-rail-width, 72px));
+  }
+  /* The drawer is closed by its scrim, so the rail's own collapse toggle and
+     icon-only state have no use here. `body` outranks the base rules below. */
+  body #st-icon-rail .st-rail-collapse {
+    display: none;
+  }
+  body #st-icon-rail.is-collapsed .st-rail-app-label {
+    display: -webkit-box;
+  }
+  body #st-icon-rail.is-collapsed .st-rail-module-label {
+    display: block;
+  }
+}
+
+@media (max-width: 767px) {
+  html[data-theme] .body-sidebar-container:not(.expanded) > .body-sidebar {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+  }
+}
+
+/* With the Icon Rail off, Frappe 16.50's own Dock is shown: give it the
+   theme's sidebar surface so it reads as part of the same shell. */
+html[data-st-nav="dock"] {
+  --dock-bg: var(--st-sidebar-bg, var(--desk-sidebar-bg));
 }
 
 /* Collapse toggle — pinned at the bottom, mirrors Frappe core's own

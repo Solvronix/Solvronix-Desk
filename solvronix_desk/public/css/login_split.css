@@ -344,14 +344,46 @@ html body.sl-split .sl-card-title {
 }
 
 /* ── FORM ───────────────────────────────────────────────────────────────── */
-html body.sl-split .sl-card form { gap: 24px !important; }
-html body.sl-split .sl-card .page-card-body { gap: 22px !important; padding: 0 !important; }
+/* Box model is set explicitly here rather than inherited from Frappe's
+   login.bundle, which changes between v16 minors: before the v16.26 login
+   redesign it capped forms at 320px (centred), added a top margin to the
+   actions row and left labels inline with a bottom margin. */
+html body.sl-split .sl-card form,
+html body.sl-split .sl-card .page-card-body,
+html body.sl-split .sl-card .page-card-actions,
+html body.sl-split .sl-card .form-group {
+  display: flex;
+  flex-direction: column;
+}
+html body.sl-split .sl-card form.hide { display: none !important; }
+html body.sl-split .sl-card form {
+  width: 100%;
+  max-width: none !important;
+  margin: 0 !important;
+  gap: 24px !important;
+}
+html body.sl-split .sl-card .page-card-body { gap: 22px !important; padding: 0 !important; margin: 0 !important; }
+html body.sl-split .sl-card .page-card-actions { margin: 0 !important; }
 html body.sl-split .sl-card .form-group { gap: 10px !important; margin: 0 !important; }
 html body.sl-split .sl-card .form-label {
+  display: block;
+  width: auto;
+  margin: 0 !important;
   color: var(--sl-text) !important;
   font-size: 15px !important;
   font-weight: 500 !important;
+  line-height: 1.15 !important;
+  letter-spacing: normal !important;
 }
+html body.sl-split .sl-label-row .form-label { display: inline-block; }
+/* Messages stay hidden until login.js shows them: v16.26+ sets an inline
+   display on the banners and adds .invalid to the field's group; v16.25 and
+   older never touch them (errors show on the button instead), and its CSS
+   left them visible as empty rows that pushed the form down. */
+html body.sl-split .sl-card .login-error-banner,
+html body.sl-split .sl-card .login-success-banner { display: none; margin: 0 !important; }
+html body.sl-split .sl-card .field-error { display: none; margin: 0 !important; }
+html body.sl-split .sl-card .form-group.invalid .field-error { display: block; }
 .sl-label-row {
   display: flex;
   align-items: baseline;
@@ -368,6 +400,7 @@ html body.sl-split .sl-forgot {
 html body.sl-split .sl-forgot:hover { text-decoration: underline !important; }
 
 html body.sl-split .sl-card .form-control {
+  margin: 0 !important;
   height: 56px !important;
   padding: 0 48px !important;
   border: 1px solid var(--sl-border) !important;
@@ -387,8 +420,18 @@ html body.sl-split .sl-card .page-card-body.invalid .form-control,
 html body.sl-split .sl-card .form-group.invalid .form-control {
   border-color: var(--red-500, currentColor) !important;
 }
+html body.sl-split .sl-card .email-field,
+html body.sl-split .sl-card .password-field { position: relative; }
+/* Vertically centred explicitly: pre-v16.26 Frappe pins the eye icon at top: 5px. */
+html body.sl-split .sl-card .field-icon,
+html body.sl-split .sl-card .toggle-password {
+  position: absolute !important;
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+}
 html body.sl-split .sl-card .field-icon { left: 18px !important; fill: var(--sl-muted) !important; }
-html body.sl-split .sl-card .toggle-password { right: 18px !important; fill: var(--sl-muted) !important; }
+html body.sl-split .sl-card .toggle-password { right: 18px !important; font-size: inherit !important; fill: var(--sl-muted) !important; }
 
 /* ── BUTTONS ────────────────────────────────────────────────────────────── */
 html body.sl-split .sl-card .sl-btn-primary,
