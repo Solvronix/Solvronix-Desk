@@ -70,7 +70,7 @@ class IconRailTest(unittest.TestCase):
         js = JS.read_text(encoding="utf-8")
 
         self.assertIn('route[0] === "smart-home"', js)
-        self.assertIn("var active = onSmartHome ? \"\" : activeSidebarTitle();", js)
+        self.assertIn('var activeApp = onSmartHome ? "" : railActiveApp($rail);', js)
 
     def test_rail_groups_by_installed_app_not_by_workspace(self):
         """One rail icon per installed app (using frappe.boot.app_data's
@@ -342,8 +342,8 @@ class IconRailTest(unittest.TestCase):
     def test_rail_assets_are_cache_busted(self):
         hooks = HOOKS.read_text(encoding="utf-8")
 
-        self.assertIn("/assets/solvronix_desk/css/sidebar.css?v=32", hooks)
-        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=64", hooks)
+        self.assertIn("/assets/solvronix_desk/css/sidebar.css?v=37", hooks)
+        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=67", hooks)
         self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=19", hooks)
 
     def test_legacy_config_treats_never_set_icon_rail_width_as_unset_not_zero(self):

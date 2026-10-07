@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.5.0] — 2026-10-07 — Frappe 16.50 navigation
+
+Affects Frappe v16.50+ (new Dock navigation, tested on v16.50.0); v16.0 – v16.49 keep the previous behaviour. Includes the unreleased 2.4.1 login fixes below.
+
+### Added
+- **Frappe 16.50 Dock support:** with the *Icon Rail* sidebar layout, the active app's modules (Selling, Buying, Stock…) now appear under its rail icon, in the order and with the visibility set in Frappe's *Manage Dock* (app, site and user arrangements all apply). Frappe's separate Dock column is switched off while the Icon Rail is on, so there's one left rail instead of two. With the Icon Rail off, Frappe's Dock is shown and themed with the sidebar colour
+- `frappe_compat.js`: one compatibility layer that detects which Desk navigation Frappe ships (by feature, not version number) and sets `<html data-st-nav="legacy|dock">`. All Dock and sidebar access goes through it, so future Frappe navigation changes are handled in one file
+- `tests/frappe_compat/check_frappe_surface.py` lists upstream Frappe commits that touch the login page, Desk sidebar/app icons and theme variables between two versions and now checks that every Frappe API the compatibility layer relies on still exists — run it before each release and after each Frappe update
+- On Frappe 16.50+ clicking an app in the Icon Rail opens it where Frappe itself would (its declared route, else its first module)
+
+### Fixed
+- Dark mode on Frappe 16.50+: page titles (now drawn as breadcrumbs), the primary page button (e.g. *Add Sales Invoice*) and other new components were dark-on-dark. Frappe's semantic colour tokens (`--ink-*`, `--surface-*`, `--outline-*`, `--desk-sidebar-bg`) are now mapped to the theme's own colours in dark mode
+- Frappe 16.50's new primary buttons (`es-button`) now use the theme's primary button style, like classic primary buttons; danger buttons stay red
+- Phones on Frappe 16.50+: the closed sidebar drawer no longer shows as an empty strip covering the left of the page (Frappe now closes it by making it transparent; the theme's sidebar background kept painting it)
+- **Phones:** the Icon Rail no longer takes a permanent 72px of the screen. It now opens inside Frappe's sidebar drawer (☰), next to the module's sidebar, with the active app's modules, and closes with it. Its collapse button is hidden on phones
+- **Phones:** the top toolbar fits the screen. Separators and the Today's View label are hidden, and search, language and All Options become icon buttons, so the account menu and All Options are no longer pushed off-screen. Earlier phone toolbar rules never applied because the desktop rules came later in the stylesheet
+- **Phones:** lists fit the card. Page gutters are 12px, long titles truncate with an ellipsis, and the status column is no longer clipped
+- **Tablets and small laptops (768–1199px) with the Icon Rail:** Frappe's sidebar starts folded to its icon column until the user chooses otherwise, so lists get about 600–800px instead of about 420px. The user's ☰ choice is saved by Frappe and respected
+- Frappe 16.50+: collapsing the sidebar with ☰ now sticks. The theme no longer forces it open again on every page change
+- The "Powered by" line is hidden while Frappe 16.50's sidebar is folded
+- Phones, dark mode: the ☰ sidebar button in the page header is visible
+- Today's View on phones: *View All Workspaces* wraps under the heading instead of spilling out of the card
+- Icon Rail: the list scrolls without a visible scrollbar, so app names no longer split mid-word when the module list makes the rail taller than the window
+- Split-screen login (Frappe v16.0 – v16.25): the email and password fields and the Sign in button now fill the sign-in card instead of a narrow 320px column. Frappe before v16.26 caps login forms at 320px; the split layout now sets its own form width, spacing and layout instead of inheriting Frappe's
+- Split-screen login on Frappe before v16.26: empty error rows no longer push the form down, the email-link field no longer has an extra bottom gap, labels no longer get an extra bottom margin, and the show-password icon is vertically centred
+
 ## [2.4.0] — 2026-10-04 — Login Page Designer
 
 Affects Frappe v16.0+ (tested on v16.35). First release after 2.1.3; supersedes the mistaken `v2.3.4` tag, which pointed at 2.1.3 code.

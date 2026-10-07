@@ -73,6 +73,61 @@ html[data-theme="dark"] {
   --charts-tooltip-value:     var(--st-text);
   --charts-legend-label:      var(--st-text-muted);
   --charts-legend-value:      #CBD5E1;
+
+  /* Frappe's semantic design tokens (espresso colors.css). Their dark values
+     are built on the raw gray scale (e.g. --ink-gray-9: var(--gray-50)),
+     which this file remaps to surfaces above — so left alone they resolve to
+     the card colour and text/buttons go dark-on-dark. Frappe 16.50 draws
+     page titles (breadcrumbs), es-buttons and the Dock from these tokens,
+     so pin every one of them to the theme's own variables instead. */
+  --ink-base:                var(--st-page-bg);
+  --ink-gray-9:              var(--heading-color);
+  --ink-gray-8:              var(--st-text);
+  --ink-gray-7:              var(--st-text);
+  --ink-gray-6:              var(--st-text-muted);
+  --ink-gray-5:              var(--st-text-muted);
+  --ink-gray-4:              color-mix(in srgb, var(--st-text-muted) 80%, transparent);
+  --ink-gray-3:              color-mix(in srgb, var(--st-text-muted) 65%, transparent);
+  --ink-gray-2:              color-mix(in srgb, var(--st-text-muted) 50%, transparent);
+  --ink-gray-1:              color-mix(in srgb, var(--st-text-muted) 35%, transparent);
+  --ink-alert-button-default: var(--st-text);
+
+  --surface-base:            var(--st-page-bg);
+  --surface-gray-1:          var(--st-card-bg);
+  --surface-gray-2:          var(--st-input-bg);
+  --surface-gray-3:          color-mix(in srgb, var(--st-text) 8%, transparent);
+  --surface-gray-4:          color-mix(in srgb, var(--st-text) 12%, transparent);
+  --surface-gray-5:          color-mix(in srgb, var(--st-text) 16%, transparent);
+  --surface-gray-6:          color-mix(in srgb, var(--st-text) 22%, transparent);
+  --surface-gray-7:          color-mix(in srgb, var(--st-text) 30%, transparent);
+  --surface-gray-8:          color-mix(in srgb, var(--st-text) 45%, transparent);
+  --surface-gray-9:          color-mix(in srgb, var(--st-text) 85%, transparent);
+  --surface-gray-10:         var(--heading-color);
+  --surface-elevation-1:     var(--st-card-bg);
+  --surface-elevation-2:     var(--st-input-bg);
+  --surface-elevation-3:     color-mix(in srgb, var(--st-text) 10%, var(--st-input-bg));
+  --surface-alert-button-default: color-mix(in srgb, var(--st-text) 16%, transparent);
+
+  --outline-base:            var(--st-page-bg);
+  --outline-gray-1:          var(--st-card-border);
+  --outline-gray-2:          var(--st-card-border);
+  --outline-gray-3:          color-mix(in srgb, var(--st-text) 18%, transparent);
+  --outline-gray-4:          color-mix(in srgb, var(--st-text) 24%, transparent);
+  --outline-gray-5:          color-mix(in srgb, var(--st-text) 32%, transparent);
+  --outline-gray-6:          color-mix(in srgb, var(--st-text) 45%, transparent);
+  --outline-gray-7:          color-mix(in srgb, var(--st-text) 60%, transparent);
+  --outline-gray-8:          color-mix(in srgb, var(--st-text) 75%, transparent);
+  --outline-gray-9:          var(--st-text);
+
+  /* Frappe 16.50 sidebar/Dock surface. */
+  --desk-sidebar-bg:         var(--st-sidebar-bg);
+}
+
+/* The page-head ☰ (Frappe 16.50 sidebar toggle) is the only way to open
+   navigation on a phone; its glyph reads --icon-stroke, not color. */
+html[data-theme="dark"] .page-head .sidebar-toggle-btn {
+  --icon-stroke: var(--st-text);
+  color: var(--st-text);
 }
 
 /* ── Body & Page ─────────────────────────────────────────────── */

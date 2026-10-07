@@ -378,6 +378,7 @@ body.st-sidebar-collapsed .desk-sidebar .sidebar-section-head,
 body.st-sidebar-collapsed #st-module-switch-btn span:not(:first-child),
 body.st-sidebar-collapsed #st-quick-nav a span,
 body.st-sidebar-collapsed #st-powered-by,
+body.sidebar-collapsed #st-powered-by, /* Frappe 16.50 folded sidebar */
 body.st-sidebar-collapsed #st-sidebar-header .st-app-brand {
   display: none !important;
 }
@@ -440,9 +441,12 @@ header.navbar {
 }
 
 /* ── GRADIENT BUTTONS ──────────────────────────────────────────── */
+/* .es-button[data-variant="solid"] is Frappe 16.50's primary button (page
+   actions such as "Add Sales Invoice"); danger buttons keep Frappe's red. */
 .btn-primary,
 button.btn-primary,
-a.btn-primary {
+a.btn-primary,
+.es-button[data-variant="solid"]:not([data-theme="red"]) {
   background: var(--st-primary-gradient) !important;
   border: none !important;
   color: var(--st-btn-primary-text, var(--st-button-text)) !important;
@@ -453,14 +457,16 @@ a.btn-primary {
   transition: all var(--st-transition) !important;
 }
 .btn-primary:hover,
-button.btn-primary:hover {
+button.btn-primary:hover,
+.es-button[data-variant="solid"]:not([data-theme="red"]):hover {
   color: var(--st-btn-primary-text, var(--st-button-text)) !important;
   box-shadow: 0 4px 14px color-mix(in srgb, var(--st-accent) 45%, transparent) !important;
   transform: translateY(-1px);
   opacity: 0.95;
 }
 .btn-primary:active,
-button.btn-primary:active {
+button.btn-primary:active,
+.es-button[data-variant="solid"]:not([data-theme="red"]):active {
   transform: translateY(0);
   box-shadow: var(--st-shadow-sm) !important;
 }
@@ -2591,4 +2597,76 @@ html[dir="rtl"] #st-lang-dropdown {
 }
 .widget-group .grid-col-2 > .widget.dashboard-widget-box {
   min-width: 0;
+}
+
+/* ── MOBILE TOOLBAR & LAYOUT ──────────────────────────────────────────────────
+   Kept after the toolbar's base rules (the MOBILE block above comes first in
+   the file, so equal-specificity base rules would win over it). */
+@media (max-width: 768px) {
+  #st-top-toolbar { padding: 0 10px; gap: 6px; }
+  /* Phones: the toolbar's desktop content is ~600px wide, which pushed the
+     account menu and All Options off a 390px screen. Keep every action but
+     drop labels and separators; Today's View stays reachable from the home
+     icon in quick-nav. */
+  #st-top-toolbar .st-tb-left,
+  #st-top-toolbar .st-tb-sep { display: none; }
+  #st-top-toolbar .st-tb-right {
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: auto;
+    gap: 6px;
+  }
+  #st-tb-search {
+    min-width: 0;
+    width: 32px;
+    height: 28px;
+    padding: 0;
+    justify-content: center;
+  }
+  #st-tb-search .st-tb-search-text,
+  #st-tb-search .st-tb-search-kbd,
+  #st-options-btn .st-options-label,
+  #st-lang-btn .st-lang-globe,
+  #st-lang-btn .st-lang-chevron { display: none; }
+  #st-options-btn {
+    width: 32px;
+    height: 28px;
+    padding: 0;
+    justify-content: center;
+  }
+  #st-lang-btn { padding: 4px 6px; }
+
+  /* Frappe's phone defaults (24px page padding + 15px list margin) leave a
+     310px list card, and the list's right column keeps a 130px minimum, so
+     rows overflowed and the status pill was clipped. Reclaim the gutters and
+     let the right column shrink to its content. */
+  .page-container {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  .layout-main-section .frappe-list {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  .layout-main-section .frappe-list .result .list-row .level-right {
+    min-width: 0 !important;
+  }
+  /* Frappe draws the list as display: table, which always grows to its
+     widest row; at this width rows are stacked cards (Frappe's own comment),
+     so a block lets them fit the card. Frappe's phone rule also sizes the
+     left column to its content (min-width: auto), so a long title pushed the
+     row off the card — let it shrink so the title gets an ellipsis. */
+  .layout-main-section .frappe-list .result-container .result {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .layout-main-section .frappe-list .result .list-row .level-left {
+    min-width: 0 !important;
+    flex: 1 1 auto;
+  }
+  .layout-main-section .frappe-list .result .list-row .level-left .list-subject {
+    min-width: 0;
+    max-width: 100%;
+  }
 }

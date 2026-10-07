@@ -733,6 +733,12 @@ html[data-theme="dark"] .st-sh-qc-item {
     margin-left: 0;
   }
 
+  /* "View All Workspaces" wraps under the heading instead of spilling out of the card. */
+  .st-sh-apps-head {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
   .st-sh-qc-grid {
     grid-template-columns: 1fr;
   }

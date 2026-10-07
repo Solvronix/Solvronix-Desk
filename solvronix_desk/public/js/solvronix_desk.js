@@ -218,13 +218,74 @@
        View belonged to it. Show no active app here instead. */
     var route = frappe.get_route ? frappe.get_route() : [];
     var onSmartHome = route && route[0] === "smart-home";
-    var active = onSmartHome ? "" : activeSidebarTitle();
-    var titleToApp = ST._railTitleToApp || {};
-    var activeApp = titleToApp[active] || "";
+    var activeApp = onSmartHome ? "" : railActiveApp($rail);
     $rail.find(".st-rail-app").each(function () {
       var appKey = String($(this).attr("data-app") || "");
       $(this).toggleClass("st-rail-active", !!appKey && appKey === activeApp);
     });
+    renderRailModules($rail, activeApp);
+  }
+
+  /* Frappe 16.50+ knows which app owns the sidebar on screen; older Frappe
+     only exposes the sidebar title, which is mapped back to an app through
+     the workspace list the rail was built from. */
+  function railActiveApp($rail) {
+    var compat = ST.compat;
+    var app = compat && compat.hasDock ? compat.currentApp() : null;
+    if (app && $rail.find('.st-rail-app[data-app="' + app.app_name + '"]').length) {
+      return app.app_name;
+    }
+    var titleToApp = ST._railTitleToApp || {};
+    return titleToApp[activeSidebarTitle()] || "";
+  }
+
+  /* Frappe 16.50 moved module switching into its Dock. With the Icon Rail on,
+     that Dock is switched off (frappe_compat.js) and the active app's modules
+     are listed under its rail icon instead, using the Dock's own data, order
+     and routing — so admin/user dock arrangements still apply. */
+  function renderRailModules($rail, activeApp) {
+    var compat = ST.compat;
+    var $existing = $rail.find(".st-rail-modules");
+    if (!compat || !compat.hasDock || !activeApp) {
+      $existing.remove();
+      $rail.removeData("st-modules-sig");
+      return;
+    }
+
+    var app = compat.currentApp();
+    var entries = app && app.app_name === activeApp ? compat.moduleEntries(app) : [];
+    entries = entries.filter(function (entry) { return entry && entry.label; });
+    if (entries.length < 2) {
+      $existing.remove();
+      $rail.removeData("st-modules-sig");
+      return;
+    }
+
+    /* One navigation fires several refreshes; redraw only when something shown changed. */
+    var sig = JSON.stringify([activeApp, entries.map(function (entry) {
+      return [compat.entryKey(entry), entry.label, entry.icon, compat.isActiveEntry(entry)];
+    })]);
+    if ($existing.length && $rail.data("st-modules-sig") === sig) return;
+    $rail.data("st-modules-sig", sig);
+    $existing.remove();
+
+    var $list = $('<div class="st-rail-modules" role="group"></div>')
+      .attr("aria-label", __("Modules"));
+    entries.forEach(function (entry) {
+      var active = compat.isActiveEntry(entry);
+      var $btn = $('<button type="button" class="st-rail-module"></button>')
+        .toggleClass("st-rail-module-active", active)
+        .attr({ title: entry.label, "aria-label": entry.label })
+        .append($('<span class="st-rail-module-icon"></span>').html(compat.entryIcon(entry)))
+        .append($('<span class="st-rail-module-label st-rail-label"></span>').text(entry.label));
+      if (active) $btn.attr("aria-current", "page");
+      $btn.on("click", function () {
+        if (!compat.openEntry(entry)) return;
+        setTimeout(syncRailHighlight, 0);
+      });
+      $list.append($btn);
+    });
+    $rail.find('.st-rail-app[data-app="' + activeApp + '"]').after($list);
   }
 
   /* Sole place that renders the rail's logo tile — called at initial build
@@ -262,6 +323,10 @@
        always-expanded behavior; mobile keeps its native collapsed/overlay
        toggle untouched. */
     if (window.matchMedia && window.matchMedia("(max-width: 767px)").matches) return;
+    /* Frappe 16.50+ owns the sidebar's open/closed state and saves the
+       viewer's ☰ choice; forcing .expanded here undid a collapse on every
+       page change. The tablet default lives in frappe_compat.js. */
+    if (ST.compat && ST.compat.hasDock) return;
     var $container = $(".body-sidebar-container").first();
     if (!$container.length) return;
     $container.addClass("expanded");
@@ -269,8 +334,12 @@
   }
 
   function injectIconRail() {
+    /* Frappe 16.50's Dock is drawn only when the rail is off; re-ask Frappe
+       whenever the layout may have changed (boot, live theme switch). */
+    var railWasOn = !!document.getElementById("st-icon-rail");
+    if (railWasOn !== railEnabled() && ST.compat) ST.compat.refreshDock();
     if (!railEnabled()) {
-      if (document.getElementById("st-icon-rail")) removeIconRail();
+      if (railWasOn) removeIconRail();
       return;
     }
     document.body.classList.add("st-sidebar-layout-rail");
@@ -398,7 +467,11 @@
 
         $rail.on("click", ".st-rail-app", function (e) {
           e.preventDefault();
-          var route = $(this).attr("data-route");
+          /* On Frappe 16.50+ an app opens where Frappe itself would open it
+             (its declared route, else its first dock module). */
+          var compat = ST.compat;
+          var app = compat && compat.hasDock ? appMeta[$(this).attr("data-app")] : null;
+          var route = (app && compat.appLandingRoute(app)) || $(this).attr("data-route");
           if (!route) return;
           frappe.set_route(route);
           setTimeout(syncRailHighlight, 0);
@@ -857,9 +930,9 @@
 
     /* All Options button */
     var $opBtn = $(
-      '<button id="st-options-btn">' +
-        '<span class="st-options-icon">&#9776;</span>' +
-        frappe._("All Options") +
+      '<button id="st-options-btn" title="' + frappe._("All Options") + '" aria-label="' + frappe._("All Options") + '">' +
+        '<span class="st-options-icon" aria-hidden="true">&#9776;</span>' +
+        '<span class="st-options-label">' + frappe._("All Options") + "</span>" +
       "</button>"
     );
     $opBtn.on("click", openOptionsPanel);
