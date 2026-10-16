@@ -406,6 +406,7 @@ html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .sid
   flex-direction: column;
   width: var(--st-rail-width, 72px);
   height: 100vh;
+  height: 100dvh;
   background: var(--st-sidebar-bg, #FFFFFF);
   border-right: 1px solid var(--sidebar-border-color, #ededed);
   flex-shrink: 0;
@@ -416,6 +417,7 @@ html[data-theme="dark"] .body-sidebar .standard-sidebar-item.active-sidebar .sid
 body.st-has-toolbar #st-icon-rail {
   margin-top: var(--st-header-height) !important;
   height: calc(100vh - var(--st-header-height)) !important;
+  height: calc(100dvh - var(--st-header-height)) !important;
 }
 /* Company logo/icon, pinned at the top — its one dedicated home in the
    entire sidebar chrome; the classic sidebar's own #st-company-header is
@@ -655,8 +657,18 @@ body.st-has-toolbar #st-icon-rail {
     display: block;
   }
 }
+/* 320–400px phones: rail (72px) + a 240px drawer left ~8px of scrim to tap
+   to close it. Narrow the drawer so at least 48px of scrim stays. */
+@media (max-width: 400px) {
+  body:has(#st-icon-rail) .body-sidebar-container.expanded {
+    --sidebar-width: min(240px, calc(100vw - var(--st-rail-width, 72px) - 48px));
+  }
+  body:has(#st-icon-rail) .body-sidebar-container.expanded .body-sidebar {
+    width: var(--sidebar-width) !important;
+  }
+}
 
-@media (max-width: 767px) {
+@media (max-width: 767.98px) {
   html[data-theme] .body-sidebar-container:not(.expanded) > .body-sidebar {
     background: transparent !important;
     box-shadow: none !important;

@@ -24,6 +24,22 @@
     return element;
   };
 
+  /* Keep a fixed-position dropdown inside the viewport. Call after it is
+     shown and positioned: on phones a button near the right edge would push
+     a 210px+ menu off screen. */
+  window.stClampToViewport = function (el, gutter) {
+    if (!el || !el.getBoundingClientRect) return;
+    var g = gutter == null ? 8 : gutter;
+    var vw = document.documentElement.clientWidth || window.innerWidth;
+    if (el.offsetWidth > vw - g * 2) el.style.width = (vw - g * 2) + "px";
+    var r = el.getBoundingClientRect();
+    if (r.right > vw - g || r.left < g) {
+      var left = Math.min(Math.max(r.left, g), vw - g - r.width);
+      el.style.left = Math.max(g, left) + "px";
+      el.style.right = "auto";
+    }
+  };
+
   try {
     var cached = localStorage.getItem("st_theme_css");
     var serverTheme = document.getElementById("st-dynamic-theme");
@@ -609,6 +625,7 @@
         pos.right = "auto";
       }
       $dropdown.css(pos);
+      window.stClampToViewport($dropdown[0]);
       $btn.addClass("open");
       setTimeout(function () { $search.focus(); }, 50);
     }
@@ -776,7 +793,7 @@
       var m = now.getMinutes().toString().padStart(2, "0");
       var s = now.getSeconds().toString().padStart(2, "0");
       var el = document.getElementById("st-tb-clock");
-      if (el) el.textContent = h + ":" + m + ":" + s;
+      if (el && el.offsetParent !== null) el.textContent = h + ":" + m + ":" + s;
     }
     tickClock();
     setInterval(tickClock, 1000);
@@ -843,6 +860,7 @@
         pos.right = "auto";
       }
       $langDrop.css(pos);
+      window.stClampToViewport($langDrop[0]);
       $langBtn.addClass("open");
       setTimeout(function () { $langSearch.focus(); }, 40);
 
@@ -1065,6 +1083,7 @@
         pos.left = "auto";
       }
       $userDrop.css(pos).addClass("open");
+      window.stClampToViewport($userDrop[0]);
       $userBtn.addClass("active");
     }
     function closeUserDrop() {
@@ -1081,6 +1100,13 @@
       if (!$userDrop[0].contains(e.target) && !$userBtn[0].contains(e.target)) {
         closeUserDrop();
       }
+    });
+    /* Fixed dropdowns are placed from the button's rect, so a rotation leaves
+       them stranded. Not on resize: the phone keyboard opening fires resize
+       while the language search has focus. */
+    $(window).off("orientationchange.st_drop").on("orientationchange.st_drop", function () {
+      closeUserDrop();
+      closeLangDrop();
     });
 
     $userDrop.on("click", "[data-action]", function () {

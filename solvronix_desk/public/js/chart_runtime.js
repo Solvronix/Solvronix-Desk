@@ -463,9 +463,19 @@
 
   function ready() {
     if (typeof MutationObserver === "function" && document.body) {
-      observer = new MutationObserver(function () {
+      /* One rescan per frame at most: a body-wide observer fires on every
+         DOM change (typing, scrolling lists), which is costly on phones. */
+      var pendingScan = 0;
+      var runScan = function () {
+        pendingScan = 0;
         scan();
         refresh({ force: true });
+      };
+      observer = new MutationObserver(function () {
+        if (pendingScan) return;
+        pendingScan = typeof requestAnimationFrame === "function"
+          ? requestAnimationFrame(runScan)
+          : setTimeout(runScan, 16);
       });
       observer.observe(document.body, { childList: true, subtree: true });
       if (document.documentElement) {

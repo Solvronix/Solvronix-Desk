@@ -342,9 +342,9 @@ class IconRailTest(unittest.TestCase):
     def test_rail_assets_are_cache_busted(self):
         hooks = HOOKS.read_text(encoding="utf-8")
 
-        self.assertIn("/assets/solvronix_desk/css/sidebar.css?v=37", hooks)
-        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=67", hooks)
-        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=19", hooks)
+        self.assertIn("/assets/solvronix_desk/css/sidebar.css?v=38", hooks)
+        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=68", hooks)
+        self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=20", hooks)
 
     def test_legacy_config_treats_never_set_icon_rail_width_as_unset_not_zero(self):
         """Regression test: frappe.utils.cint() coercion serializes an Int

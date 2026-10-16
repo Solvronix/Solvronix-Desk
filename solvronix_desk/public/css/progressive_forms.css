@@ -57,3 +57,19 @@
 .st-pf-toggle-label {
   font-weight: 500;
 }
+
+@media (hover: none) {
+  .st-pf-toggle-btn:hover {
+    background: none;
+    color: var(--text-muted, #6b7280);
+    border-color: var(--border-color, #e2e8f0);
+    border-style: dashed;
+  }
+}
+@media (max-width: 767.98px) {
+  .st-pf-toggle-btn {
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}

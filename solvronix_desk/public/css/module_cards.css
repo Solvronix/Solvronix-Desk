@@ -250,7 +250,7 @@ html[data-theme="dark"] .st-ws-skeleton .st-ws-card-desc {
     padding: 16px 16px 32px;
   }
   .st-ws-cards {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
   .st-ws-card {
@@ -262,4 +262,15 @@ html[data-theme="dark"] .st-ws-skeleton .st-ws-card-desc {
     height: 42px;
     font-size: 18px;
   }
+}
+
+/* Long workspace names wrap instead of widening their column. */
+.st-ws-card-name { overflow-wrap: anywhere; }
+
+@media (hover: none) {
+  .st-ws-card:hover { transform: none; }
+}
+
+@media (max-width: 767.98px) {
+  .st-ws-search { font-size: 16px; }
 }

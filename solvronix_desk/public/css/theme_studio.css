@@ -699,3 +699,69 @@
 @media (prefers-reduced-motion: reduce) {
 	.sts-chart-preview-card,.sts-chart-preview-card * { animation: none !important; transition: none !important; }
 }
+
+/* ── PHONES AND TABLETS ───────────────────────────────────────────────────────
+   Tablets keep both panes; the toolbar wraps and the preview is zoomed to fit
+   by theme_studio.js (_fit_preview). Phones switch between Controls and
+   Preview with a tab bar instead of stacking a 720px page. */
+.sts-pane-switch { display: none; }
+
+@media (max-width: 1050px) {
+	.sts-toolbar { height: auto; min-height: 55px; flex-wrap: wrap; gap: 8px 12px; padding: 8px 16px; }
+	.sts-history { margin-left: auto; }
+	.sts-stage { padding: 16px; }
+	.sts-preview-frame { min-width: 0; }
+	.sts-stage.is-comparing { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 760px) {
+	.st-theme-studio { min-height: 0; }
+	.sts-pane-switch {
+		position: sticky; z-index: 30; top: var(--st-header-height, 36px);
+		display: flex; gap: 4px; padding: 8px 12px;
+		background: var(--card-bg, #fbfaf7); border-bottom: 1px solid var(--line);
+	}
+	.sts-pane-switch button {
+		flex: 1; min-height: 40px; border: 1px solid var(--line); border-radius: 8px;
+		background: transparent; color: var(--muted); font-size: 14px; font-weight: 650;
+	}
+	.sts-pane-switch button.active { background: var(--card-bg, #fff); color: var(--ink); border-color: var(--st-accent); }
+	.st-theme-studio[data-sts-pane="controls"] .sts-workbench,
+	.st-theme-studio[data-sts-pane="preview"] .sts-controls { display: none; }
+	.sts-controls { padding: 18px 14px 40px; }
+	.sts-workbench { min-height: 0; }
+	.sts-toolbar { padding: 8px 12px; position: static; }
+	/* Scene buttons scroll sideways in one line rather than wrapping into a block. */
+	.sts-scene-switch { order: 5; flex: 1 1 100%; overflow-x: auto; scrollbar-width: none; }
+	.sts-scene-switch::-webkit-scrollbar { display: none; }
+	.sts-scene-switch button { flex: 0 0 auto; }
+	.sts-workspace-picker { order: 6; flex: 1 1 100%; }
+	.sts-workspace-picker select { width: 100%; }
+	.sts-toolbar-note { display: none; }
+	.sts-stage { padding: 12px; }
+	/* Inspector: a bottom sheet instead of a popover over the item being edited. */
+	.sts-context-inspector[data-side="sheet"] {
+		left: 0 !important; right: 0; top: auto !important; bottom: 0;
+		width: 100% !important; max-height: 70vh; max-height: 70dvh;
+		border-radius: 16px 16px 0 0;
+		padding-bottom: calc(15px + env(safe-area-inset-bottom));
+	}
+	.sts-context-inspector[data-side="sheet"]::before { display: none; }
+	.sts-context-inspector[data-side="sheet"] .sts-inspector-controls { max-height: none; }
+}
+
+/* Touch: the desktop editor's 8–10px labels and 26–29px buttons are too small
+   for fingers. */
+@media (hover: none) {
+	.sts-scene-switch button { height: 36px; padding: 0 12px; font-size: 12px; }
+	.sts-device-switch button,
+	.sts-history button { width: 40px; height: 36px; }
+	.sts-compare-btn,
+	.sts-draft-btn { height: 36px; padding: 0 12px; font-size: 12px; }
+	.sts-workspace-picker select { height: 40px; font-size: 14px; }
+	.sts-inspector-head > button { width: 40px; height: 40px; }
+	.sts-segments button { min-height: 36px; font-size: 12px; }
+	.sts-wcag-card strong { font-size: 11px; }
+	.sts-wcag-card p { font-size: 11px; }
+	.sts-workspace-shield { cursor: default; }
+}

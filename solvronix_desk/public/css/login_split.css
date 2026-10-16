@@ -49,6 +49,7 @@ html[data-theme="dark"] body.sl-split {
 html body.sl-split {
   display: block !important;
   min-height: 100vh !important;
+  min-height: 100svh !important;
   margin: 0 !important;
   background: var(--sl-page-bg) !important;
   animation: none !important;
@@ -91,6 +92,7 @@ html body.sl-split section::before { display: none !important; }
   display: grid;
   grid-template-columns: minmax(0, 56fr) minmax(0, 44fr);
   min-height: 100vh;
+  min-height: 100svh;
 }
 
 /* ── HERO PANEL ─────────────────────────────────────────────────────────── */
@@ -393,6 +395,7 @@ html body.sl-split .sl-card .form-group.invalid .field-error { display: block; }
 }
 html body.sl-split .sl-forgot {
   flex: none;
+  padding: 12px 0;
   color: var(--sl-brand-text) !important;
   font-size: 14px;
   text-decoration: none !important;
@@ -432,6 +435,13 @@ html body.sl-split .sl-card .toggle-password {
 }
 html body.sl-split .sl-card .field-icon { left: 18px !important; fill: var(--sl-muted) !important; }
 html body.sl-split .sl-card .toggle-password { right: 18px !important; font-size: inherit !important; fill: var(--sl-muted) !important; }
+/* A 16px icon is too small to tap: pad it to a 44px target, same visual spot. */
+html body.sl-split .sl-card .toggle-password {
+  box-sizing: content-box;
+  padding: 14px;
+  right: 4px !important;
+  cursor: pointer;
+}
 
 /* ── BUTTONS ────────────────────────────────────────────────────────────── */
 html body.sl-split .sl-card .sl-btn-primary,
@@ -552,7 +562,7 @@ html body.sl-split .sl-card .sign-up-message a:hover { text-decoration: underlin
 @media (max-width: 991px) {
   .sl-shell { grid-template-columns: minmax(0, 1fr); }
   .sl-hero { display: none; }
-  .sl-auth { min-height: 100vh; }
+  .sl-auth { min-height: 100vh; min-height: 100svh; }
   .sl-card-logo {
     display: block;
     max-width: 180px;

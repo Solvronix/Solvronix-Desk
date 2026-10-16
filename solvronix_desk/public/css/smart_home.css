@@ -1012,3 +1012,58 @@ html[data-theme="dark"] .st-sh-qc-item {
   .st-sh-builder-preview { display: none; }
   .st-sh-library { padding: 22px; }
 }
+
+/* ── Touch and phones ─────────────────────────────────────────────────────── */
+/* A tap leaves :hover set on touch screens, so lifted cards stay lifted. */
+@media (hover: none) {
+  .st-sh-kpi:hover,
+  .st-sh-qc-item:hover,
+  .st-sh-library-item:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 767.98px) {
+  /* Edit tools: 25px buttons are too small to tap; the move buttons are the
+     touch way to rearrange widgets (drag needs a mouse). */
+  .st-sh-drag-handle,
+  .st-sh-move,
+  .st-sh-resize {
+    width: 36px;
+    height: 36px;
+  }
+  .st-sh-remove-widget {
+    top: -8px;
+    right: -8px;
+    width: 34px;
+    height: 34px;
+    font-size: 20px;
+  }
+  .st-sh-library {
+    width: 100%;
+    border-left: none;
+    padding-bottom: calc(22px + env(safe-area-inset-bottom));
+  }
+  .st-sh-library-close {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  /* Builder: a full-screen sheet instead of a padded modal that left ~220px
+     of content width on a 320px phone. */
+  .st-sh-builder-backdrop { padding: 0; }
+  .st-sh-builder {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+    border: none;
+    border-radius: 0;
+  }
+  .st-sh-builder-row { grid-template-columns: minmax(0, 1fr); }
+  .st-sh-builder-form input,
+  .st-sh-builder-form textarea,
+  .st-sh-builder-form select,
+  .st-sh-scratch-input { font-size: 16px; }
+  .st-sh-date-widget strong,
+  .st-sh-custom-number { font-size: 40px; }
+}

@@ -79,6 +79,7 @@
   html:has(.for-email-login),
   html:has(.for-login-with-email-link) {
     min-height: 100vh !important;
+    min-height: 100svh !important;
     height: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -91,6 +92,7 @@
   body:has(.for-login-with-email-link) {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
     min-height: 100vh !important;
+    min-height: 100svh !important;
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -183,6 +185,7 @@ body:has(.for-forgot) .page-header-wrapper {
   align-items: center !important;
   justify-content: center !important;
   min-height: 100vh !important;
+  min-height: 100svh !important;
   padding: 40px 20px !important;
   background: transparent !important;
 }
@@ -215,6 +218,7 @@ body:has(.for-forgot) .page-header-wrapper {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  min-height: 100svh;
   padding: 40px 20px;
   background: transparent;
 }
@@ -475,6 +479,30 @@ body:has(.for-forgot) .page-header-wrapper {
   }
 }
 
+/* Phones: inputs under 16px make the browser zoom into the page on focus
+   and stay zoomed; a fixed footer covers the form once the keyboard opens;
+   the blurred colour field costs real GPU time on low-end phones. */
+@media (max-width: 767.98px) {
+  .for-login .page-card .form-control,
+  .for-forgot .page-card .form-control,
+  .for-signup .page-card .form-control {
+    font-size: 16px !important;
+  }
+  .st-login-custom-footer {
+    position: static;
+    transform: none;
+    margin: 16px auto calc(16px + env(safe-area-inset-bottom));
+  }
+  body:has(.for-login)::before,
+  body:has(.for-forgot)::before,
+  body:has(.for-signup)::before,
+  body:has(.for-email-login)::before,
+  body:has(.for-login-with-email-link)::before {
+    filter: none;
+    animation: none;
+  }
+}
+
 /* ── FALLBACK FOR BROWSERS WITHOUT :has() (Chrome 83-104, Safari 14.1-15.3) ── */
 @supports not selector(:has(*)) {
   .for-login,
@@ -490,6 +518,7 @@ body:has(.for-forgot) .page-header-wrapper {
     background-size: 200% 200% !important;
     animation: st-login-gradient 10s ease infinite alternate !important;
     min-height: 100vh !important;
+    min-height: 100svh !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;

@@ -59,10 +59,11 @@
 /* ── Slide panel ── */
 #st-notif-panel {
   position: fixed;
-  top: 36px;
+  top: var(--st-header-height, 36px);
   right: 0;
   width: 380px;
-  height: calc(100vh - 36px);
+  /* top + bottom instead of 100vh, which runs under phone browser bars. */
+  bottom: 0;
   background: var(--bg-color, #fff);
   border-left: 1px solid var(--border-color, #e2e8f0);
   box-shadow: -4px 0 24px rgba(0,0,0,0.12);
@@ -321,9 +322,37 @@
   text-decoration: underline;
 }
 
+/* ── Touch: no hover, so "mark as read" is always shown, with a real target ── */
+@media (hover: none) {
+  .st-notif-mark-read {
+    opacity: 1;
+    min-width: 32px;
+    min-height: 32px;
+    font-size: 12px;
+  }
+}
+
 /* ── Mobile ── */
-@media (max-width: 600px) {
+@media (max-width: 767.98px) {
   #st-notif-panel {
-    width: 100vw;
+    width: 100%;
+    border-left: none;
+  }
+  .st-notif-action-btn {
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .st-notif-close-btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  .st-notif-foot {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+  .st-notif-view-all {
+    display: inline-block;
+    padding: 8px 12px;
+    font-size: 14px;
   }
 }

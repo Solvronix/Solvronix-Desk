@@ -252,7 +252,7 @@ class FrappeVersionResilienceTest(unittest.TestCase):
         self.assertIn("transform: translateY(-50%) !important;", css)
 
     def test_stylesheet_is_cache_busted(self):
-        self.assertIn("login_split.css?v=7", TEMPLATE.read_text())
+        self.assertIn("login_split.css?v=8", TEMPLATE.read_text())
 
 class BrandingSourcesTest(unittest.TestCase):
     def sources(self, theme=None, company="Acme Trading", company_logo="/files/acme.png",

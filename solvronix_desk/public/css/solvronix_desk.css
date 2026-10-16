@@ -707,7 +707,10 @@ html:not([data-theme="dark"]) .frappe-list {
   border: 1px solid rgba(0,0,0,0.07) !important;
   border-radius: var(--st-radius-lg) !important;
   box-shadow: 0 2px 14px rgba(0,0,0,0.07) !important;
+  /* clip, not hidden: a hidden-overflow ancestor becomes a scroll container
+     and stops Frappe's sticky list header from sticking. */
   overflow: hidden;
+  overflow: clip;
 }
 
 /* Checkbox accent */
@@ -1456,7 +1459,9 @@ html[data-theme="dark"] #st-powered-by {
   border-radius: var(--st-radius) !important;
   box-shadow: var(--st-shadow-lg) !important;
   border: 1px solid rgba(0,0,0,0.08) !important;
-  overflow: hidden;
+  /* Frappe caps menus at 500px and scrolls them; hidden would cut long
+     page-head and Actions menus off on short phone screens. */
+  overflow: auto;
   z-index: 1070 !important;
 }
 .dropdown-item:hover,
@@ -1504,39 +1509,6 @@ html[data-theme="dark"] #st-powered-by {
   border-radius: var(--st-radius-pill);
 }
 
-/* ── MOBILE ─────────────────────────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .desk-sidebar {
-    width: 260px !important;
-    background-color: var(--st-dark) !important;
-  }
-  .for-login .page-card-head,
-  .for-forgot .page-card-head,
-  .for-signup .page-card-head {
-    width: 100% !important;
-    padding: 32px 24px 16px !important;
-    border-radius: 16px 16px 0 0 !important;
-  }
-  .for-login .login-content.page-card,
-  .for-forgot .login-content.page-card,
-  .for-signup .login-content.page-card {
-    width: 100% !important;
-    padding: 4px 24px 32px !important;
-    border-radius: 0 0 16px 16px !important;
-  }
-  .btn-primary, .btn-default {
-    min-height: 40px;
-    font-size: 14px;
-  }
-  .datatable { overflow-x: auto !important; }
-  .form-grid table { min-width: 600px; }
-  #st-top-toolbar { padding: 0 10px; gap: 6px; }
-  #st-tb-clock { display: none; }
-  #st-tb-user { display: none; }
-  #st-options-panel { width: 100%; max-width: 100vw; }
-  .st-op-items { grid-template-columns: 1fr; }
-}
-
 /* ── TOP TOOLBAR ────────────────────────────────────────────────────────────── */
 #st-top-toolbar {
   position: fixed;
@@ -1581,12 +1553,19 @@ body.st-has-toolbar .main-section > header {
 }
 /* Shift sidebar below the 36px toolbar using margin, shrink height to match */
 body.st-has-toolbar .body-sidebar {
-  margin-top: 36px !important;
-  height: calc(100vh - 36px) !important;
+  margin-top: var(--st-header-height, 36px) !important;
+  height: calc(100vh - var(--st-header-height, 36px)) !important;
+  height: calc(100dvh - var(--st-header-height, 36px)) !important;
 }
 /* Push page content below the toolbar so it doesn't scroll under it */
 body.st-has-toolbar .page-container {
-  padding-top: 36px !important;
+  padding-top: var(--st-header-height, 36px) !important;
+}
+/* Frappe's page head is sticky at top: 0, which slides it under the fixed
+   toolbar once the page scrolls. The theme engine sets the same offset; this
+   keeps it when the dynamic theme CSS is absent. */
+body.st-has-toolbar .page-head {
+  top: var(--st-header-height, 36px);
 }
 /* Legacy v15 selectors — kept for compatibility */
 body.st-has-toolbar .navbar,
@@ -1940,7 +1919,10 @@ body.st-has-toolbar header.navbar {
   border-radius: 10px;
   box-shadow: 0 8px 28px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.06);
   min-width: 230px;
-  overflow: hidden;
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 #st-user-dropdown.open {
   display: block;
@@ -2166,6 +2148,7 @@ html[data-theme="dark"] .st-ud-app-ver {
   width: 420px;
   max-width: 92vw;
   height: 100vh;
+  height: 100dvh;
   background: #fff;
   z-index: 1090;
   box-shadow: -8px 0 32px rgba(0,0,0,0.18);
@@ -2341,7 +2324,7 @@ html[data-theme="dark"] .st-ud-app-ver {
 /* ── USER-CONTROLLED FULL-WIDTH DESK ─────────────────────────────────────────
    Uses Frappe's native body.full-width state and container_fullwidth setting.
    Keep sidebars intact while removing the centered content cap on every page. */
-@media (min-width: 769px) {
+@media (min-width: 768px) {
   body.full-width {
     --page-max-width: 100%;
   }
@@ -2600,10 +2583,19 @@ html[dir="rtl"] #st-lang-dropdown {
 }
 
 /* ── MOBILE TOOLBAR & LAYOUT ──────────────────────────────────────────────────
-   Kept after the toolbar's base rules (the MOBILE block above comes first in
-   the file, so equal-specificity base rules would win over it). */
-@media (max-width: 768px) {
-  #st-top-toolbar { padding: 0 10px; gap: 6px; }
+   The only phone block in this file. It sits after every base rule it
+   overrides, so equal-specificity rules here win. 767.98px is Frappe's own
+   sm breakpoint (sidebar.css uses it too), so an iPad in portrait at 768px
+   gets the tablet layout from Frappe and from the theme alike. */
+@media (max-width: 767.98px) {
+  /* A taller bar on phones so its buttons are tappable. html:root outranks the
+     theme engine's :root, and every toolbar offset reads this variable. */
+  html:root { --st-header-height: 44px; }
+
+  #st-top-toolbar {
+    gap: 4px;
+    padding: 0 max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left));
+  }
   /* Phones: the toolbar's desktop content is ~600px wide, which pushed the
      account menu and All Options off a 390px screen. Keep every action but
      drop labels and separators; Today's View stays reachable from the home
@@ -2614,35 +2606,97 @@ html[dir="rtl"] #st-lang-dropdown {
     flex-shrink: 1;
     min-width: 0;
     margin-left: auto;
-    gap: 6px;
+    gap: 2px;
+    /* Last resort on very narrow screens: scroll the buttons, never clip them. */
+    overflow-x: auto;
+    scrollbar-width: none;
   }
-  #st-tb-search {
-    min-width: 0;
-    width: 32px;
-    height: 28px;
-    padding: 0;
+  #st-top-toolbar .st-tb-right::-webkit-scrollbar { display: none; }
+  #st-tb-search,
+  #st-options-btn,
+  .st-tb-qn-btn,
+  #st-top-toolbar .desktop-notifications .nav-link {
+    min-width: 36px;
+    width: 36px;
+    height: 36px;
+    padding: 0 !important;
     justify-content: center;
+    flex-shrink: 0;
   }
   #st-tb-search .st-tb-search-text,
   #st-tb-search .st-tb-search-kbd,
   #st-options-btn .st-options-label,
   #st-lang-btn .st-lang-globe,
   #st-lang-btn .st-lang-chevron { display: none; }
-  #st-options-btn {
-    width: 32px;
-    height: 28px;
-    padding: 0;
+  #st-lang-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 6px;
     justify-content: center;
+    flex-shrink: 0;
   }
-  #st-lang-btn { padding: 4px 6px; }
+  #st-user-btn { min-height: 36px; }
+
+  /* Phone keyboards zoom the page into any input under 16px and leave it
+     zoomed. The theme's own search boxes are focused as soon as they open. */
+  #st-module-search,
+  #st-lang-search,
+  #st-options-search,
+  body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  body select:not([multiple]),
+  body textarea:not([readonly]) { font-size: 16px; }
+
+  /* All Options: a full-width sheet with one column of items. */
+  #st-options-panel {
+    width: 100%;
+    max-width: 100%;
+    right: -100%;
+  }
+  #st-options-panel.open { right: 0; }
+  #st-options-panel-close {
+    width: 40px;
+    height: 40px;
+  }
+  #st-options-body { padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+  .st-op-items { grid-template-columns: minmax(0, 1fr); }
+  .st-op-item { padding: 11px 10px; font-size: 14px; }
+
+  .st-ud-apps-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+  #st-setup-guide {
+    margin: 12px 0 0;
+    padding: 14px 44px 14px 14px;
+  }
+  #st-setup-guide .st-sg-dismiss {
+    top: 4px;
+    right: 4px;
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Page head, list rows and dialog headers: the desktop paddings cost about
+     50px of a 320px screen and wrapped titles and actions. */
+  html:not([data-theme="dark"]) .desk-page > .page-head,
+  html:not([data-theme="dark"]) .layout-main-section > .page-head {
+    padding: 10px 12px 10px 12px !important;
+    border-left-width: 3px !important;
+    margin-bottom: 10px;
+  }
+  html[data-theme="dark"] .desk-page > .page-head,
+  html[data-theme="dark"] .layout-main-section > .page-head {
+    padding: 12px 14px !important;
+    margin-bottom: 10px;
+  }
+  .list-row { padding: 10px 12px !important; }
+  .modal-header { padding: 12px 14px !important; }
 
   /* Frappe's phone defaults (24px page padding + 15px list margin) leave a
      310px list card, and the list's right column keeps a 130px minimum, so
      rows overflowed and the status pill was clipped. Reclaim the gutters and
      let the right column shrink to its content. */
   .page-container {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+    padding-left: max(12px, env(safe-area-inset-left)) !important;
+    padding-right: max(12px, env(safe-area-inset-right)) !important;
   }
   .layout-main-section .frappe-list {
     margin-left: 0 !important;
@@ -2668,5 +2722,44 @@ html[dir="rtl"] #st-lang-dropdown {
   .layout-main-section .frappe-list .result .list-row .level-left .list-subject {
     min-width: 0;
     max-width: 100%;
+  }
+
+  /* Email-link login cards kept their 48px desktop side padding. */
+  .for-login .page-card-head,
+  .for-forgot .page-card-head,
+  .for-signup .page-card-head,
+  .for-email-login .page-card-head,
+  .for-login-with-email-link .page-card-head {
+    width: 100% !important;
+    padding: 32px 20px 16px !important;
+  }
+  .for-login .login-content.page-card,
+  .for-forgot .login-content.page-card,
+  .for-signup .login-content.page-card,
+  .for-email-login .login-content.page-card,
+  .for-login-with-email-link .login-content.page-card {
+    width: 100% !important;
+    padding: 4px 20px 32px !important;
+  }
+}
+
+/* Very narrow phones (320–400px): drop To-Do from quick-nav (it stays in
+   search and the sidebar) so every other toolbar action fits. */
+@media (max-width: 400px) {
+  #st-tb-quicknav .st-tb-qn-btn:nth-child(2) { display: none; }
+}
+
+/* Touch screens keep a hover state after a tap, so lifts and slides stay
+   stuck on the last card touched. Keep them for real pointers only. */
+@media (hover: none) {
+  .desk-card:hover,
+  .widget:hover:not(.cdx-block),
+  .btn-primary:hover,
+  .es-button[data-variant="solid"]:not([data-theme="red"]):hover,
+  .body-sidebar .standard-sidebar-item:hover,
+  .desk-sidebar .standard-sidebar-item:hover,
+  .st-op-item:hover,
+  [data-page-route="Workspaces"] #editorjs .frappe-card:hover {
+    transform: none !important;
   }
 }
