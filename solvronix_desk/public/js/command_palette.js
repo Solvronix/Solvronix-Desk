@@ -118,7 +118,9 @@
         '    <input class="st-cp-input" type="text"',
         '      placeholder="Search reports, doctypes, workspaces..."',
         '      autocomplete="off" autocorrect="off" spellcheck="false" />',
-        '    <kbd class="st-cp-kbd-hint">Esc</kbd>',
+        '    <button type="button" class="st-cp-kbd-hint st-cp-close" aria-label="Close">',
+        '      <span class="st-cp-close-key">Esc</span><span class="st-cp-close-x" aria-hidden="true">&times;</span>',
+        '    </button>',
         '  </div>',
         '  <div class="st-cp-results" id="st-cp-results"></div>',
         '  <div class="st-cp-footer">',
@@ -134,6 +136,10 @@
       this.overlay = overlay;
       this.input   = overlay.querySelector(".st-cp-input");
       this.list    = overlay.querySelector("#st-cp-results");
+
+      overlay.querySelector(".st-cp-close").addEventListener("click", function () {
+        self.close();
+      });
 
       this.input.focus();
       this._render_default();
@@ -269,8 +275,13 @@
             "</div>",
           ].join("");
 
+          /* mousedown only keeps focus in the input; the action runs on
+             click, so a finger that starts on a row to scroll the list
+             doesn't open it. */
           el.addEventListener("mousedown", function (e) {
             e.preventDefault();
+          });
+          el.addEventListener("click", function () {
             item.action();
             self.close();
           });

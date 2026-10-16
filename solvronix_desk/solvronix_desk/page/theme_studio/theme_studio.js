@@ -310,7 +310,12 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	   Render from the schema, then cache nodes updated repeatedly by preview. */
 	render() {
 		this.$root.off();
-		this.$root.removeClass("sts-loading").addClass("st-theme-studio").html(
+		this.$root.removeClass("sts-loading").addClass("st-theme-studio")
+			.attr("data-sts-pane", this.mobile_pane || "controls").html(
+			'<div class="sts-pane-switch" role="tablist" aria-label="' + __("Theme Studio view") + '">' +
+				'<button type="button" role="tab" data-sts-pane="controls">' + __("Controls") + "</button>" +
+				'<button type="button" role="tab" data-sts-pane="preview">' + __("Preview") + "</button>" +
+			"</div>" +
 			'<aside class="sts-controls">' +
 				'<div class="sts-eyebrow">' + __("DESIGN SYSTEM") + "</div>" +
 				'<h2>' + __("Make it unmistakably yours.") + "</h2>" +
@@ -379,6 +384,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.$workspace_scene = this.$root.find(".sts-workspace-preview");
 		this.$workspace_iframe = this.$root.find("#sts-workspace-iframe");
 		this.bind();
+		this._show_pane(this.mobile_pane || "controls");
 		this._sync_profile_actions();
 		this.render_blocks();
 		this._render_inspector();
@@ -515,10 +521,52 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this._restore_inspector_highlight();
 	}
 
+	/* Phones (≤760px) show one pane at a time: the settings rail or the
+	   preview. Above that both panes sit side by side and the switch is hidden. */
+	_show_pane(name) {
+		var pane = name === "preview" ? "preview" : "controls";
+		this.mobile_pane = pane;
+		var root = this.$root && this.$root[0];
+		if (!root || typeof root.querySelectorAll !== "function") return;
+		root.setAttribute("data-sts-pane", pane);
+		Array.prototype.forEach.call(root.querySelectorAll(".sts-pane-switch [data-sts-pane]"), function (button) {
+			var active = button.getAttribute("data-sts-pane") === pane;
+			button.classList.toggle("active", active);
+			button.setAttribute("aria-selected", active ? "true" : "false");
+		});
+		this._fit_preview();
+	}
+
+	/* The preview is drawn at a real device width (690/780/390px). When the
+	   stage is narrower, zoom the frame down instead of scrolling it sideways. */
+	_fit_preview() {
+		var frame = this.$preview && this.$preview[0];
+		var root = this.$root && this.$root[0];
+		var stage = root && typeof root.querySelector === "function" ? root.querySelector(".sts-stage") : null;
+		if (!frame || !stage || typeof window.getComputedStyle !== "function") return;
+		var frames = Array.prototype.slice.call(stage.querySelectorAll(".sts-preview-frame"));
+		frames.forEach(function (item) { item.style.zoom = ""; });
+		if (!stage.clientWidth) return;
+		/* Side-by-side comparison only happens on wide screens (CSS stacks it
+		   below 1050px), where both frames already fit. */
+		if (stage.classList.contains("is-comparing") && !(window.matchMedia && window.matchMedia("(max-width: 1050px)").matches)) return;
+		var device = frame.getAttribute("data-device") || "desktop";
+		var natural = { tablet: 780, mobile: 390 }[device] || 690;
+		var styles = window.getComputedStyle(stage);
+		var avail = stage.clientWidth - (parseFloat(styles.paddingLeft) || 0) - (parseFloat(styles.paddingRight) || 0);
+		if (!(avail > 0 && avail < natural)) return;
+		var zoom = String(Math.floor((avail / natural) * 1000) / 1000);
+		frames.forEach(function (item) { item.style.zoom = zoom; });
+	}
+
 	/* Keep the contextual editor beside its selected preview item. It prefers
 	   the right edge, falls back to the left, and stays inside the viewport. */
 	_position_inspector(element) {
 		if (!element || !this.$inspector || !this.$inspector.hasClass("is-open")) return;
+		if (window.matchMedia && window.matchMedia("(max-width: 760px)").matches) {
+			this.$inspector.attr("data-side", "sheet").css({ left: "", top: "", width: "", visibility: "visible" });
+			return;
+		}
 		var target = element.getBoundingClientRect();
 		var gap = 14;
 		var edge = 12;
@@ -2054,7 +2102,11 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	bind() {
 		var self = this;
 		$(window).off("resize.stsInspector").on("resize.stsInspector", function () {
+			self._fit_preview();
 			self._restore_inspector_highlight();
+		});
+		this.$root.on("click", ".sts-pane-switch [data-sts-pane]", function () {
+			self._show_pane(this.getAttribute("data-sts-pane"));
 		});
 		$(window).off("st-theme-os-mode-change.stsThemeMode")
 			.on("st-theme-os-mode-change.stsThemeMode", function () {
@@ -2089,6 +2141,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		});
 		this.$root.on("click", "[data-open-control-section]", function () {
 			var section = $(this).data("open-control-section");
+			self._show_pane("controls");
 			self.active_section = section;
 			self.$root.find("[data-section-tab]").removeClass("active").filter('[data-section-tab="' + section + '"]').addClass("active");
 			self.$root.find(".sts-control-panel").removeClass("active").filter('[data-section="' + section + '"]').addClass("active");
@@ -2224,6 +2277,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			self.$root.find("[data-device]").removeClass("active");
 			$(this).addClass("active");
 			self.$preview.attr("data-device", $(this).data("device"));
+			self._fit_preview();
 			self._restore_inspector_highlight();
 			setTimeout(function () { self._restore_inspector_highlight(); }, 340);
 		});
@@ -2244,6 +2298,28 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		});
 		this.$root.on("wheel", ".sts-workspace-shield", function (event) {
 			self._forward_workspace_wheel(event.originalEvent || event);
+		});
+		/* Touch: the shield blocks the iframe, so forward finger drags as
+		   scroll deltas the same way the wheel handler does. */
+		var touchPoint = null;
+		this.$root.on("touchstart", ".sts-workspace-shield", function (event) {
+			var touch = (event.originalEvent || event).touches;
+			touchPoint = touch && touch.length === 1 ? { x: touch[0].clientX, y: touch[0].clientY } : null;
+		});
+		this.$root.on("touchmove", ".sts-workspace-shield", function (event) {
+			var nativeEvent = event.originalEvent || event;
+			var touch = nativeEvent.touches;
+			if (!touchPoint || !touch || touch.length !== 1) return;
+			var next = { x: touch[0].clientX, y: touch[0].clientY };
+			self._forward_workspace_wheel({
+				deltaX: touchPoint.x - next.x,
+				deltaY: touchPoint.y - next.y,
+				preventDefault: function () { if (nativeEvent.cancelable) nativeEvent.preventDefault(); },
+			});
+			touchPoint = next;
+		});
+		this.$root.on("touchend touchcancel", ".sts-workspace-shield", function () {
+			touchPoint = null;
 		});
 		this.$root.on("click", ".sts-sidebar-toggle", function () {
 			self._checkpoint();
@@ -2538,6 +2614,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		if (existing.length) {
 			existing.remove();
 			$stage.removeClass("is-comparing");
+			this._fit_preview();
 			this.$root.find('[data-action="compare"]').text(__("Compare with default"));
 			return;
 		}
@@ -2545,7 +2622,9 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		var $clone = this.$preview.clone(false).removeAttr("id").addClass("sts-default-frame");
 		$clone.prepend('<div class="sts-compare-label">' + __("Frappe-friendly default") + "</div>");
 		this._apply_preview_vars($clone, defaults);
+		$clone.css("zoom", "");
 		$stage.addClass("is-comparing").append($clone);
+		this._fit_preview();
 		this.$root.find('[data-action="compare"]').text(__("Close comparison"));
 	}
 

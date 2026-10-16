@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.6.0] — 2026-10-16 — Phone and tablet pass
+
+Affects Frappe v16.0+ (all supported versions); desktop layouts are unchanged apart from the page-head offset fix.
+
+### Fixed
+- Page titles and their actions no longer slide under the top toolbar when a page scrolls; on phones this kept ☰ (the only way to open the sidebar) hidden
+- An early phone stylesheet block that later rules always overrode is merged into the one phone block at the end of `solvronix_desk.css`: All Options is now a full-width sheet with one column, and email-link login cards lose their 48px desktop padding
+- Phones no longer zoom into the page when a field is focused: desk, search, command palette, Smart Home builder and login inputs are 16px on phones
+- Full-height panels (All Options, sidebar, Icon Rail, notifications) use the dynamic viewport height, so their bottom isn't hidden behind mobile browser bars
+- The language, account and module dropdowns stay inside the screen instead of running off its right edge, and close on rotation
+- The account menu scrolls when it is taller than the screen, so Logout is always reachable
+- Long page-head and Actions menus scroll again (Frappe's own `overflow: auto` was overridden), and the list's sticky header sticks again
+- Theme breakpoints now match Frappe's (767.98px), so an iPad in portrait no longer gets a mix of phone and tablet layouts
+- Compact density applies only with a mouse or trackpad; on touch screens its 26px rows were too small to tap
+- Cards and buttons no longer stay lifted after a tap on touch screens
+- Theme Studio fits phones and tablets: the toolbar wraps, the preview zooms to fit instead of scrolling sideways, phones switch between Controls and Preview with a tab bar, the element inspector opens as a bottom sheet, the workspace preview scrolls by touch, and controls are finger-sized on touch screens
+- The notification panel follows the configured toolbar height, shows "mark as read" on touch screens, and has larger buttons on phones
+- The command palette opens as a full-screen sheet on phones with a visible close button; results open on tap, not when a scroll starts on them
+- Smart Home: larger edit buttons on phones, the widget builder opens full screen, and the library says widgets can be selected as well as dragged
+- Slide-in row editor: one column of fields on phones
+- Login: larger tap targets for the password eye and "Forgot password?", the custom footer no longer covers the form when the keyboard is open, and the background blur is turned off on phones
+- The toolbar is 44px tall on phones, with 36px buttons
+
+### Changed
+- Chart theming rescans the page at most once per frame instead of on every DOM change
+
 ## [2.5.0] — 2026-10-07 — Frappe 16.50 navigation
 
 Affects Frappe v16.50+ (new Dock navigation, tested on v16.50.0); v16.0 – v16.49 keep the previous behaviour. Includes the unreleased 2.4.1 login fixes below.

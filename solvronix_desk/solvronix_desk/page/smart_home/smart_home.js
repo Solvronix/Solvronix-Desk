@@ -133,7 +133,7 @@ solvronix_desk.SmartHome = class SmartHome {
 				'<div class="st-sh-library-head">' +
 					'<div><span class="st-sh-library-kicker">' + __("Make it yours") + '</span>' +
 					'<h3>' + __("Widget library") + '</h3>' +
-					'<p>' + __("Click a widget or drag it onto your dashboard.") + '</p></div>' +
+					'<p>' + __("Select a widget to add it, or drag it onto your dashboard.") + '</p></div>' +
 					'<button class="st-sh-library-close" type="button" aria-label="' + __("Close") + '">&times;</button>' +
 				'</div>' +
 				'<div class="st-sh-library-list">' +

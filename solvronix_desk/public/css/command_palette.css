@@ -240,3 +240,52 @@
   from { opacity: 0; transform: scale(0.96) translateY(-8px) }
   to   { opacity: 1; transform: scale(1) translateY(0) }
 }
+
+/* ── Close button (Esc on desktop, × on touch) ── */
+.st-cp-close {
+  cursor: pointer !important;
+  line-height: 1.4 !important;
+}
+.st-cp-close-x { display: none; }
+
+@media (hover: none) {
+  .st-cp-close-key,
+  .st-cp-footer { display: none !important; }
+  .st-cp-close-x { display: inline; }
+  .st-cp-close {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    font-size: 22px !important;
+    border: none !important;
+    background: transparent !important;
+  }
+}
+
+/* ── Phones: a full-screen sheet, so results aren't hidden by the keyboard ── */
+@media (max-width: 767.98px) {
+  .st-cp-overlay {
+    padding-top: 0 !important;
+    align-items: stretch !important;
+  }
+  .st-cp-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding-top: env(safe-area-inset-top) !important;
+  }
+  .st-cp-results {
+    flex: 1 1 auto !important;
+    max-height: none !important;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom)) !important;
+  }
+  .st-cp-input { font-size: 16px !important; }
+}
+
+@media (min-width: 768px) {
+  .st-cp-results { max-height: min(400px, 60vh) !important; }
+}

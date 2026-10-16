@@ -90,6 +90,14 @@ body.st-grid-slide-panel-enabled .form-in-grid .grid-footer-toolbar {
 
 @media (max-width: 640px) {
   body.st-grid-slide-panel-enabled .form-in-grid {
-    width: 100vw !important;
+    width: 100% !important;
+  }
+  /* One column of fields: Bootstrap's col-sm-6 keeps two up to 576px. */
+  body.st-grid-slide-panel-enabled .form-in-grid .form-column {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  body.st-grid-slide-panel-enabled .form-in-grid .grid-footer-toolbar {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }

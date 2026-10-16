@@ -1210,6 +1210,7 @@ input[type="checkbox"],input[type="radio"],.switch input {{ accent-color: var(--
 body.st-has-toolbar .body-sidebar {{
   margin-top: var(--st-header-height) !important;
   height: calc(100vh - var(--st-header-height)) !important;
+  height: calc(100dvh - var(--st-header-height)) !important;
 }}
 body.st-has-toolbar .page-container {{ padding-top: var(--st-header-height) !important; }}
 .page-head {{ {sticky_form} }}
