@@ -29,7 +29,7 @@ class WorkspaceLayoutTest(unittest.TestCase):
 
     def test_assets_are_registered_after_their_dependencies(self):
         hooks = (APP / "hooks.py").read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/workspace_layout.css?v=6", hooks)
+        self.assertIn("/assets/solvronix_desk/css/workspace_layout.css?v=8", hooks)
         js = hooks.index("/assets/solvronix_desk/js/workspace_layout.js?v=7")
         self.assertLess(hooks.index("frappe_compat.js"), js)
         self.assertLess(hooks.index("module_cards.js"), js)
@@ -56,6 +56,12 @@ class WorkspaceLayoutTest(unittest.TestCase):
         js = (APP / "public" / "js" / "workspace_layout.js").read_text(encoding="utf-8")
         self.assertIn('.st-ws-has-ribbon > .st-ws-statusbar {\n  padding-right: var(--st-ws-ribbon-w);', css)
         self.assertIn('host.classList.toggle("st-ws-has-ribbon", !!spec);', js)
+
+    def test_dark_mode_has_no_text_coloured_veils(self):
+        css = (APP / "public" / "css" / "workspace_layout.css").read_text(encoding="utf-8")
+        dark = css.split("/* ── 5b. Dark mode", 1)[1].split("/* ── 6.", 1)[0]
+        self.assertIn('[data-theme="dark"] .st-ws-drawer-scrim {\n  background: color-mix(in srgb, var(--st-page-bg)', dark)
+        self.assertIn('[data-theme="dark"] .st-ws-ribbon-muted span {\n  color: var(--st-page-bg);', dark)
 
     def test_checkboxes_and_dialogs_keep_their_shape(self):
         density = (APP / "public" / "css" / "density.css").read_text(encoding="utf-8")

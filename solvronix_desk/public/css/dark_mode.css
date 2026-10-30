@@ -172,7 +172,7 @@ html[data-theme="dark"] .frappe-card,
 html[data-theme="dark"] .list-view-empty-state,
 html[data-theme="dark"] .desk-card {
   background-color: var(--st-card-bg) !important;
-  border-color: rgba(255,255,255,0.08) !important;
+  border-color: var(--st-card-border) !important;
   color: var(--st-text) !important;
 }
 
@@ -214,7 +214,7 @@ html[data-theme="dark"] textarea,
 html[data-theme="dark"] select {
   background-color: var(--st-input-bg) !important;
   color: var(--st-text) !important;
-  border-color: rgba(255,255,255,0.10) !important;
+  border-color: var(--st-input-border) !important;
 }
 
 html[data-theme="dark"] .form-control::placeholder,
@@ -254,8 +254,8 @@ html[data-theme="dark"] .label-area {
 /* ── Dropdowns ───────────────────────────────────────────────── */
 html[data-theme="dark"] .dropdown-menu,
 html[data-theme="dark"] .frappe-menu {
-  background-color: var(--st-card-bg) !important;
-  border-color: rgba(255,255,255,0.10) !important;
+  background-color: var(--st-dropdown-bg, var(--st-card-bg)) !important;
+  border-color: var(--st-card-border) !important;
 }
 
 html[data-theme="dark"] .dropdown-item {
@@ -292,16 +292,28 @@ html[data-theme="dark"] .modal-footer {
 /* ── List View & Rows ────────────────────────────────────────── */
 html[data-theme="dark"] .list-row,
 html[data-theme="dark"] .dt-row {
-  border-color: rgba(255,255,255,0.05) !important;
+  border-color: var(--st-report-grid, var(--st-card-border)) !important;
 }
 
 html[data-theme="dark"] .list-row:hover,
 html[data-theme="dark"] .dt-row:hover {
-  background-color: var(--st-list-row-hover) !important;
+  background-color: var(--st-row-hover) !important;
 }
 
 html[data-theme="dark"] .list-row:nth-child(even) {
-  background-color: rgba(255,255,255,0.02) !important;
+  background-color: var(--st-row-alt) !important;
+}
+
+/* Frappe paints the sticky right column with --bg-color (the page), but our
+   list sits on a card, so it showed as a dark block. Match the row instead. */
+html[data-theme="dark"] .list-row .level-right {
+  background-color: var(--st-card-bg);
+}
+html[data-theme="dark"] .list-row:nth-child(even) .level-right {
+  background-color: var(--st-row-alt);
+}
+html[data-theme="dark"] .list-row:hover .level-right {
+  background-color: var(--st-row-hover);
 }
 
 html[data-theme="dark"] .list-row .level-item,
@@ -316,7 +328,7 @@ html[data-theme="dark"] .datatable {
 }
 
 html[data-theme="dark"] .datatable .dt-cell {
-  border-color: rgba(255,255,255,0.05) !important;
+  border-color: var(--st-report-grid, var(--st-card-border)) !important;
   color: var(--st-text) !important;
 }
 
@@ -324,8 +336,8 @@ html[data-theme="dark"] .datatable .dt-cell--header,
 html[data-theme="dark"] .list-row-head,
 html[data-theme="dark"] .dt-header,
 html[data-theme="dark"] .widget-group-head {
-  background-color: var(--st-input-bg) !important;
-  border-color: rgba(255,255,255,0.08) !important;
+  background-color: var(--st-table-header) !important;
+  border-color: var(--st-card-border) !important;
 }
 
 html[data-theme="dark"] .datatable .dt-cell--header .dt-cell__content {
@@ -1040,6 +1052,17 @@ html[data-theme="dark"] .layout-main-section-wrapper {
   background-color: var(--st-page-bg) !important;
 }
 
+/* ── Links ───────────────────────────────────────────────────── */
+/* solvronix_desk.css forces every link to the accent, and darkens it on
+   hover. In dark mode use the resolved link colour instead. :where() keeps
+   the same specificity as that rule, so button and menu rules still win. */
+:where(html[data-theme="dark"]) a {
+  color: var(--st-link) !important;
+}
+:where(html[data-theme="dark"]) a:hover {
+  color: color-mix(in srgb, var(--st-link) 80%, var(--st-text)) !important;
+}
+
 /* ── Misc elements that use light hardcoded backgrounds ─────── */
 html[data-theme="dark"] .frappe-login-page,
 html[data-theme="dark"] code,
@@ -1049,9 +1072,9 @@ html[data-theme="dark"] pre {
 }
 html[data-theme="dark"] .btn-default,
 html[data-theme="dark"] .btn-secondary {
-  background-color: var(--st-input-bg) !important;
-  color: var(--st-text) !important;
-  border-color: rgba(255,255,255,0.12) !important;
+  background-color: var(--st-btn-secondary) !important;
+  color: var(--st-btn-secondary-text, var(--st-text)) !important;
+  border-color: var(--st-input-border) !important;
 }
 html[data-theme="dark"] .btn-default:hover,
 html[data-theme="dark"] .btn-secondary:hover {

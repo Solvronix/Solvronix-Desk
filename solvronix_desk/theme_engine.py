@@ -821,8 +821,48 @@ def css_attr(value):
     return str(value).replace("\\", "\\\\").replace('"', '\\"')
 
 
+# Keys whose stored value must suit the active mode's surface. A light custom
+# palette (e.g. the Workspace Classic profile) keeps white tables and dark text
+# in dark mode unless these are checked by luminance, not only by default value.
+SURFACE_BACKGROUNDS = {
+    "page_background", "card_background", "secondary_button_color",
+    "input_background", "dropdown_background", "readonly_background",
+    "alternate_row_color", "table_header_color", "selected_row_color",
+    "row_hover_color", "workspace_card_color", "number_card_color",
+    "chart_background",
+}
+SURFACE_BORDERS = {"border_color", "input_border_color", "report_grid_color"}
+SURFACE_FOREGROUNDS = {
+    "text_color", "muted_text_color", "link_color", "secondary_button_text",
+}
+
+
+def mix_hex(first, second, weight):
+    """Return `weight` of `first` mixed into `second`, both #RRGGBB."""
+    channels = (
+        round(int(first[i:i + 2], 16) * weight + int(second[i:i + 2], 16) * (1 - weight))
+        for i in (1, 3, 5)
+    )
+    return "#" + "".join(f"{value:02X}" for value in channels)
+
+
+def _hex_luminance(value):
+    value = str(value or "")
+    return relative_luminance(value) if HEX_COLOR.fullmatch(value) else None
+
+
+def _readable_on(foreground, background, minimum=4.5):
+    """Lighten a foreground towards white until it reads on a dark background."""
+    for step in range(11):
+        candidate = mix_hex("#FFFFFF", foreground, step / 10)
+        if contrast_ratio(candidate, background) >= minimum:
+            return candidate
+    return "#FFFFFF"
+
+
 def resolve_mode_surface(config, dark):
-    """Derive untouched mode defaults without replacing administrator edits."""
+    """Fit the palette to one colour mode, keeping administrator edits that
+    already suit it and replacing values that would be unreadable there."""
     resolved = deepcopy(config)
     dark_defaults = {
         "navbar_background": f'color-mix(in srgb, {config["brand_color"]} 38%, #090D16)',
@@ -850,11 +890,45 @@ def resolve_mode_surface(config, dark):
         "chart_background": "#1A1D27",
     }
     if dark:
+        replaced = set()
         for key, value in dark_defaults.items():
             current = resolved.get(key)
+            luminance = _hex_luminance(current)
             legacy_default = key == "sidebar_hover_color" and current == "#F4F7FB"
-            if current == DEFAULT_CONFIG.get(key) or legacy_default:
+            too_light = luminance is not None and luminance > 0.35 and (
+                key in SURFACE_BACKGROUNDS or key in SURFACE_BORDERS
+                or key in {"navbar_background", "sidebar_background", "sidebar_hover_color"}
+            )
+            dark_limit = 0.18 if key in {"muted_text_color", "link_color"} else 0.3
+            too_dark = (
+                luminance is not None and luminance < dark_limit
+                and key in SURFACE_FOREGROUNDS
+            )
+            if current == DEFAULT_CONFIG.get(key) or legacy_default or too_light or too_dark:
                 resolved[key] = value
+                replaced.add(key)
+
+        card = resolved["card_background"]
+        card = card if HEX_COLOR.fullmatch(str(card)) else dark_defaults["card_background"]
+        # Keep the administrator's link hue, lifted until it reads on the card.
+        link = config.get("link_color")
+        if "link_color" in replaced and HEX_COLOR.fullmatch(str(link or "")) and link != DEFAULT_CONFIG["link_color"]:
+            resolved["link_color"] = _readable_on(link, card)
+        # The default selection tint is Solvronix orange; follow the theme accent.
+        accent = config.get("accent_color")
+        if "selected_row_color" in replaced and HEX_COLOR.fullmatch(str(accent or "")):
+            resolved["selected_row_color"] = mix_hex(accent, card, 0.22)
+        # A replaced navigation background drops foregrounds chosen for the old one.
+        for background, foregrounds in (
+            ("navbar_background", ("toolbar_text_color",)),
+            ("sidebar_background", ("sidebar_text_color", "sidebar_icon_color")),
+        ):
+            if background not in replaced:
+                continue
+            for key in foregrounds:
+                luminance = _hex_luminance(resolved.get(key))
+                if luminance is not None and luminance < 0.3:
+                    resolved[key] = ""
         return resolved
 
     canonical_dark = {
@@ -862,31 +936,21 @@ def resolve_mode_surface(config, dark):
         "navbar_background": "#090D16",
         "sidebar_background": "#121826",
     }
-    light_backgrounds = {
-        "page_background", "card_background", "secondary_button_color",
-        "input_background", "dropdown_background", "readonly_background",
-        "alternate_row_color", "table_header_color", "selected_row_color",
-        "row_hover_color", "workspace_card_color", "number_card_color",
-        "chart_background",
-    }
-    light_foregrounds = {
-        "text_color", "muted_text_color", "link_color", "secondary_button_text",
-    }
     for key, value in DEFAULT_CONFIG.items():
         current = resolved.get(key)
         is_canonical_dark = key in canonical_dark and current == canonical_dark[key]
         is_dark_background = (
-            key in light_backgrounds and HEX_COLOR.fullmatch(str(current or ""))
+            key in SURFACE_BACKGROUNDS and HEX_COLOR.fullmatch(str(current or ""))
             and relative_luminance(current) < 0.22
         )
         is_dark_border = (
-            key in {"border_color", "input_border_color", "report_grid_color"}
+            key in SURFACE_BORDERS
             and HEX_COLOR.fullmatch(str(current or ""))
             and relative_luminance(current) < 0.22
         )
         foreground_limit = 0.3 if key in {"muted_text_color", "link_color"} else 0.55
         is_light_foreground = (
-            key in light_foregrounds and HEX_COLOR.fullmatch(str(current or ""))
+            key in SURFACE_FOREGROUNDS and HEX_COLOR.fullmatch(str(current or ""))
             and relative_luminance(current) > foreground_limit
         )
         if is_canonical_dark or is_dark_background or is_dark_border or is_light_foreground:
@@ -900,8 +964,8 @@ def render_css(config, enabled=True):
         return "/* Solvronix custom theme disabled */"
     config = sanitize_config(config, validate_contrast=False)
     # The selected colour mode is not proof that the stored palette itself is
-    # dark. A light custom theme may select Dark and should receive our derived
-    # dark surfaces instead of reusing white cards inside data-theme="dark".
+    # dark. A light custom theme (or profile) shown in Dark gets derived dark
+    # surfaces for every light background and dark foreground it carries.
     dark_surface = resolve_mode_surface(config, dark=True)
     light_surface = resolve_mode_surface(config, dark=False)
     sidebar_text = config["sidebar_text_color"] or contrast_text(config["sidebar_background"])

@@ -442,7 +442,7 @@ html[data-st-layout="workspace"] .st-ws-drawer-link {
   gap: 8px;
   min-height: 40px;
   padding: 0 16px;
-  color: var(--st-text);
+  color: var(--st-text) !important;
   text-decoration: none;
 }
 html[data-st-layout="workspace"] .st-ws-drawer-link:hover {
@@ -452,6 +452,27 @@ html[data-st-layout="workspace"] .st-ws-drawer-link .st-ws-ico .icon {
   width: 16px;
   height: 16px;
   stroke: var(--st-text-muted);
+}
+
+/* ── 5b. Dark mode ───────────────────────────────────────────────── */
+/* Tints built on --st-text turn into light veils in dark mode. */
+html[data-st-layout="workspace"][data-theme="dark"] .st-ws-drawer-scrim {
+  background: color-mix(in srgb, var(--st-page-bg) 72%, transparent);
+}
+html[data-st-layout="workspace"][data-theme="dark"] .st-ws-drop {
+  box-shadow: var(--st-shadow-lg, 0 8px 24px color-mix(in srgb, var(--st-page-bg) 80%, transparent));
+}
+/* Brand-coloured tiles sink into a dark page; give them an edge. */
+html[data-st-layout="workspace"][data-theme="dark"] #st-ws-home .st-ws-card-icon {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--st-text) 14%, transparent),
+    0 2px 8px color-mix(in srgb, var(--st-page-bg) 70%, transparent);
+}
+/* --st-text-muted is light in dark mode, so white ribbon text vanishes on it. */
+html[data-st-layout="workspace"][data-theme="dark"] .st-ws-ribbon-muted span {
+  color: var(--st-page-bg);
+}
+html[data-st-layout="workspace"][data-theme="dark"] .st-ws-step.is-current {
+  background: color-mix(in srgb, var(--st-accent) 28%, var(--st-card-bg));
 }
 
 /* ── 6. Tablet and phone ─────────────────────────────────────────── */

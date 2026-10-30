@@ -74,7 +74,21 @@
     return cfg ? cfg.color : FALLBACK_COLORS[idx % FALLBACK_COLORS.length];
   }
 
+  /* The workspace's own icon (Workspace.icon), drawn from the sprites the
+     desk page inlines. Only names present in a sprite are used, so a
+     missing icon never renders as an empty tile. */
+  function frappeIcon(name) {
+    if (typeof name !== "string" || !name) return "";
+    if (frappe.utils.is_emoji && frappe.utils.is_emoji(name)) return frappe.utils.escape_html(name);
+    if (!/^[a-zA-Z0-9-]+$/.test(name)) return "";
+    var id = name.indexOf("es-") === 0 ? name : "icon-" + name;
+    if (!document.getElementById(id)) return "";
+    return frappe.utils.icon(name, "lg");
+  }
+
   function wsIcon(title, frappe_icon) {
+    var own = frappeIcon(frappe_icon);
+    if (own) return own;
     var cfg = wsConfig(title);
     if (cfg) return cfg.icon;
     /* Use first letter as fallback */

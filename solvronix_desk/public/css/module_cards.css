@@ -123,6 +123,13 @@
   transition: background 160ms ease;
 }
 
+/* Workspace icons from Frappe's sprites draw in the tile colour. */
+.st-ws-card-icon .icon {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+}
+
 .st-ws-card:hover .st-ws-card-icon {
   background: color-mix(in srgb, var(--mod-color, var(--st-accent, #F57C00)) 20%, var(--card-bg, #fff));
 }
