@@ -13,14 +13,59 @@
   var profiles = (window.frappe && frappe.boot && frappe.boot.st_theme_profiles) || [];
   var chartSchema = (window.frappe && frappe.boot && frappe.boot.st_chart_schema) || {};
   var scheduleTimer = null;
+  function layoutOf(source) {
+    return source && source.desk_layout === "Workspace" ? "Workspace" : "Standard";
+  }
+  var viewerLayout = layoutOf(config);
+  var viewerSidebarLayout = config.sidebar_layout || null;
+
+  /* The desk layout and the sidebar layout rebuild Frappe's navigation
+     (top app bar, Icon Rail, dock, sidebar state), which only boots cleanly
+     on a page load. A real change of either (profile switch, publish)
+     reloads the page instead of patching the live Desk. Never inside a
+     preview frame or on Theme Studio, and at most once per 10 s. */
+  function needsReload(next) {
+    if (!next) return false;
+    var layoutChanged = layoutOf(next) !== viewerLayout;
+    var sidebarChanged = !!next.sidebar_layout && !!viewerSidebarLayout &&
+      next.sidebar_layout !== viewerSidebarLayout;
+    return layoutChanged || sidebarChanged;
+  }
+
+  function reloadForLayout() {
+    try {
+      if (window.top !== window || window.__stPreviewDeskLayout) return false;
+      if (String(window.location.pathname || "").indexOf("/theme-studio") !== -1) return false;
+      var last = Number(window.sessionStorage.getItem("st-layout-reload") || 0);
+      if (Date.now() - last < 10000) return false;
+      window.sessionStorage.setItem("st-layout-reload", String(Date.now()));
+    } catch (e) {
+      return false;
+    }
+    window.location.reload();
+    return true;
+  }
   var appliedClassMappings = [];
 
   /* ── 1. ROUTE CONTEXT ─────────────────────────────────────────────────────
      Expose the current page/DocType/workspace as HTML attributes for scoped CSS. */
+  /* Theme Studio previews its draft through <style id="st-studio-draft">
+     and removes it in on_page_hide. If that hook is skipped (some routes
+     leave the page without hiding it), the draft keeps painting the site
+     palette over the viewer's own profile. Outside Studio it never belongs. */
+  function clearStaleStudioDraft(route) {
+    var inStudio = route.indexOf("theme-studio") !== -1 ||
+      String(window.location && window.location.pathname || "").indexOf("/theme-studio") !== -1;
+    if (inStudio) return;
+    var draft = document.getElementById("st-studio-draft");
+    if (draft && draft.parentNode) draft.parentNode.removeChild(draft);
+  }
+
   function setRouteContext() {
     var route = [];
     try { route = frappe.get_route ? frappe.get_route() : []; } catch (e) {}
     if (!Array.isArray(route)) route = [];
+    clearStaleStudioDraft(route);
     var html = document.documentElement;
     ["data-st-page", "data-st-doctype", "data-st-workspace"].forEach(function (name) {
       html.removeAttribute(name);
@@ -94,6 +139,21 @@
     if (searchTrigger) searchTrigger.hidden = !commandPaletteEnabled;
     if (smartHomeLink) smartHomeLink.hidden = !smartHomeEnabled;
 
+    /* Desk layout: workspace_layout.js reads boot config, so keep it in step
+       and tell it when the layout changed (Studio publish, profile switch). */
+    /* Theme Studio's workspace preview frame shows the draft's layout,
+       whatever the viewer's own profile says (set by theme_studio.js). */
+    var deskLayout = window.__stPreviewDeskLayout || viewerLayout;
+    if (window.frappe && frappe.boot) {
+      var bootConfig = (frappe.boot.st_theme_config = frappe.boot.st_theme_config || {});
+      var previousLayout = bootConfig.desk_layout === "Workspace" ? "Workspace" : "Standard";
+      bootConfig.desk_layout = deskLayout;
+      if (previousLayout !== deskLayout) {
+        window.dispatchEvent(new CustomEvent("st-layout-change", { detail: { desk_layout: deskLayout } }));
+      }
+    }
+    if (deskLayout === "Workspace") return;
+
     var sidebar = document.querySelector(".body-sidebar-container");
     if (sidebar && sidebar.dataset.stThemeMode !== config.sidebar_mode) {
       sidebar.classList.toggle("expanded", config.sidebar_mode === "Expanded");
@@ -161,6 +221,8 @@
   /* ── 6. ATOMIC RUNTIME REFRESH ────────────────────────────────────────────
      CSS, config, mode, mappings, selector, and schedule move as one state update. */
   function applyRuntime(runtime) {
+    /* Reload before painting anything, so the old layout never flashes. */
+    if (runtime && !runtime.preview && runtime.config && needsReload(runtime.config) && reloadForLayout()) return;
     if (!runtime) return;
     if (Object.prototype.hasOwnProperty.call(runtime, "css")) {
       if (window.stApplyThemeCss) window.stApplyThemeCss(runtime.css || "");
@@ -180,6 +242,13 @@
         (preferredMode === "auto" && window.matchMedia &&
           window.matchMedia("(prefers-color-scheme: dark)").matches)
       );
+    }
+    /* Theme Studio previews push the site draft to the whole Desk; only a real
+       runtime (boot, publish, profile switch) may change the viewer's layout.
+       The Studio's own preview frame shows the draft layout. */
+    if (!runtime.preview && runtime.config) {
+      viewerLayout = layoutOf(runtime.config);
+      if (runtime.config.sidebar_layout) viewerSidebarLayout = runtime.config.sidebar_layout;
     }
     applyLayoutPreferences();
     applyClassMappings();

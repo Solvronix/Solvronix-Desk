@@ -1,0 +1,256 @@
+/* ================================================================
+   Solvronix Desk — feature announcements (card + "trying it" bar)
+   Theme variables only; bottom-left so it never covers the
+   bottom-right floating buttons. Phones get a bottom sheet.
+   ================================================================ */
+/* Above floating chat/assistant buttons, which sit at very high z-indexes;
+   hidden while any dialog is open so it never covers one. */
+:root {
+  --st-ann-z: 2147483000;
+}
+body.modal-open #st-ann-card,
+body.modal-open #st-ann-tried {
+  display: none;
+}
+
+#st-ann-card {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: var(--st-ann-z);
+  display: flex;
+  flex-direction: column;
+  width: min(360px, calc(100vw - 40px));
+  background: var(--st-card-bg);
+  color: var(--st-text);
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-radius-lg, 10px);
+  box-shadow: var(--st-shadow-lg);
+  overflow: clip;
+  animation: st-ann-in 0.22s ease-out;
+}
+@keyframes st-ann-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* A tiny picture of the layout: top bar + app grid. */
+#st-ann-card .st-ann-mock {
+  display: block;
+  padding: 14px 16px 12px;
+  background: color-mix(in srgb, var(--st-accent) 10%, var(--st-card-bg));
+  border-bottom: 1px solid var(--st-border);
+}
+#st-ann-card .st-ann-mock-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 18px;
+  padding: 0 8px;
+  border-radius: 4px;
+  background: var(--st-btn-primary, var(--st-accent));
+}
+#st-ann-card .st-ann-mock-bar i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--st-btn-primary-text, var(--st-card-bg));
+  opacity: 0.85;
+}
+#st-ann-card .st-ann-mock-bar b {
+  width: 26px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--st-btn-primary-text, var(--st-card-bg));
+  opacity: 0.55;
+}
+#st-ann-card .st-ann-mock-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+  padding: 0 18px;
+}
+#st-ann-card .st-ann-mock-grid i {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--st-accent) 35%, var(--st-card-bg));
+}
+
+#st-ann-card .st-ann-body {
+  padding: 14px 16px 12px;
+}
+#st-ann-card .st-ann-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--st-accent);
+}
+#st-ann-card .st-ann-title {
+  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--st-text);
+}
+#st-ann-card .st-ann-text {
+  margin: 6px 0 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--st-text-muted);
+}
+#st-ann-card .st-ann-actions {
+  display: flex;
+  gap: 8px;
+}
+#st-ann-card button {
+  font: inherit;
+  cursor: pointer;
+}
+#st-ann-card .st-ann-try,
+#st-ann-card .st-ann-later {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--st-button-radius, 6px);
+  font-size: 13px;
+  font-weight: 600;
+}
+#st-ann-card .st-ann-try {
+  border: 1px solid var(--st-btn-primary, var(--st-accent));
+  background: var(--st-btn-primary, var(--st-accent));
+  color: var(--st-btn-primary-text, var(--st-card-bg));
+}
+#st-ann-card .st-ann-later {
+  border: 1px solid var(--st-border);
+  background: var(--st-card-bg);
+  color: var(--st-text);
+}
+#st-ann-card .st-ann-default {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--st-link, var(--st-accent));
+}
+#st-ann-card .st-ann-never {
+  display: block;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  color: var(--st-text-muted);
+  text-decoration: underline;
+}
+#st-ann-card .st-ann-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--st-card-bg);
+  color: var(--st-text-muted);
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* After "Try it": keep it or switch back. */
+#st-ann-tried {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  z-index: var(--st-ann-z);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  padding: 8px 10px 8px 16px;
+  font-size: 13px;
+  color: var(--st-text);
+  background: var(--st-card-bg);
+  border: 1px solid var(--st-border);
+  border-radius: 999px;
+  box-shadow: var(--st-shadow-lg);
+  animation: st-ann-in 0.22s ease-out;
+}
+#st-ann-tried button {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#st-ann-tried .st-ann-keep {
+  border: 1px solid var(--st-btn-primary, var(--st-accent));
+  background: var(--st-btn-primary, var(--st-accent));
+  color: var(--st-btn-primary-text, var(--st-card-bg));
+}
+#st-ann-tried .st-ann-back {
+  border: 1px solid var(--st-border);
+  background: var(--st-card-bg);
+  color: var(--st-text);
+}
+
+/* Choices under this app's notes in Frappe's "Updated to a new version" dialog. */
+.app-change-log .st-ann-inline {
+  margin: 4px 0 8px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--st-accent) 35%, var(--st-border));
+  border-radius: var(--st-radius-lg, 10px);
+  background: color-mix(in srgb, var(--st-accent) 8%, var(--st-card-bg));
+}
+.app-change-log .st-ann-inline-title {
+  font-weight: 600;
+  color: var(--st-text);
+}
+.app-change-log .st-ann-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 10px;
+}
+.app-change-log .st-ann-inline-default {
+  font-weight: 600;
+  color: var(--st-link, var(--st-accent));
+}
+
+@media (max-width: 767.98px) {
+  #st-ann-card {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    border-radius: var(--st-radius-lg, 10px) var(--st-radius-lg, 10px) 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  #st-ann-card .st-ann-try,
+  #st-ann-card .st-ann-later {
+    flex: 1;
+    height: 40px;
+    font-size: 16px;
+  }
+  #st-ann-tried {
+    left: 16px;
+    right: 16px;
+    transform: none;
+    flex-wrap: wrap;
+    border-radius: var(--st-radius-lg, 10px);
+  }
+}
+@media (max-width: 359.98px) {
+  #st-ann-card .st-ann-mock {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #st-ann-card,
+  #st-ann-tried {
+    animation: none;
+  }
+}

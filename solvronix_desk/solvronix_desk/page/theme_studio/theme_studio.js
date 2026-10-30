@@ -115,6 +115,7 @@ solvronix_desk.theme_studio_sections = [
 		id: "layout", title: "Layout", index: "09",
 		description: "Page width, spacing, global shape, sticky regions, and compact forms.",
 		controls: [
+			["desk_layout", "Desk layout", "select", ["Standard", "Workspace"]],
 			["layout_mode", "Page layout", "select", ["Full Width", "Boxed"]],
 			["page_margin", "Page margins", "range", 0, 64, "px"],
 			["form_column_gap", "Form column gap", "range", 8, 48, "px"],
@@ -153,6 +154,9 @@ solvronix_desk.theme_studio_sections = [
 	},
 ];
 
+/* Built-in profiles introduced by the current major release ("New" badge). */
+var ST_NEW_PROFILES = ["builtin-workspace"];
+
 /* ── 2. FRAPPE PAGE LIFECYCLE ────────────────────────────────────────────────
    Preserve unsaved local edits across SPA page shows; remove preview on leave. */
 frappe.pages["theme-studio"].on_page_load = function (wrapper) {
@@ -180,6 +184,7 @@ frappe.pages["theme-studio"].on_page_show = function () {
 		}
 		if (studio.dirty) studio.apply();
 		studio._resume_workspace_preview();
+		if (studio.state) studio._load_requested_profile();
 	}
 };
 
@@ -274,6 +279,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				self.published_profile = self.active_profile;
 				self.dirty = JSON.stringify(self.config) !== JSON.stringify(self.saved);
 				self.render();
+				self._load_requested_profile();
 			},
 			error: function () {
 				if (
@@ -350,6 +356,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 					"</div>" +
 				"</div>" +
 				'<div class="sts-stage">' +
+					'<div class="sts-viewer-note" role="status" hidden></div>' +
 					'<div class="sts-preview-frame" id="st-theme-studio-preview">' +
 						'<div class="sts-browser-bar"><span></span><span></span><span></span><div class="sts-browser-address">' +
 							'<img data-favicon-preview alt="" hidden><span><b data-app-title>Solvronix Desk</b>' +
@@ -401,7 +408,8 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			'<select id="sts-profile-select"><option value=""' + (!self.active_profile ? " selected" : "") + ">" + __("Current custom theme") + "</option>" + profiles.map(function (profile) {
 				return '<option value="' + self._esc(profile.id) + '"' +
 					(profile.id === self.active_profile ? " selected" : "") + ">" +
-					self._esc(profile.name) + (profile.builtin ? " · " + __("Built-in") : "") + "</option>";
+					self._esc(profile.name) + (profile.builtin ? " · " + __("Built-in") : "") +
+					(ST_NEW_PROFILES.indexOf(profile.id) !== -1 ? " · " + __("New") : "") + "</option>";
 			}).join("") + '</select><button type="button" data-profile-action="apply" title="' + __("Load selected profile") + '">' + __("Load") + "</button></div>" +
 			'<div class="sts-profile-actions">' +
 				'<button type="button" data-profile-action="create">' + __("Save as new") + "</button>" +
@@ -1225,7 +1233,12 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	}
 
 	_navbar_html() {
-		return '<header class="sts-preview-nav" data-inspector="navigation.toolbar"><div class="sts-toolbar-left">' +
+		/* The Workspace bar is shown instead of the left tools when the draft's
+		   Desk layout is Workspace (data-desk-layout, set in apply()). */
+		return '<header class="sts-preview-nav" data-inspector="navigation.toolbar">' +
+			'<div class="sts-mock-ws-bar"><span class="sts-mock-ws-grid">' + new Array(10).join("<i></i>") + "</span>" +
+			"<b>" + __("Selling") + "</b><a>" + __("Orders") + "</a><a>" + __("Customers") + "</a><a>" + __("Reports") + " ⌄</a></div>" +
+			'<div class="sts-toolbar-left">' +
 			'<time>10:42:18</time><i></i><a>☼ ' + __("Today’s View") + '</a></div>' +
 			'<div class="sts-nav-actions"><button>◎ EN⌄</button><button>•••</button>' +
 			'<span class="sts-avatar">AK</span></div></header>';
@@ -1234,7 +1247,9 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	_form_scene_html() {
 		return '<div class="sts-scene" data-scene="form"><div class="sts-preview-heading" data-inspector="form.heading"><div><small>' + __("DOCUMENT") +
 			'</small><h3>' + __("Customer profile") + '</h3></div><button>' + __("Save") + '</button></div>' +
-			'<div class="sts-form-card" data-inspector="form.card"><div class="sts-form-section-title">' + __("General information") + '</div><div class="sts-form-grid">' +
+			'<div class="sts-form-card" data-inspector="form.card">' +
+			'<div class="sts-mock-ws-steps"><span>' + __("Draft") + '</span><span class="is-current">' + __("Submitted") + "</span></div>" +
+			'<div class="sts-form-section-title">' + __("General information") + '</div><div class="sts-form-grid">' +
 			'<label data-inspector="form.fields"><span>' + __("Customer name") + '</span><input value="Northstar Trading"></label>' +
 			'<label data-inspector="form.fields"><span>' + __("Customer group") + '</span><select><option>Commercial</option></select></label>' +
 			'<label data-inspector="form.fields"><span>' + __("Email address") + '</span><input value="hello@northstar.example"></label>' +
@@ -1854,6 +1869,26 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		}
 	}
 
+	/* The preview frame is a real Desk page: switch its own layout runtime so
+	   "Desk layout" previews the full top-bar layout, not just the CSS. */
+	_sync_workspace_desk_layout(frameDocument, workspaceOn) {
+		try {
+			var win = frameDocument.defaultView;
+			var layout = win && win.solvronix_desk && win.solvronix_desk.workspaceLayout;
+			if (!win.frappe || !win.frappe.boot || !layout) return;
+			var bootConfig = (win.frappe.boot.st_theme_config = win.frappe.boot.st_theme_config || {});
+			var next = workspaceOn ? "Workspace" : "Standard";
+			/* theme_runtime in the frame re-applies the viewer's own layout on
+			   every refresh; this pin makes it keep the draft's layout. */
+			win.__stPreviewDeskLayout = next;
+			if (bootConfig.desk_layout === next) return;
+			bootConfig.desk_layout = next;
+			layout.apply();
+		} catch (e) {
+			/* Preview only; the published layout is unaffected. */
+		}
+	}
+
 	_sync_workspace_document_state(frameDocument) {
 		try {
 			var frame = this.$workspace_iframe && this.$workspace_iframe.length && this.$workspace_iframe[0];
@@ -1873,6 +1908,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				"data-large-text": String(!!c.large_text),
 			};
 			Object.keys(attributes).forEach(function (name) { root.setAttribute(name, attributes[name]); });
+			this._sync_workspace_desk_layout(frameDocument, c.desk_layout === "Workspace");
 			return true;
 		} catch (e) {
 			return false;
@@ -1902,6 +1938,18 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		}
 	}
 
+	/* Frappe 16.50+ moves a workspace under its module (/desk/home →
+	   /desk/setup/home), so a loaded URL that only gained module segments
+	   before the same workspace name is still the page that was asked for. */
+	_is_same_workspace(loadedUrl, wantedUrl) {
+		if (!loadedUrl || !wantedUrl) return false;
+		if (loadedUrl === wantedUrl) return true;
+		var loaded = loadedUrl.split("/");
+		var wanted = wantedUrl.split("/");
+		return wanted.length === 3 && loaded.length > 3 && loaded[1] === "desk" &&
+			loaded[loaded.length - 1].toLowerCase() === wanted[2].toLowerCase();
+	}
+
 	_reject_workspace_iframe() {
 		this._clear_workspace_selection();
 		this.workspace_url = "";
@@ -1927,7 +1975,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			var location = frame.contentWindow.location;
 			if (String(location.search || "") || String(location.hash || "")) return this._reject_workspace_iframe();
 			var loadedUrl = this._workspace_route({ route: location.pathname });
-			if (!loadedUrl || loadedUrl !== this.workspace_url || !Object.prototype.hasOwnProperty.call(this.workspace_routes || {}, loadedUrl)) {
+			if (!this._is_same_workspace(loadedUrl, this.workspace_url) || !Object.prototype.hasOwnProperty.call(this.workspace_routes || {}, this.workspace_url)) {
 				return this._reject_workspace_iframe();
 			}
 			var frameDocument = frame.contentDocument || frame.contentWindow.document;
@@ -2358,6 +2406,11 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.$root.on("click", "[data-reset-section]", function () { self._reset_section($(this).data("reset-section")); });
 		this.$root.on("click", "[data-profile-action]", function () { self._profile_action($(this).data("profile-action")); });
 		this.$root.on("change", "#sts-profile-select", function () { self._sync_profile_actions(); });
+		this.$root.on("click", "[data-load-viewer-profile]", function () {
+			self.$root.find("#sts-profile-select").val($(this).attr("data-load-viewer-profile"));
+			self._sync_profile_actions();
+			self._profile_action("apply");
+		});
 		this.$root.on("click", '[data-action="save-draft"]', function () { self.save_draft(); });
 		this.$root.on("click", '[data-action="compare"]', function () { self.toggle_compare(); });
 		this.$root.on("click", '[data-action="import"]', function () { self.$root.find("#sts-import-file").trigger("click"); });
@@ -2483,6 +2536,27 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 			"title",
 			profile ? __("Duplicate selected profile") : __("Save a copy of the current theme")
 		);
+	}
+
+	/* "Make it the default for everyone" (Desk announcement) opens Studio with
+	   frappe.route_options.st_profile: load that profile as an unpublished
+	   draft; publishing stays a deliberate click. */
+	_load_requested_profile() {
+		var options = frappe.route_options || {};
+		var id = options.st_profile;
+		if (!id || !this.$root) return false;
+		delete options.st_profile;
+		var $select = this.$root.find("#sts-profile-select");
+		if (!$select.find('option[value="' + String(id).replace(/"/g, "") + '"]').length) return false;
+		$select.val(id);
+		this._profile_action("apply");
+		frappe.show_alert({
+			message: __("{0} is loaded as a draft. Review it, then Publish theme to make it the default for everyone.", [
+				frappe.utils.escape_html((this._selected_profile() || {}).name || id),
+			]),
+			indicator: "blue",
+		}, 8);
+		return true;
 	}
 
 	_profile_action(action) {
@@ -2726,6 +2800,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				{ fieldname: "allow_user_theme", fieldtype: "Check", label: __("Allow users to choose"), default: flags.allow_user_theme ? 1 : 0 },
 				{ fieldname: "theme_lock", fieldtype: "Check", label: __("Administrator theme lock"), default: flags.theme_lock ? 1 : 0 },
 				{ fieldname: "preview_admin_only", fieldtype: "Check", label: __("Administrator-only draft preview"), default: flags.preview_admin_only ? 1 : 0 },
+				{ fieldname: "show_announcements", fieldtype: "Check", label: __("Show feature announcements (e.g. \"New: Workspace Classic\")"), default: flags.show_announcements === false ? 0 : 1 },
 				{ fieldname: "reference", fieldtype: "HTML", options: profileReference },
 				{ fieldname: "users", fieldtype: "Code", label: __("User assignments (email → profile id JSON)"), options: "JSON", default: JSON.stringify(data.users || {}, null, 2) },
 				{ fieldname: "roles", fieldtype: "Code", label: __("Role assignments (role → profile id JSON)"), options: "JSON", default: JSON.stringify(data.roles || {}, null, 2) },
@@ -2760,6 +2835,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 					allow_user_theme: !!flags.allow_user_theme,
 					theme_lock: !!flags.theme_lock,
 					preview_admin_only: !!flags.preview_admin_only,
+					show_announcements: !!flags.show_announcements,
 				},
 			},
 			freeze: true,
@@ -2896,6 +2972,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this.$preview.attr("data-shortcuts", String(c.shortcut_style || "Soft").toLowerCase());
 		this.$preview.find(".sts-preview-sidebar").toggleClass("is-expanded", c.sidebar_mode === "Expanded");
 		this.$preview.find(".sts-preview-rail").toggleClass("is-visible", c.sidebar_layout === "Icon Rail");
+		this.$preview.attr("data-desk-layout", c.desk_layout === "Workspace" ? "workspace" : "standard");
 		this.$root.find(".sts-segments button").removeClass("active")
 			.filter('[data-value="' + c.shadow_style + '"]').addClass("active");
 		this.$root.find('[data-action="undo"]').prop("disabled", !this.history.length);
@@ -2903,14 +2980,55 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 		this._update_wcag();
 		/* Theme mode is one shared state: Studio changes update the surrounding
 		   Desk, while st:user-theme-mode-changed keeps the reverse direction in
-		   sync for toolbar and All Options changes. */
-		if (window.stApplyThemeMode) window.stApplyThemeMode(c.preferred_mode);
-		else if (window.stApplyDark) window.stApplyDark(!!previewDark);
+		   sync for toolbar and All Options changes.
+		   A viewer on their own profile keeps its mode as well. */
+		if (!this._viewer_own_profile()) {
+			if (window.stApplyThemeMode) window.stApplyThemeMode(c.preferred_mode);
+			else if (window.stApplyDark) window.stApplyDark(!!previewDark);
+		}
 		this._apply_draft_to_desk(visual);
+		this._sync_viewer_note();
 		this._sync_workspace_document_state();
 		this._apply_chart_runtime_to_workspace();
 		this._schedule_workspace_reanchor();
 		this._refresh_server_preview();
+	}
+
+	/* The preview shows the site theme, but a viewer on a personal profile
+	   with another desk layout sees a different Desk around Studio. Say so,
+	   and offer to load that profile into the draft. */
+	/* Profile the viewer sees instead of the site theme (boot.py
+	   st_viewer_own_profile), or null when they get the site theme. */
+	_viewer_own_profile() {
+		var boot = (window.frappe && frappe.boot) || {};
+		var id = boot.st_viewer_own_profile || "";
+		if (!id) return null;
+		return (boot.st_theme_profiles || []).filter(function (item) { return item.id === id; })[0] || null;
+	}
+
+	_sync_viewer_note() {
+		try {
+			var $note = this.$root && this.$root.find && this.$root.find(".sts-viewer-note");
+			if (!$note || !$note.length || !this.config) return false;
+			var profile = this._viewer_own_profile();
+			var id = profile ? profile.id : "";
+			var viewer = document.documentElement.getAttribute("data-st-layout") === "workspace" ? "Workspace" : "Standard";
+			var draft = this.config.desk_layout === "Workspace" ? "Workspace" : "Standard";
+			if (!profile || (viewer === draft && this.active_profile === id)) {
+				$note.prop("hidden", true).empty();
+				return false;
+			}
+			$note.html(
+				"<span>" + __("Your Desk keeps your own profile {0} ({1} layout) while you edit. This preview shows the site theme everyone gets ({2} layout).", [
+					"<b>" + frappe.utils.escape_html(profile.name) + "</b>", __(viewer), __(draft),
+				]) + "</span>" +
+				'<button type="button" data-load-viewer-profile="' + frappe.utils.escape_html(id) + '">' +
+				__("Load {0}", [frappe.utils.escape_html(profile.name)]) + "</button>"
+			).prop("hidden", false);
+			return true;
+		} catch (e) {
+			return false;
+		}
 	}
 
 	_apply_chart_runtime_to_workspace() {
@@ -3183,6 +3301,10 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 					if (!response.message || snapshot !== JSON.stringify(self.config)) return;
 					self.workspace_preview_css = response.message.css;
 					self._inject_workspace_css(self.workspace_preview_css);
+					if (self._viewer_own_profile()) {
+						self._update_wcag(response.message.wcag_failures);
+						return;
+					}
 					var element = document.getElementById("st-studio-draft") || document.createElement("style");
 					element.id = "st-studio-draft";
 					element.textContent = response.message.css;
@@ -3311,6 +3433,13 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 
 	_apply_draft_to_desk(visualConfig) {
 		if (!this.config) return;
+		/* A viewer on their own profile keeps it around Studio: painting the
+		   site draft over it mixed two themes (site colours on their layout). */
+		if (this._viewer_own_profile()) {
+			var stale = document.getElementById("st-studio-draft");
+			if (stale) stale.remove();
+			return;
+		}
 		var self = this;
 		var activeDark = document.documentElement.getAttribute("data-theme") === "dark";
 		/* Keep both palettes in the temporary sheet. Previously the draft wrote
@@ -3397,7 +3526,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 	remove_draft(restoreMode) {
 		var el = document.getElementById("st-studio-draft");
 		if (el) el.remove();
-		if (restoreMode !== false) {
+		if (restoreMode !== false && !this._viewer_own_profile()) {
 			if (this.saved) {
 				window.dispatchEvent(new CustomEvent("st-theme-runtime-refresh", {
 					detail: { config: this.saved, preview: true },

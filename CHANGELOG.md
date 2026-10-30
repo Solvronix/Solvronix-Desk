@@ -1,5 +1,41 @@
 # Changelog
 
+## [3.0.0] — 2026-10-30 — Workspace Classic
+
+A major feature release: no Frappe version is dropped and nothing breaks; existing sites keep their current layout until someone switches.
+
+Affects Frappe v16.0+ (all supported versions; both the sidebar navigation of v16.0 – v16.49 and the Dock navigation of v16.50+). Nothing changes until an administrator picks the new layout; every existing site keeps the Standard layout.
+
+### Added
+- Theme Studio → Layout → **Desk layout** (Standard / Workspace), plus a built-in **Workspace Classic** profile that applies it in one click with a matching palette. Users can pick it from the Appearance menu when per-user themes are allowed. Switching applies live, with no reload
+- Workspace layout: a top app bar replaces the sidebar. It shows an apps button, the current module's name and its menus (direct links plus one dropdown per sidebar section, with extra links under "More"); on tablets and phones the menus open from a ☰ drawer
+- Workspace layout: an app-icon home screen opened from the apps button, Alt+H, or the desk home route, with type-to-search and arrow-key navigation
+- Workspace layout: forms render as a white sheet on the page background, with status steps (workflow states, Draft → Submitted, or a short Status list) and a corner ribbon for paid/completed, cancelled and disabled records
+- "Updated to a new version" notes: `solvronix_desk/change_log/v3/v3_0_0.md` uses Frappe's built-in change-log dialog, shown once to System Managers and Workspace Managers after an update. Each release adds `change_log/v<major>/v<major>_<minor>_<patch>.md`, and only `.md` files may go in the `v<major>` folders
+- In-Desk announcement: after the update, everyone who may choose a theme sees a small "New in Solvronix Desk 3.0: Workspace Classic" card once, with **Try it now** (switches only their own Desk, page reloads), **Not now** and **Don't show again**. After trying, a bar offers **Keep it** or **Switch back**. System Managers also get **Make it the default for everyone**, which opens Theme Studio with Workspace Classic loaded as an unpublished draft. The same choices also appear under the Solvronix Desk notes in Frappe's "Updated to a new version" dialog, and a choice made there replaces the card. The card waits behind open dialogs and never shows on Theme Studio. Switch it off in Theme Studio → Theme assignments & permissions → "Show feature announcements" (Frappe v16.0+)
+- Theme Studio: a "New" tag on the Workspace Classic profile, and `frappe.route_options.st_profile` loads a profile as a draft when Studio opens
+
+### Fixed
+- Theme Studio: the Dashboard, Form and Table previews now show the Workspace layout (top app bar, no sidebar, status steps) when Desk layout is Workspace
+- Theme Studio: the Workspace preview shows the draft's desk layout instead of the viewer's own profile layout
+- Theme Studio: the Workspace preview loads workspaces that Frappe v16.50+ moves under their module (e.g. Home → Setup / Home) instead of showing "could not be loaded"
+- Theme Studio: the toolbar wraps instead of overlapping the workspace picker, "Live preview" and "Compare with default" when space is short
+- Workspace layout: the page-head sidebar button is hidden, since the app bar replaces the sidebar
+- Workspace layout: the apps button (and Alt+H) opens the app grid as its own page (`all-apps`), so it has a URL, works with back/forward and no longer closes by itself a few seconds later when the theme refreshes (for example inside Theme Studio)
+- App grid and home cards: every app tile now shows the workspace's own icon (the one set on the Workspace, as in Frappe's sidebar) instead of a first letter for apps the built-in list doesn't know, so tiles look consistent. The old emoji or letter is used only when a workspace has no icon (Frappe v16.0+)
+- Dark mode: Workspace Classic (and any theme or profile with light custom colours) now gets real dark surfaces. Before, its light page, white table headers and rows, light buttons and borders and its dark text stayed in dark mode, so text was unreadable on dark cards. Light backgrounds and dark text are replaced by the dark palette, the link colour keeps its hue and is lightened until it reads, and the selected-row tint follows the theme accent; a pale active sidebar item (for example Frappe Default) becomes a dark brand tint. Dark lists, reports, inputs, dropdowns and buttons now use the theme's own row, header, border and button colours, and links use the theme link colour. The phone menu backdrop is no longer a white veil, and app tiles and the grey ribbon stay readable (Frappe v16.0+)
+- Theme Studio: a manager on their own profile (personal choice or an assignment) keeps that profile's colours, mode and layout on the Desk around Studio. The site draft no longer paints over it, which used to mix the site's colours into their layout. A notice above the preview says that the preview shows the site theme and offers to load their profile into the draft
+- Workspace layout: the app grid stays open while Frappe is still resolving the new route, ignores a close request in the first 400 ms, and no longer closes when you click empty space on it (it is a page, not a popup); on the all-apps address the grid is always shown (Esc after a reload or back/forward returns to the last desk page, and Ctrl/middle-clicking an app no longer hides it), so the bare All Apps page never appears in the Workspace layout (Frappe v16.0+, tested on v16.50)
+- Workspace layout: status steps keep clear of the corner ribbon, so a submitted document shows its full path (e.g. Draft → Paid) instead of only "Draft" (Frappe v16.0+)
+- Compact density no longer stretches checkboxes into tall bars: Frappe's Check control carries `.input-with-feedback`, which got the compact `min-height` (Frappe v16.0+, mouse/trackpad screens only)
+- Dialogs: fields no longer touch the edge of the dialog card (quick entry, new-document and other form dialogs) (Frappe v16.0+)
+- App grid, All Options and icon rail: empty placeholder workspaces (text only, no shortcuts/links/cards and no sidebar, e.g. an old "welcome" page from an earlier Frappe version) are no longer listed as apps (Frappe v16.0+)
+- Switching the desk layout (Standard ↔ Workspace) or the sidebar layout from a theme profile or a publish now reloads the Desk once, so the Icon Rail, sidebar and home page come back exactly as on a fresh load instead of a half-switched screen (Frappe v16.0+)
+- Sidebar: the company name header sits at the top of the sidebar and has the same height as the Icon Rail's logo tile, so the two line up (Frappe 16.50 added an empty strip above it that left a large gap) (Frappe v16.0+, gap seen on v16.50)
+- Workspace layout: the top bar's menus re-fit when the toolbar tools on the right finish loading, so the last menu ("More") no longer runs under the notification bell (Frappe v16.0+)
+- Workspace layout on phones: the app name gives way to the toolbar tools (truncated, hidden below 480px) instead of running under them (Frappe v16.0+)
+- README: "New in 3.0" section with Workspace Classic screenshots (`docs/screenshots/workspace-classic/`)
+
 ## [2.6.0] — 2026-10-16 — Phone and tablet pass
 
 Affects Frappe v16.0+ (all supported versions); desktop layouts are unchanged apart from the page-head offset fix.

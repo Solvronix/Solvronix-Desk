@@ -47,9 +47,18 @@ class NavigationRoutingTest(unittest.TestCase):
     def test_navigation_assets_are_cache_busted(self):
         hooks = HOOKS.read_text(encoding="utf-8")
 
-        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=68", hooks)
+        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=71", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=10", hooks)
-        self.assertIn("/assets/solvronix_desk/js/module_cards.js?v=10", hooks)
+        self.assertIn("/assets/solvronix_desk/js/module_cards.js?v=11", hooks)
+
+    def test_app_tiles_prefer_the_workspace_icon(self):
+        js = MODULE_CARDS.read_text(encoding="utf-8")
+        body = js.split("function wsIcon(title, frappe_icon) {", 1)[1]
+
+        self.assertLess(body.index("frappeIcon(frappe_icon)"), body.index("cfg.icon"))
+        # Only icons that exist in an inlined sprite, with a safe name.
+        self.assertIn("if (!document.getElementById(id)) return \"\";", js)
+        self.assertIn("/^[a-zA-Z0-9-]+$/.test(name)", js)
 
 
 if __name__ == "__main__":

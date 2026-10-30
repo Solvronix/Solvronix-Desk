@@ -167,8 +167,11 @@
       '<span class="st-company-name">' + frappe.utils.escape_html(b.company_name) + '</span>' +
       '</div>';
 
-    /* Prepend before .body-sidebar-top (the items list) */
-    var top = sidebar.querySelector(".body-sidebar-top");
+    /* First thing in the sidebar, level with the Icon Rail's brand tile.
+       Frappe 16.50+ puts a (usually empty) .standard-items-band above the
+       items list; going after it pushed the header ~16px down. */
+    var top = sidebar.querySelector(":scope > .standard-items-band") ||
+      sidebar.querySelector(".body-sidebar-top");
     if (top) {
       top.insertAdjacentHTML("beforebegin", html);
     } else {
@@ -204,7 +207,7 @@
   ──────────────────────────────────────────────────────────────────────────── */
   function railEnabled() {
     var cfg = frappe.boot && frappe.boot.st_theme_config;
-    return !!(cfg && cfg.sidebar_layout === "Icon Rail");
+    return !!(cfg && cfg.sidebar_layout === "Icon Rail" && cfg.desk_layout !== "Workspace");
   }
 
   function removeIconRail() {
@@ -1719,6 +1722,7 @@
     if (!config) return;
     var cfg = (frappe.boot.st_theme_config = frappe.boot.st_theme_config || {});
     cfg.sidebar_layout = config.sidebar_layout;
+    if (!runtime.preview) cfg.desk_layout = config.desk_layout;
     cfg.icon_rail_width = config.icon_rail_width;
     cfg.icon_rail_background = config.icon_rail_background;
     cfg.icon_rail_active_color = config.icon_rail_active_color;

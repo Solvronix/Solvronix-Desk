@@ -1,0 +1,540 @@
+/* ================================================================
+   Solvronix Desk — Workspace Classic layout
+   Active only under html[data-st-layout="workspace"] (Theme Studio →
+   Desk layout = Workspace). Colours, radii and sizes come from the
+   theme engine's --st-* variables, so the Workspace Classic profile
+   or any custom palette restyles it without code.
+   ================================================================ */
+
+html[data-st-layout="workspace"] {
+  --st-ws-bar-h: var(--st-header-height, 46px);
+  --st-ws-sheet-max: 1400px;
+  --st-ws-sheet-pad: 16px;
+  --st-ws-step-h: 30px;
+  --st-ws-ribbon-w: 110px;
+  --st-ws-drop-w: 240px;
+}
+
+/* ── 1. Side navigation off ───────────────────────────────────────
+   Frappe 16.50+ stops drawing its Dock through frappe_compat.js;
+   the sidebar column (every v16 minor) leaves the layout here. */
+html[data-st-layout="workspace"] .body-sidebar-container,
+html[data-st-layout="workspace"] #st-icon-rail {
+  display: none !important;
+}
+html[data-st-layout="workspace"] body,
+html[data-st-layout="workspace"] .page-container {
+  background: var(--st-page-bg);
+}
+/* The page-head ☰ toggles the hidden sidebar; the app bar replaces it. */
+html[data-st-layout="workspace"] .page-head .sidebar-toggle-btn {
+  display: none !important;
+}
+html[data-st-layout="workspace"] .main-section {
+  margin-left: 0 !important;
+  width: 100%;
+}
+
+/* ── 2. Top app bar ──────────────────────────────────────────────── */
+html[data-st-layout="workspace"] #st-top-toolbar {
+  background: var(--st-navbar-bg, var(--st-toolbar-bg));
+  color: var(--st-toolbar-text);
+  font-size: 14px;
+  padding: 0 12px;
+  border-bottom: 0;
+}
+html[data-st-layout="workspace"] #st-top-toolbar .st-tb-left {
+  display: none;
+}
+html[data-st-layout="workspace"] #st-top-toolbar .st-tb-right {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+#st-ws-nav {
+  display: none;
+}
+html[data-st-layout="workspace"] #st-ws-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+html[data-st-layout="workspace"] #st-ws-nav button,
+html[data-st-layout="workspace"] #st-ws-nav a {
+  color: inherit;
+  background: transparent;
+  border: 0;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+html[data-st-layout="workspace"] .st-ws-apps-btn,
+html[data-st-layout="workspace"] .st-ws-burger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--st-radius-sm, 4px);
+  cursor: pointer;
+  opacity: 0.9;
+}
+html[data-st-layout="workspace"] .st-ws-burger {
+  display: none;
+}
+html[data-st-layout="workspace"] .st-ws-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 4px);
+  gap: 3px;
+}
+html[data-st-layout="workspace"] .st-ws-grid i {
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+html[data-st-layout="workspace"] .st-ws-app-name {
+  font-size: 1.15em;
+  font-weight: 600;
+  padding: 0 10px 0 6px;
+  max-width: 240px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html[data-st-layout="workspace"] .st-ws-menus {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: visible;
+}
+
+html[data-st-layout="workspace"] .st-ws-menu {
+  position: relative;
+}
+html[data-st-layout="workspace"] .st-ws-menu-link,
+html[data-st-layout="workspace"] .st-ws-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: var(--st-radius-sm, 4px);
+  cursor: pointer;
+  opacity: 0.9;
+  font-size: 14px;
+}
+html[data-st-layout="workspace"] .st-ws-menu-link .st-ws-ico {
+  display: none;
+}
+html[data-st-layout="workspace"] .st-ws-menu-btn .icon {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+}
+html[data-st-layout="workspace"] .st-ws-apps-btn:hover,
+html[data-st-layout="workspace"] .st-ws-burger:hover,
+html[data-st-layout="workspace"] .st-ws-menu-link:hover,
+html[data-st-layout="workspace"] .st-ws-menu-btn:hover,
+html[data-st-layout="workspace"] .st-ws-menu.is-open > .st-ws-menu-btn {
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  opacity: 1;
+}
+html[data-st-layout="workspace"] .st-ws-apps-btn:focus-visible,
+html[data-st-layout="workspace"] .st-ws-menu-btn:focus-visible,
+html[data-st-layout="workspace"] .st-ws-menu-link:focus-visible {
+  outline: var(--st-focus-width, 2px) solid var(--st-focus);
+  outline-offset: 1px;
+}
+
+/* Dropdowns: a light card under the bar, section header on top. */
+html[data-st-layout="workspace"] .st-ws-drop {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1070;
+  min-width: var(--st-ws-drop-w);
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
+  padding: 6px 0;
+  background: var(--st-dropdown-bg, var(--st-card-bg));
+  color: var(--st-text);
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-radius-lg, 6px);
+  box-shadow: var(--st-shadow-lg, 0 8px 24px color-mix(in srgb, var(--st-text) 18%, transparent));
+}
+html[data-st-layout="workspace"] .st-ws-menu.is-open > .st-ws-drop {
+  display: block;
+}
+html[data-st-layout="workspace"] .st-ws-drop-head {
+  padding: 6px 16px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--st-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+/* solvronix_desk.css paints every toolbar link in the toolbar text colour
+   with !important; dropdown and drawer links sit on a light card instead. */
+html[data-st-layout="workspace"] #st-ws-nav .st-ws-drop-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  color: var(--st-text) !important;
+  font-size: 14px;
+}
+html[data-st-layout="workspace"] .st-ws-drop-sub {
+  padding: 10px 16px 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--st-text-muted);
+}
+html[data-st-layout="workspace"] #st-ws-nav .st-ws-drop-item:hover,
+html[data-st-layout="workspace"] #st-ws-nav .st-ws-drop-item:focus-visible {
+  background: var(--st-row-hover);
+}
+html[data-st-layout="workspace"] .st-ws-drop-item .st-ws-ico .icon {
+  width: 14px;
+  height: 14px;
+  stroke: var(--st-text-muted);
+}
+
+/* ── 3. App home: icon grid launcher ─────────────────────────────── */
+#st-ws-home {
+  display: none;
+}
+html[data-st-layout="workspace"] #st-ws-home.is-open {
+  display: block;
+  position: fixed;
+  inset: var(--st-ws-bar-h) 0 0 0;
+  z-index: 1050;
+  overflow-y: auto;
+  background: var(--st-page-bg);
+}
+html[data-st-layout="workspace"] .st-ws-home-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 16px 64px;
+}
+html[data-st-layout="workspace"] .st-ws-home-search {
+  display: block;
+  width: min(420px, 100%);
+  margin: 0 auto 32px;
+  height: 38px;
+  padding: 0 14px;
+  font-size: 15px;
+  color: var(--st-text);
+  background: var(--st-input-bg);
+  border: 1px solid var(--st-input-border);
+  border-radius: 999px;
+}
+html[data-st-layout="workspace"] .st-ws-home-search:focus {
+  outline: none;
+  border-color: var(--st-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--st-focus) 20%, transparent);
+}
+html[data-st-layout="workspace"] .st-ws-home-grid,
+html[data-st-layout="workspace"] .st-ws-home-grid .st-ws-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 24px 12px;
+}
+html[data-st-layout="workspace"] .st-ws-home-grid .st-ws-cards {
+  grid-column: 1 / -1;
+}
+/* Reuse module_cards.js tiles, re-shaped into icon + name below. */
+html[data-st-layout="workspace"] #st-ws-home .st-ws-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  text-align: center;
+  text-decoration: none;
+  border-radius: var(--st-radius-lg, 6px);
+  transition: transform 0.15s ease;
+}
+html[data-st-layout="workspace"] #st-ws-home .st-ws-card:hover,
+html[data-st-layout="workspace"] #st-ws-home .st-ws-card:focus-visible {
+  transform: translateY(-2px);
+  outline: none;
+}
+html[data-st-layout="workspace"] #st-ws-home .st-ws-card:focus-visible .st-ws-card-icon {
+  box-shadow: 0 0 0 3px var(--st-focus);
+}
+html[data-st-layout="workspace"] #st-ws-home .st-ws-card-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mod-color, var(--st-brand));
+  color: var(--st-btn-primary-text, var(--st-card-bg));
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--mod-color, var(--st-brand)) 35%, transparent);
+}
+html[data-st-layout="workspace"] #st-ws-home .st-ws-card-icon svg,
+html[data-st-layout="workspace"] #st-ws-home .st-ws-card-icon .icon {
+  width: 32px;
+  height: 32px;
+  stroke: currentColor;
+  color: currentColor;
+}
+html[data-st-layout="workspace"] #st-ws-home .st-ws-card-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--st-text);
+  line-height: 1.3;
+}
+html[data-st-layout="workspace"] #st-ws-home .st-ws-card-desc {
+  display: none;
+}
+html[data-st-layout="workspace"] .st-ws-home-empty {
+  text-align: center;
+  color: var(--st-text-muted);
+  padding: 24px 0;
+}
+html.st-ws-home-open[data-st-layout="workspace"] body {
+  overflow: hidden;
+}
+
+/* ── 4. Forms: sheet, status steps, ribbon ───────────────────────── */
+html[data-st-layout="workspace"] body[data-route^="Form/"] .layout-main-section {
+  max-width: var(--st-ws-sheet-max);
+  background: var(--st-card-bg);
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-radius-lg, 6px);
+  padding: var(--st-ws-sheet-pad);
+  box-shadow: none;
+}
+html[data-st-layout="workspace"] .form-layout {
+  position: relative;
+}
+
+html[data-st-layout="workspace"] .st-ws-statusbar {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 0 0 12px;
+  padding-right: 28px;
+}
+html[data-st-layout="workspace"] .st-ws-step {
+  display: inline-flex;
+  align-items: center;
+  height: var(--st-ws-step-h);
+  padding: 0 16px 0 20px;
+  font-size: 13px;
+  color: var(--st-text-muted);
+  background: var(--st-table-header, var(--st-page-bg));
+  border: 1px solid var(--st-border);
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+  margin-left: -6px;
+}
+html[data-st-layout="workspace"] .st-ws-step:first-child {
+  margin-left: 0;
+  padding-left: 14px;
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%);
+  border-radius: var(--st-radius-sm, 4px) 0 0 var(--st-radius-sm, 4px);
+}
+html[data-st-layout="workspace"] .st-ws-step.is-done {
+  color: var(--st-text);
+}
+html[data-st-layout="workspace"] .st-ws-step.is-current {
+  color: var(--st-text);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--st-accent) 18%, var(--st-card-bg));
+  border-color: var(--st-accent);
+}
+
+/* The ribbon covers the sheet's top-right corner; keep the steps clear of it. */
+html[data-st-layout="workspace"] .st-ws-has-ribbon > .st-ws-statusbar {
+  padding-right: var(--st-ws-ribbon-w);
+}
+html[data-st-layout="workspace"] .st-ws-ribbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--st-ws-ribbon-w);
+  height: var(--st-ws-ribbon-w);
+  overflow: clip;
+  pointer-events: none;
+  /* Above Frappe's sticky form tabs (z-index 5), which would hide its lower half. */
+  z-index: 6;
+}
+html[data-st-layout="workspace"] .st-ws-ribbon span {
+  position: absolute;
+  top: 22px;
+  right: -34px;
+  width: 150px;
+  transform: rotate(45deg);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 0;
+  color: var(--st-btn-primary-text, var(--st-card-bg));
+  background: var(--st-success);
+}
+html[data-st-layout="workspace"] .st-ws-ribbon-danger span {
+  background: var(--st-error);
+}
+html[data-st-layout="workspace"] .st-ws-ribbon-muted span {
+  background: var(--st-text-muted);
+}
+
+/* ── 5. Phone drawer ─────────────────────────────────────────────── */
+#st-ws-drawer {
+  display: none;
+}
+html[data-st-layout="workspace"] #st-ws-drawer.is-open {
+  display: block;
+  position: fixed;
+  inset: var(--st-ws-bar-h) 0 0 0;
+  z-index: 1065;
+}
+html[data-st-layout="workspace"] .st-ws-drawer-scrim {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--st-text) 35%, transparent);
+}
+html[data-st-layout="workspace"] .st-ws-drawer-body {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(300px, 86vw);
+  overflow-y: auto;
+  padding: 12px 0 24px;
+  background: var(--st-card-bg);
+  color: var(--st-text);
+  box-shadow: var(--st-shadow-lg);
+}
+html[data-st-layout="workspace"] .st-ws-drawer-title {
+  padding: 4px 16px 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+html[data-st-layout="workspace"] .st-ws-drawer-head {
+  padding: 12px 16px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--st-text-muted);
+}
+html[data-st-layout="workspace"] .st-ws-drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  color: var(--st-text) !important;
+  text-decoration: none;
+}
+html[data-st-layout="workspace"] .st-ws-drawer-link:hover {
+  background: var(--st-row-hover);
+}
+html[data-st-layout="workspace"] .st-ws-drawer-link .st-ws-ico .icon {
+  width: 16px;
+  height: 16px;
+  stroke: var(--st-text-muted);
+}
+
+/* ── 5b. Dark mode ───────────────────────────────────────────────── */
+/* Tints built on --st-text turn into light veils in dark mode. */
+html[data-st-layout="workspace"][data-theme="dark"] .st-ws-drawer-scrim {
+  background: color-mix(in srgb, var(--st-page-bg) 72%, transparent);
+}
+html[data-st-layout="workspace"][data-theme="dark"] .st-ws-drop {
+  box-shadow: var(--st-shadow-lg, 0 8px 24px color-mix(in srgb, var(--st-page-bg) 80%, transparent));
+}
+/* Brand-coloured tiles sink into a dark page; give them an edge. */
+html[data-st-layout="workspace"][data-theme="dark"] #st-ws-home .st-ws-card-icon {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--st-text) 14%, transparent),
+    0 2px 8px color-mix(in srgb, var(--st-page-bg) 70%, transparent);
+}
+/* --st-text-muted is light in dark mode, so white ribbon text vanishes on it. */
+html[data-st-layout="workspace"][data-theme="dark"] .st-ws-ribbon-muted span {
+  color: var(--st-page-bg);
+}
+html[data-st-layout="workspace"][data-theme="dark"] .st-ws-step.is-current {
+  background: color-mix(in srgb, var(--st-accent) 28%, var(--st-card-bg));
+}
+
+/* ── 6. Tablet and phone ─────────────────────────────────────────── */
+@media (max-width: 991.98px) {
+  html[data-st-layout="workspace"] .st-ws-menus {
+    display: none;
+  }
+  html[data-st-layout="workspace"] .st-ws-burger {
+    display: inline-flex;
+  }
+}
+@media (max-width: 767.98px) {
+  /* The toolbar tools keep their width on phones; the app name gives way
+     (truncated, or hidden when there is no room) instead of running under
+     them. The drawer title still shows it. */
+  html[data-st-layout="workspace"] #st-ws-nav {
+    overflow: hidden;
+  }
+  html[data-st-layout="workspace"] .st-ws-app-name {
+    max-width: 40vw;
+    font-size: 15px;
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+  }
+  html[data-st-layout="workspace"] .st-ws-home-inner {
+    padding-top: 20px;
+  }
+  html[data-st-layout="workspace"] .st-ws-home-search {
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+  html[data-st-layout="workspace"] .st-ws-home-grid,
+  html[data-st-layout="workspace"] .st-ws-home-grid .st-ws-cards {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    gap: 18px 6px;
+  }
+  html[data-st-layout="workspace"] #st-ws-home .st-ws-card-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+  }
+  html[data-st-layout="workspace"] body[data-route^="Form/"] .layout-main-section {
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+    padding: 12px;
+  }
+  html[data-st-layout="workspace"] .st-ws-statusbar,
+  html[data-st-layout="workspace"] .st-ws-has-ribbon > .st-ws-statusbar {
+    justify-content: flex-start;
+    padding-right: 0;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+  html[data-st-layout="workspace"] .st-ws-ribbon {
+    display: none;
+  }
+}
+/* Narrow phones: no room for the app name next to the toolbar tools. */
+@media (max-width: 479.98px) {
+  html[data-st-layout="workspace"] .st-ws-app-name {
+    display: none;
+  }
+}
