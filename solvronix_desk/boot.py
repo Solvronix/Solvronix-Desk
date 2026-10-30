@@ -52,6 +52,21 @@ def add_boot_data(bootinfo):
         bootinfo.st_theme_schedule = theme_engine.schedule(s)
         active_profile = theme_engine.resolved_profile(s, frappe.session.user)
         bootinfo.st_active_theme_profile = active_profile["id"] if active_profile else ""
+        # The viewer's own profile (personal choice, user/role/company rule or
+        # schedule) when it differs from the site theme; Theme Studio then keeps
+        # it on the Desk around the editor instead of painting the site draft.
+        site_profile = str(getattr(s, "active_profile", "") or "")
+        bootinfo.st_viewer_own_profile = (
+            active_profile["id"] if active_profile and active_profile["id"] != site_profile else ""
+        )
+        # Feature announcements ("New in 3.0: Workspace Classic"); fail soft so
+        # a bad state never costs the Desk its theme.
+        try:
+            from solvronix_desk import announcements
+            bootinfo.st_announcements = announcements.pending_for(frappe.session.user, s)
+        except Exception:
+            frappe.log_error("solvronix_desk: announcements boot failed")
+            bootinfo.st_announcements = []
         # ── 4. INSTALL-SCOPED SETUP GUIDE KEY ───────────────────────────────────
         # First 10 chars of creation timestamp.
         # Changes on every fresh install, so the localStorage dismiss key
@@ -81,3 +96,4 @@ def add_boot_data(bootinfo):
         bootinfo.enable_command_palette = 1
         bootinfo.enable_smart_home = 1
         bootinfo.st_active_theme_profile = ""
+        bootinfo.st_viewer_own_profile = ""

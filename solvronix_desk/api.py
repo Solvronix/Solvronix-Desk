@@ -172,10 +172,63 @@ def get_workspaces():
         if fn is None:
             frappe.log_error("solvronix_desk: no workspace list method found in frappe.desk.desktop")
             return {"pages": [], "private_pages": [], "unavailable": True}
-        return fn()
+        result = fn()
     except Exception:
         frappe.log_error("solvronix_desk.api.get_workspaces failed")
         return {"pages": [], "private_pages": [], "unavailable": True}
+    return _without_placeholders(result)
+
+
+# Blocks that only carry text. A public page made of nothing else, with no
+# shortcuts/links/cards and no sidebar behind it, opens to an empty screen
+# (e.g. an old "welcome" page left from an earlier Frappe version).
+_TEXT_BLOCKS = {"header", "paragraph", "spacer"}
+_WORKSPACE_CHILDREN = (
+    "Workspace Shortcut", "Workspace Link", "Workspace Chart",
+    "Workspace Number Card", "Workspace Quick List", "Workspace Custom Block",
+)
+
+
+def _is_placeholder(content, has_children, has_sidebar):
+    """True for a workspace with nothing to open: text-only content, no child
+    rows and no Workspace Sidebar (16.50+) of the same name."""
+    if has_children or has_sidebar:
+        return False
+    try:
+        blocks = json.loads(content or "[]")
+    except (TypeError, ValueError):
+        return False
+    if not isinstance(blocks, list):
+        return False
+    return all(isinstance(b, dict) and b.get("type") in _TEXT_BLOCKS for b in blocks)
+
+
+def _without_placeholders(result):
+    """Drop placeholder public pages from Frappe's workspace list. Fails soft:
+    on any error the list is returned unchanged."""
+    try:
+        pages = (result or {}).get("pages") or []
+        names = [p.get("name") for p in pages if p.get("name")]
+        if not names:
+            return result
+        used = set()
+        for child in _WORKSPACE_CHILDREN:
+            if frappe.db.table_exists(child):
+                used.update(frappe.get_all(child, filters={"parent": ["in", names]}, pluck="parent", distinct=True))
+        sidebars = set()
+        if frappe.db.table_exists("Workspace Sidebar"):
+            sidebars.update(frappe.get_all("Workspace Sidebar", filters={"name": ["in", names]}, pluck="name"))
+        candidates = [n for n in names if n not in used and n not in sidebars]
+        if not candidates:
+            return result
+        content = dict(frappe.get_all("Workspace", filters={"name": ["in", candidates]}, fields=["name", "content"], as_list=True))
+        drop = {n for n in candidates if _is_placeholder(content.get(n), False, False)}
+        if drop:
+            result["pages"] = [p for p in pages if p.get("name") not in drop]
+        return result
+    except Exception:
+        frappe.log_error("solvronix_desk.api: placeholder workspace filter failed")
+        return result
 
 
 # ── 5. LANGUAGE PREFERENCE ─────────────────────────────────────────────────────

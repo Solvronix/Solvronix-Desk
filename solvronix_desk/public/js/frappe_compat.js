@@ -21,7 +21,13 @@
 
   function railLayoutOn() {
     var cfg = frappe.boot && frappe.boot.st_theme_config;
-    return !!(cfg && cfg.sidebar_layout === "Icon Rail");
+    return !!(cfg && cfg.sidebar_layout === "Icon Rail" && cfg.desk_layout !== "Workspace");
+  }
+
+  /* Workspace desk layout: the top app bar replaces all side navigation. */
+  function workspaceLayoutOn() {
+    var cfg = frappe.boot && frappe.boot.st_theme_config;
+    return !!(cfg && cfg.desk_layout === "Workspace");
   }
 
   function tabletWidth() {
@@ -53,7 +59,7 @@
     if (has(proto, "dock_enabled") && !proto.__st_dock_patched) {
       var nativeDockEnabled = proto.dock_enabled;
       proto.dock_enabled = function () {
-        if (railLayoutOn()) return false;
+        if (railLayoutOn() || workspaceLayoutOn()) return false;
         return nativeDockEnabled.apply(this, arguments);
       };
       proto.__st_dock_patched = true;
@@ -73,6 +79,41 @@
         }
       };
       proto.__st_fold_patched = true;
+    }
+  }
+
+  function legacyItemRoute(item) {
+    var gen_route = frappe.utils && frappe.utils.generate_route;
+    if (typeof gen_route !== "function") return null;
+    try {
+      if (item.link_type === "URL") return item.url || null;
+      if (item.link_type === "Workspace") {
+        var ws = frappe.workspaces && frappe.workspaces[frappe.router.slug(item.link_to)];
+        if (item.route) return item.route;
+        if (ws && !ws.public) return "/desk/private/" + frappe.router.slug(ws.title);
+        return "/desk/" + frappe.router.slug(item.link_to);
+      }
+      if (item.link_type === "Report") {
+        var report = item.report || {};
+        return gen_route({
+          type: "Report",
+          name: item.link_to,
+          is_query_report: !item.report ||
+            report.report_type === "Query Report" || report.report_type === "Script Report",
+          report_ref_doctype: report.ref_doctype,
+        });
+      }
+      if (item.link_type === "Page" && item.route_options) {
+        return gen_route({ type: "Page", name: item.link_to, route_options: JSON.parse(item.route_options) });
+      }
+      var args = { type: item.link_type, name: item.link_to, tab: item.tab };
+      if (item.filters && item.link_type === "DocType" && frappe.utils.get_filter_as_json) {
+        args.doc_view = "List";
+        args.route_options = JSON.parse(frappe.utils.get_filter_as_json(JSON.parse(item.filters)));
+      }
+      return gen_route(args);
+    } catch (e) {
+      return null;
     }
   }
 
@@ -130,6 +171,51 @@
       if (entry.icon && frappe.utils.icon) return frappe.utils.icon(entry.icon, "md");
       if (frappe.utils.desktop_icon) return frappe.utils.desktop_icon(entry.label, "gray", "sm");
       return "";
+    },
+
+    /* The sidebar on screen as {label, items, home}. Every v16 minor keeps
+       the resolved payload on `sidebar_data`: rows of `module_sidebars`
+       (16.50+) or `workspace_sidebar_item` (16.0 – 16.49), same item shape. */
+    currentSidebar: function () {
+      var sb = sidebar();
+      var data = sb && sb.sidebar_data;
+      if (!data || !Array.isArray(data.items)) return null;
+      var label = data.label || sb.workspace_title || sb.current_module || "";
+      /* A module's home is the first navigable item in its sidebar — the
+         rule Frappe 16.50 uses (module_landing_route). Its name alone is
+         not a route: e.g. "Solvronix Desk" has no workspace page. */
+      var home = null;
+      for (var i = 0; i < data.items.length && !home; i++) {
+        home = ST.compat.itemRoute(data.items[i]);
+      }
+      return { label: label, items: data.items, home: home || "/desk" };
+    },
+
+    /* href for a sidebar item. Frappe's own helper first (16.50+), else the
+       same rules 16.0 – 16.49 used inside SidebarItem.get_path(). */
+    itemRoute: function (item) {
+      if (!item || item.type !== "Link") return null;
+      var path = null;
+      var helper = frappe.ui && frappe.ui.sidebar_item && frappe.ui.sidebar_item.get_route;
+      if (typeof helper === "function") {
+        try { path = helper(item, false); } catch (e) { path = null; }
+      } else {
+        path = legacyItemRoute(item);
+      }
+      return path ? encodeURI(path) : null;
+    },
+
+    /* The form's sheet (.form-layout) for status steps and ribbons. */
+    formSheet: function (frm) {
+      var wrapper = frm && frm.layout && frm.layout.wrapper;
+      var el = wrapper && (wrapper.jquery ? wrapper[0] : wrapper);
+      return el && el.nodeType === 1 ? el : null;
+    },
+
+    /* The DocType's active Workflow document, once Frappe has loaded it. */
+    workflowFor: function (doctype) {
+      var store = frappe.workflow && frappe.workflow.workflows;
+      return (store && store[doctype]) || null;
     },
 
     /* Where an app's rail icon should lead on dock-generation Frappe. */

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html data-theme-mode="{{ desk_theme.lower() }}" data-theme="{{ desk_theme.lower() }}"
-      data-density="{{ boot.st_density_default or 'comfortable' }}"
+      data-density="{{ boot.st_density_default or 'comfortable' }}"{% if ((boot.st_theme_config or {}).get("desk_layout") == "Workspace") %} data-st-layout="workspace"{% endif %}
       style="background-color:{% if desk_theme.lower() == 'dark' %}#0F1117{% else %}color-mix(in srgb, {{ boot.st_brand or '#1B1D26' }} 4%, white){% endif %};"
       dir={{ layout_direction }} lang="{{ lang }}">
 	<head>

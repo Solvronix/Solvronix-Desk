@@ -209,6 +209,11 @@
 .sts-history { display: flex; gap: 2px; margin-left: auto; }
 .sts-history button { border: 1px solid #ddd9d1; background: #f9f8f5; }
 .sts-history button:disabled { opacity: .35; }
+/* With the Desk sidebar open, or the workspace picker shown, the controls
+   no longer fit one 55px row: wrap them instead of overlapping. */
+.sts-toolbar { height: auto; min-height: 55px; flex-wrap: wrap; row-gap: 8px; padding-block: 8px; }
+.sts-toolbar-note, .sts-compare-btn, .sts-draft-btn, .sts-scene-switch button { white-space: nowrap; }
+.sts-workspace-picker { flex: 0 0 auto; }
 /* ── PREVIEW WORKBENCH / DEVICE FRAME ──────────────────────────────────────── */
 .sts-stage { flex: 1; padding: 24px; overflow: auto; display: grid; place-items: start center; background-color: #eeece6; background-image: radial-gradient(#c8c4ba 0.65px, transparent 0.65px); background-size: 14px 14px; }
 .sts-preview-frame { width: min(1120px, 100%); min-width: 690px; overflow: hidden; border: 1px solid rgba(36,36,36,.16); border-radius: 13px; background: #fff; box-shadow: 0 24px 70px rgba(48,42,34,.17); transition: width .32s cubic-bezier(.2,.8,.2,1); }
@@ -765,3 +770,26 @@
 	.sts-wcag-card p { font-size: 11px; }
 	.sts-workspace-shield { cursor: default; }
 }
+
+/* ── WORKSPACE DESK LAYOUT MOCK ───────────────────────────────────────────────
+   Desk layout = Workspace: the mock drops its sidebar and rail and shows a top
+   app bar with module menus, and forms show status steps, like the real Desk. */
+.sts-mock-ws-bar, .sts-mock-ws-steps { display: none; }
+.sts-preview-frame[data-desk-layout="workspace"] .sts-toolbar-left,
+.sts-preview-frame[data-desk-layout="workspace"] .sts-preview-sidebar,
+.sts-preview-frame[data-desk-layout="workspace"] .sts-preview-rail { display: none !important; }
+.sts-preview-frame[data-desk-layout="workspace"] .sts-mock-ws-bar { display: flex; align-items: center; gap: 12px; min-width: 0; font-size: 10px; white-space: nowrap; overflow: hidden; }
+.sts-mock-ws-bar b { font-size: 12px; font-weight: 650; }
+.sts-mock-ws-bar a { color: inherit !important; opacity: .88; }
+.sts-mock-ws-grid { display: grid; grid-template-columns: repeat(3, 3px); gap: 2px; }
+.sts-mock-ws-grid i { width: 3px; height: 3px; border-radius: 1px; background: currentColor; }
+.sts-preview-frame[data-desk-layout="workspace"] .sts-mock-ws-steps { display: flex; justify-content: flex-end; gap: 2px; padding: 8px 12px 0; }
+.sts-mock-ws-steps span { padding: 3px 12px 3px 14px; font-size: 9px; color: var(--studio-muted, currentColor); background: var(--studio-page); border: 1px solid color-mix(in srgb, var(--studio-text) 14%, transparent); clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 0 100%, 6px 50%); }
+.sts-mock-ws-steps span:first-child { clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 0 100%); }
+.sts-mock-ws-steps span.is-current { color: var(--studio-text); font-weight: 650; background: color-mix(in srgb, var(--studio-accent) 18%, var(--studio-card)); border-color: var(--studio-accent); }
+
+/* Personal-profile notice above the preview (see _sync_viewer_note). */
+.sts-viewer-note { grid-column: 1 / -1; justify-self: stretch; box-sizing: border-box; width: 100%; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin: 0 0 14px; padding: 10px 14px; border: 1px solid #e5c9a8; border-radius: 8px; background: #fbf3e8; color: #5a4632; font-size: 12px; line-height: 1.45; }
+.sts-viewer-note[hidden] { display: none; }
+.sts-viewer-note span { flex: 1 1 320px; min-width: 0; }
+.sts-viewer-note button { height: 30px; padding: 0 12px; border: 1px solid #c98a55; border-radius: 6px; background: #fff; color: #8a4b22; font-size: 12px; font-weight: 650; white-space: nowrap; }

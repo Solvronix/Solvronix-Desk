@@ -10,6 +10,25 @@
 
 ---
 
+## New in 3.0 — Workspace Classic
+
+A second desk layout: a **top menu bar** instead of the sidebar, an **app home screen** (apps button or `Alt+H`, type to search, arrow keys to open) and **sheet-style forms** with status steps (workflow, or Draft → Submitted/Paid) and a corner ribbon for paid, cancelled and disabled records. Works on every Frappe v16 release (v16.0 – v16.50+), on desktop, tablet and phone.
+
+**Try it in one click.** After the update, everyone who may choose a theme sees a small "New in Solvronix Desk 3.0" card once:
+
+| Button | What happens |
+|---|---|
+| **Try it now** | Switches only your own Desk to Workspace Classic (the page reloads). A bar then offers **Keep it** or **Switch back**. |
+| **Not now** | Hides the card for this session (it comes back at most 3 times). |
+| **Don't show again** | Hides it for good. |
+| **Make it the default for everyone** (System Managers) | Opens Theme Studio with Workspace Classic loaded as a draft. Nothing changes for others until you click **Publish theme**. |
+
+You can switch any time from **All Options → Appearance → Theme profile**, or for the whole site in **Theme Studio → Layout → Desk layout**. Turn the card off in **Theme Studio → Theme assignments & permissions → Show feature announcements**.
+
+Upgrading is safe: no Frappe version is dropped and your current layout stays until someone switches.
+
+---
+
 ## The Problem
 
 ERPNext is powerful. But the default interface is overwhelming — too many menus, outdated design, and non-technical users struggle to find anything. Businesses reject ERPNext because it "doesn't look professional" or "is too hard to use."

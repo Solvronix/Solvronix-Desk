@@ -3046,3 +3046,61 @@ test("non-workspace inspector selection remains unchanged", () => {
     ["first"], ["addClass", "is-inspected"], ["position", element],
   ]);
 });
+
+test("workspace moved under its module by Frappe 16.50 still counts as loaded", () => {
+  const studio = loadThemeStudio();
+  assert.equal(studio._is_same_workspace("/desk/setup/home", "/desk/home"), true);
+  assert.equal(studio._is_same_workspace("/desk/home", "/desk/home"), true);
+  assert.equal(studio._is_same_workspace("/desk/setup/users", "/desk/home"), false);
+  assert.equal(studio._is_same_workspace("/desk/users", "/desk/home"), false);
+  assert.equal(studio._is_same_workspace("", "/desk/home"), false);
+
+  const states = [];
+  studio.workspace_routes = { "/desk/home": true };
+  studio.workspace_url = "/desk/home";
+  studio.config = {};
+  studio.$workspace_iframe = {
+    length: 1,
+    0: { contentDocument: { documentElement: { setAttribute() {} }, body: { setAttribute() {} }, addEventListener() {} },
+      contentWindow: { location: { pathname: "/desk/setup/home" } } },
+    attr() { return this; },
+  };
+  studio._set_workspace_state = (state) => states.push(state);
+  studio._inject_workspace_css = () => true;
+  studio._install_workspace_inspector_css = () => false;
+  assert.equal(studio._workspace_iframe_loaded(), true);
+  assert.deepEqual(states, ["ready"]);
+});
+
+test("preview frame is pinned to the draft desk layout", () => {
+  const studio = loadThemeStudio();
+  const applied = [];
+  const win = {
+    frappe: { boot: { st_theme_config: { desk_layout: "Workspace" } } },
+    solvronix_desk: { workspaceLayout: { apply() { applied.push(win.frappe.boot.st_theme_config.desk_layout); } } },
+  };
+  studio._sync_workspace_desk_layout({ defaultView: win }, false);
+  assert.equal(win.__stPreviewDeskLayout, "Standard");
+  assert.deepEqual(applied, ["Standard"]);
+  studio._sync_workspace_desk_layout({ defaultView: win }, false);
+  assert.deepEqual(applied, ["Standard"]);
+});
+
+test("a viewer on their own profile keeps it around Studio (no site draft painted)", () => {
+  const studio = loadThemeStudio();
+  const ctx = studio._context;
+  ctx.frappe.boot = {
+    st_viewer_own_profile: "builtin-workspace",
+    st_theme_profiles: [{ id: "builtin-workspace", name: "Workspace Classic" }],
+  };
+  ctx.window.frappe = ctx.frappe;
+  const appended = [];
+  ctx.document.head.appendChild = (element) => appended.push(element);
+  studio.config = { brand_color: "#123456" };
+  studio._apply_draft_to_desk({});
+  assert.deepEqual(appended, []);
+  assert.equal(studio._viewer_own_profile().name, "Workspace Classic");
+
+  ctx.frappe.boot.st_viewer_own_profile = "";
+  assert.equal(studio._viewer_own_profile(), null);
+});

@@ -138,6 +138,9 @@ DEFAULT_CONFIG = {
     "sticky_form_toolbar": True,
     "compact_forms": False,
     "grid_row_slide_panel": True,
+    # "Standard" keeps Frappe's sidebar desk; "Workspace" swaps it for a top
+    # app bar with module menus, an app-icon home and sheet-style forms.
+    "desk_layout": "Standard",
     # Accessibility
     "high_contrast": False,
     "large_text": False,
@@ -218,6 +221,7 @@ ENUM_FIELDS = {
     "module_icon_style": {"Plain", "Tinted", "Solid"},
     "empty_state_style": {"Minimal", "Illustrated"},
     "layout_mode": {"Full Width", "Boxed"},
+    "desk_layout": {"Standard", "Workspace"},
     "colorblind_palette": {"Default", "Deuteranopia", "Protanopia", "Tritanopia"},
 }
 TEXT_LIMITS = {
@@ -544,6 +548,28 @@ def builtin_profiles():
                 "sidebar_active_color": "#D59A28", "focus_color": "#D59A28",
             },
             "Deep forest green with warm brass accents.",
+        ),
+        _profile(
+            "builtin-workspace", "Workspace Classic",
+            {
+                "desk_layout": "Workspace", "sidebar_layout": "Tree",
+                "brand_color": "#5E4B8B", "accent_color": "#0E7C86",
+                "navbar_background": "#5E4B8B", "toolbar_text_color": "#FFFFFF",
+                "page_background": "#F8F9FA", "card_background": "#FFFFFF",
+                "text_color": "#212529", "muted_text_color": "#5F656D",
+                "link_color": "#0B6B74", "border_color": "#DEE2E6",
+                "sidebar_active_color": "#0E7C86", "focus_color": "#0E7C86",
+                "checkbox_color": "#0E7C86", "primary_button_color": "#5E4B8B",
+                "secondary_button_color": "#E9ECEF", "secondary_button_text": "#212529",
+                "input_border_color": "#CED4DA", "table_header_color": "#FFFFFF",
+                "alternate_row_color": "#FFFFFF", "row_hover_color": "#F1F3F5",
+                "selected_row_color": "#E6F2F3",
+                "font_family": "Inter", "density": "Compact",
+                "button_radius": 4, "button_height": 30, "corner_radius": 4,
+                "card_radius": 6, "shadow_style": "None", "list_row_height": 36,
+                "header_height": 46, "page_margin": 16,
+            },
+            "Top app bar with module menus, app-icon home and sheet-style forms.",
         ),
     ]
 

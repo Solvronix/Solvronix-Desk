@@ -21,8 +21,14 @@
 }
 
 /* ── COMPANY BRANDING HEADER ── */
+/* One height for the sidebar header and the Icon Rail's brand tile, so
+   their bottom borders line up. */
+:root {
+  --st-sidebar-head-h: 52px;
+}
 #st-company-header {
-  height: 56px;
+  height: var(--st-sidebar-head-h);
+  box-sizing: border-box;
   padding: 0 16px;
   display: flex;
   align-items: center;
@@ -428,7 +434,8 @@ body.st-has-toolbar #st-icon-rail {
   justify-content: center;
   flex-shrink: 0;
   width: 100%;
-  height: 52px;
+  height: var(--st-sidebar-head-h);
+  box-sizing: border-box;
   border-bottom: 1px solid var(--sidebar-border-color, #ededed);
 }
 #st-icon-rail .st-rail-brand img {

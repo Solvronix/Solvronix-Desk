@@ -966,6 +966,11 @@ html[data-theme="dark"] .desk-page > .page-head .st-breadcrumb {
   background: #fafafa;
   border-radius: 0 0 var(--st-radius-lg) var(--st-radius-lg) !important;
 }
+/* The theme paints .form-page as a card, and Frappe gives it no padding
+   inside a dialog, so the fields would touch the card's edge. */
+.modal-body .form-page {
+  padding: 4px 16px 16px;
+}
 
 /* ── PAGE TITLE / BREADCRUMB BAR ─────────────────────────────── */
 .page-head .page-title,

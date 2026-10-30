@@ -3,7 +3,7 @@
 import frappe
 
 from solvronix_desk import chart_config, chart_registry, theme_engine
-from solvronix_desk import chart_preview
+from solvronix_desk import announcements, chart_preview
 
 
 # ── 1. AUTHORIZATION / COMPLETE EDITOR STATE ──────────────────────────────────
@@ -74,6 +74,7 @@ def studio_state(settings=None):
             "allow_user_theme": bool(getattr(settings, "allow_user_theme", 1)),
             "theme_lock": bool(getattr(settings, "theme_lock", 0)),
             "preview_admin_only": bool(getattr(settings, "preview_admin_only", 1)),
+            "show_announcements": announcements.enabled(),
             "active_profile": getattr(settings, "active_profile", "") or "",
         },
         "options": {"users": users, "roles": roles, "companies": companies},
@@ -311,6 +312,10 @@ def save_theme_assignments(data, flags=None):
     for field in ("theme_enabled", "allow_user_theme", "theme_lock", "preview_admin_only"):
         if field in flag_data:
             settings.set(field, int(theme_engine.bool_value(flag_data[field])))
+    if "show_announcements" in flag_data:
+        frappe.defaults.set_global_default(
+            announcements.ENABLED_KEY, "1" if theme_engine.bool_value(flag_data["show_announcements"]) else "0"
+        )
     settings.save()
     return studio_state(settings)
 

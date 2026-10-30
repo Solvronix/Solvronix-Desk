@@ -23,7 +23,7 @@ class FrappeCompatTest(unittest.TestCase):
         block = hooks[hooks.index("app_include_js = ["):]
         includes = re.findall(r'"/assets/solvronix_desk/js/([a-z_]+)\.js\?v=\d+"', block)
         self.assertEqual(includes[0], "frappe_compat")
-        self.assertIn("/assets/solvronix_desk/js/frappe_compat.js?v=2", hooks)
+        self.assertIn("/assets/solvronix_desk/js/frappe_compat.js?v=4", hooks)
         self.assertIn("/assets/solvronix_desk/css/dark_mode.css?v=17", hooks)
 
     def test_adapter_detects_by_feature_not_version(self):
@@ -44,7 +44,7 @@ class FrappeCompatTest(unittest.TestCase):
         menu) behind."""
         js = COMPAT.read_text(encoding="utf-8")
         self.assertIn("proto.dock_enabled = function", js)
-        self.assertIn("if (railLayoutOn()) return false;", js)
+        self.assertIn("if (railLayoutOn() || workspaceLayoutOn()) return false;", js)
         self.assertIn("nativeDockEnabled.apply(this, arguments)", js)
         self.assertIn("__st_dock_patched", js)
         css = SIDEBAR_CSS.read_text(encoding="utf-8") + DESK_CSS.read_text(encoding="utf-8")

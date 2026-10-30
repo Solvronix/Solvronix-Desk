@@ -36,8 +36,10 @@
     margin-bottom: 6px;
   }
 
-  html[data-density="compact"] .form-control,
-  html[data-density="compact"] .input-with-feedback {
+  /* Frappe's Check control is a Data control, so its checkbox carries
+     .input-with-feedback too; a min-height would stretch it into a bar. */
+  html[data-density="compact"] .form-control:not([type="checkbox"]):not([type="radio"]),
+  html[data-density="compact"] .input-with-feedback:not([type="checkbox"]):not([type="radio"]) {
     padding-top: 3px;
     padding-bottom: 3px;
     min-height: 26px;
