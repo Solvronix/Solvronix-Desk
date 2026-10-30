@@ -30,7 +30,7 @@ app_include_css = [
     "/assets/solvronix_desk/css/density.css?v=4",
     "/assets/solvronix_desk/css/theme_studio.css?v=22",
     "/assets/solvronix_desk/css/grid_row_slide_panel.css?v=2",
-    "/assets/solvronix_desk/css/workspace_layout.css?v=5",
+    "/assets/solvronix_desk/css/workspace_layout.css?v=6",
     "/assets/solvronix_desk/css/announcements.css?v=3",
 ]
 app_include_js = [
@@ -46,7 +46,7 @@ app_include_js = [
     "/assets/solvronix_desk/js/theme_runtime.js?v=13",
     "/assets/solvronix_desk/js/chart_runtime.js?v=5",
     "/assets/solvronix_desk/js/grid_row_slide_panel.js?v=1",
-    "/assets/solvronix_desk/js/workspace_layout.js?v=6",
+    "/assets/solvronix_desk/js/workspace_layout.js?v=7",
     "/assets/solvronix_desk/js/announcements.js?v=3",
 ]
 

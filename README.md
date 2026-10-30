@@ -12,16 +12,38 @@
 
 ## New in 3.0 — Workspace Classic
 
-A second desk layout: a **top menu bar** instead of the sidebar, an **app home screen** (apps button or `Alt+H`, type to search, arrow keys to open) and **sheet-style forms** with status steps (workflow, or Draft → Submitted/Paid) and a corner ribbon for paid, cancelled and disabled records. Works on every Frappe v16 release (v16.0 – v16.50+), on desktop, tablet and phone.
+A second desk layout: a **top menu bar** instead of the sidebar, an **app home screen** and **sheet-style forms**. Works on every Frappe v16 release (v16.0 – v16.50+), on desktop, tablet and phone.
 
-**Try it in one click.** After the update, everyone who may choose a theme sees a small "New in Solvronix Desk 3.0" card once:
+![Workspace Classic: top menu bar](docs/screenshots/workspace-classic/top-menu-bar.png)
+
+**Top menu bar** — the current module's menus sit in one bar at the top. Menus that don't fit fold into **More**; on phones and tablets they open from ☰.
+
+| App home screen | On a phone |
+|---|---|
+| ![App home screen](docs/screenshots/workspace-classic/app-home.png) | <img src="docs/screenshots/workspace-classic/app-home-phone.png" alt="App home screen on a phone" width="260"> |
+
+**App home screen** — open it from the apps button (⋮⋮⋮) or `Alt+H`, type to search and use the arrow keys to open an app. It has its own address (`/desk/all-apps`), so Back and refresh work.
+
+![Sheet-style form with status steps](docs/screenshots/workspace-classic/sheet-form.png)
+
+**Sheet-style forms** — forms sit on a white sheet with status steps (workflow states, or Draft → Submitted/Paid) and a corner ribbon for paid, cancelled and disabled records.
+
+### Try it in one click
+
+After the update, everyone who may choose a theme sees a small card once, and System Managers also see the choices in Frappe's "Updated to a new version" notes:
+
+| The card | In the update notes |
+|---|---|
+| ![New in Solvronix Desk 3.0 card](docs/screenshots/workspace-classic/announcement-card.png) | ![Try it in the update dialog](docs/screenshots/workspace-classic/update-dialog.png) |
 
 | Button | What happens |
 |---|---|
 | **Try it now** | Switches only your own Desk to Workspace Classic (the page reloads). A bar then offers **Keep it** or **Switch back**. |
 | **Not now** | Hides the card for this session (it comes back at most 3 times). |
 | **Don't show again** | Hides it for good. |
-| **Make it the default for everyone** (System Managers) | Opens Theme Studio with Workspace Classic loaded as a draft. Nothing changes for others until you click **Publish theme**. |
+| **Make it the default for everyone** (System Managers) | Opens Theme Studio with Workspace Classic loaded as a draft (below). Nothing changes for others until you click **Publish theme**. |
+
+![Theme Studio with Workspace Classic loaded as a draft](docs/screenshots/workspace-classic/make-default-studio.png)
 
 You can switch any time from **All Options → Appearance → Theme profile**, or for the whole site in **Theme Studio → Layout → Desk layout**. Turn the card off in **Theme Studio → Theme assignments & permissions → Show feature announcements**.
 

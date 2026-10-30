@@ -464,9 +464,18 @@ html[data-st-layout="workspace"] .st-ws-drawer-link .st-ws-ico .icon {
   }
 }
 @media (max-width: 767.98px) {
+  /* The toolbar tools keep their width on phones; the app name gives way
+     (truncated, or hidden when there is no room) instead of running under
+     them. The drawer title still shows it. */
+  html[data-st-layout="workspace"] #st-ws-nav {
+    overflow: hidden;
+  }
   html[data-st-layout="workspace"] .st-ws-app-name {
     max-width: 40vw;
     font-size: 15px;
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
   }
   html[data-st-layout="workspace"] .st-ws-home-inner {
     padding-top: 20px;
@@ -499,6 +508,12 @@ html[data-st-layout="workspace"] .st-ws-drawer-link .st-ws-ico .icon {
     flex-wrap: nowrap;
   }
   html[data-st-layout="workspace"] .st-ws-ribbon {
+    display: none;
+  }
+}
+/* Narrow phones: no room for the app name next to the toolbar tools. */
+@media (max-width: 479.98px) {
+  html[data-st-layout="workspace"] .st-ws-app-name {
     display: none;
   }
 }

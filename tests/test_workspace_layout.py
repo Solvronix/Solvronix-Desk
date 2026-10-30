@@ -29,8 +29,8 @@ class WorkspaceLayoutTest(unittest.TestCase):
 
     def test_assets_are_registered_after_their_dependencies(self):
         hooks = (APP / "hooks.py").read_text(encoding="utf-8")
-        self.assertIn("/assets/solvronix_desk/css/workspace_layout.css?v=5", hooks)
-        js = hooks.index("/assets/solvronix_desk/js/workspace_layout.js?v=6")
+        self.assertIn("/assets/solvronix_desk/css/workspace_layout.css?v=6", hooks)
+        js = hooks.index("/assets/solvronix_desk/js/workspace_layout.js?v=7")
         self.assertLess(hooks.index("frappe_compat.js"), js)
         self.assertLess(hooks.index("module_cards.js"), js)
         self.assertLess(hooks.index("theme_runtime.js"), js)

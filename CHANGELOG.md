@@ -30,6 +30,9 @@ Affects Frappe v16.0+ (all supported versions; both the sidebar navigation of v1
 - App grid, All Options and icon rail: empty placeholder workspaces (text only, no shortcuts/links/cards and no sidebar, e.g. an old "welcome" page from an earlier Frappe version) are no longer listed as apps (Frappe v16.0+)
 - Switching the desk layout (Standard ↔ Workspace) or the sidebar layout from a theme profile or a publish now reloads the Desk once, so the Icon Rail, sidebar and home page come back exactly as on a fresh load instead of a half-switched screen (Frappe v16.0+)
 - Sidebar: the company name header sits at the top of the sidebar and has the same height as the Icon Rail's logo tile, so the two line up (Frappe 16.50 added an empty strip above it that left a large gap) (Frappe v16.0+, gap seen on v16.50)
+- Workspace layout: the top bar's menus re-fit when the toolbar tools on the right finish loading, so the last menu ("More") no longer runs under the notification bell (Frappe v16.0+)
+- Workspace layout on phones: the app name gives way to the toolbar tools (truncated, hidden below 480px) instead of running under them (Frappe v16.0+)
+- README: "New in 3.0" section with Workspace Classic screenshots (`docs/screenshots/workspace-classic/`)
 
 ## [2.6.0] — 2026-10-16 — Phone and tablet pass
 

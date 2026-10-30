@@ -241,12 +241,26 @@
     });
   }
 
+  /* The toolbar's right-hand tools (search, language, options) render
+     after the bar and change width later; re-fit the menus when they do. */
+  var watchedTools = null;
+  function watchTools(tools) {
+    if (!tools || tools === watchedTools || typeof window.ResizeObserver !== "function") return;
+    watchedTools = tools;
+    new window.ResizeObserver(function () {
+      if (isOn()) safely("nav", renderNav);
+    }).observe(tools);
+  }
+
   function renderNav() {
     var nav = ensureNav();
     if (!nav || !ST.compat) return;
     var sidebar = ST.compat.currentSidebar();
     var menus = buildMenus(sidebar ? sidebar.items : []);
-    var sig = JSON.stringify([sidebar && sidebar.label, window.innerWidth, menus.map(function (m) {
+    var tools = document.querySelector("#st-top-toolbar .st-tb-right");
+    watchTools(tools);
+    var sig = JSON.stringify([sidebar && sidebar.label, window.innerWidth,
+      tools ? Math.round(tools.getBoundingClientRect().width) : 0, menus.map(function (m) {
       return [m.label, m.items.length];
     })]);
     if (sig === navSig) return;
@@ -270,7 +284,9 @@
       host.innerHTML = foldMenus(menus, count).map(menuHtml).join("");
       if (!right || !host.offsetParent) return;
       var limit = right.getBoundingClientRect().left - 12;
-      if (host.getBoundingClientRect().right <= limit) return;
+      /* The menus box may shrink (min-width: 0) while its last menu spills
+         out under the toolbar tools; measure the content, not the box. */
+      if (host.getBoundingClientRect().left + host.scrollWidth <= limit) return;
     }
   }
 
