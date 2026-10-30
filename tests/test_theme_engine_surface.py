@@ -92,6 +92,12 @@ class ThemeSurfaceResolutionTest(unittest.TestCase):
                 for key in ("muted_text_color", "link_color"):
                     self.assertGreaterEqual(
                         engine.contrast_ratio(dark[key], dark["card_background"]), 3, key)
+                # No pale active pill on the dark sidebar, and its text reads.
+                active = dark["sidebar_active_color"]
+                pale = engine.relative_luminance(active) > 0.5 and engine._chroma(active) < 0.35
+                self.assertFalse(pale, active)
+                active_text = dark["sidebar_active_text_color"] or engine.contrast_text(active)
+                self.assertGreaterEqual(engine.contrast_ratio(active_text, active), 4.5)
 
     def test_light_custom_profile_gets_dark_surfaces_and_keeps_link_hue(self):
         engine = load_engine()
@@ -105,6 +111,15 @@ class ThemeSurfaceResolutionTest(unittest.TestCase):
         # The teal link is lightened, not swapped for the default blue.
         self.assertNotEqual(dark["link_color"], "#6DB4F2")
         self.assertGreaterEqual(engine.contrast_ratio(dark["link_color"], dark["card_background"]), 4.5)
+
+    def test_dark_sidebar_active_keeps_saturated_accents(self):
+        engine = load_engine()
+        by_id = {p["id"]: p["config"] for p in engine.builtin_profiles()}
+
+        high_contrast = engine.resolve_mode_surface(by_id["builtin-high-contrast"], dark=True)
+        self.assertEqual(high_contrast["sidebar_active_color"], "#FFD800")
+        frappe_default = engine.resolve_mode_surface(by_id["builtin-frappe"], dark=True)
+        self.assertNotEqual(frappe_default["sidebar_active_color"], "#DDEEFF")
 
     def test_replaced_light_navbar_drops_its_dark_toolbar_text(self):
         engine = load_engine()

@@ -851,6 +851,12 @@ def _hex_luminance(value):
     return relative_luminance(value) if HEX_COLOR.fullmatch(value) else None
 
 
+def _chroma(value):
+    """Spread between the strongest and weakest channel, 0 (grey) to 1."""
+    channels = [int(value[i:i + 2], 16) for i in (1, 3, 5)]
+    return (max(channels) - min(channels)) / 255
+
+
 def _readable_on(foreground, background, minimum=4.5):
     """Lighten a foreground towards white until it reads on a dark background."""
     for step in range(11):
@@ -918,6 +924,17 @@ def resolve_mode_surface(config, dark):
         accent = config.get("accent_color")
         if "selected_row_color" in replaced and HEX_COLOR.fullmatch(str(accent or "")):
             resolved["selected_row_color"] = mix_hex(accent, card, 0.22)
+        # A pale, greyish active tint (e.g. #DDEEFF) glares on a dark sidebar;
+        # use a dark tint of the brand. Saturated accents (#FFD800) are kept.
+        active = resolved.get("sidebar_active_color")
+        active_luminance = _hex_luminance(active)
+        if active_luminance is not None and active_luminance > 0.5 and _chroma(active) < 0.35:
+            brand = config.get("brand_color")
+            base = brand if HEX_COLOR.fullmatch(str(brand or "")) and _chroma(brand) >= 0.35 else active
+            resolved["sidebar_active_color"] = mix_hex(base, card, 0.55)
+            text_luminance = _hex_luminance(resolved.get("sidebar_active_text_color"))
+            if text_luminance is not None and text_luminance < 0.3:
+                resolved["sidebar_active_text_color"] = ""
         # A replaced navigation background drops foregrounds chosen for the old one.
         for background, foregrounds in (
             ("navbar_background", ("toolbar_text_color",)),
@@ -1175,6 +1192,8 @@ html[data-theme="dark"] {{
   --st-sidebar-text-muted: color-mix(in srgb, {dark_sidebar_icon} 62%, transparent);
   --st-sidebar-hover: {dark_surface["sidebar_hover_color"]};
   --st-sidebar-hover-text: {contrast_text(dark_surface["sidebar_hover_color"])};
+  --st-sidebar-active: {dark_surface["sidebar_active_color"]};
+  --st-sidebar-active-text: {dark_surface["sidebar_active_text_color"] or contrast_text(dark_surface["sidebar_active_color"])};
   --st-navbar-bg: {dark_surface["navbar_background"]};
   --st-toolbar-bg: {dark_surface["navbar_background"]};
   --st-toolbar-text: {dark_toolbar_text};
