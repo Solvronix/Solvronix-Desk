@@ -125,6 +125,11 @@ solvronix_desk.theme_studio_sections = [
 			["sticky_navbar", "Sticky top toolbar", "check"], ["sticky_form_toolbar", "Sticky form toolbar", "check"],
 			["compact_forms", "Compact forms", "check"],
 			["grid_row_slide_panel", "Slide-in child table row editor", "check"],
+			["activity_panel", "Activity side panel on forms (wide screens)", "check"],
+			["stat_buttons", "Stat buttons (linked-document counts) on forms", "check"],
+			["dashboard_filter", "Dashboard date filter on workspaces", "check"],
+			["quick_entry_save_new", "Save & New in quick-entry pop-ups", "check"],
+			["invoice_tabs", "Sales | Purchase tabs on invoice lists", "check"],
 		],
 	},
 	{
@@ -2801,6 +2806,7 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 				{ fieldname: "theme_lock", fieldtype: "Check", label: __("Administrator theme lock"), default: flags.theme_lock ? 1 : 0 },
 				{ fieldname: "preview_admin_only", fieldtype: "Check", label: __("Administrator-only draft preview"), default: flags.preview_admin_only ? 1 : 0 },
 				{ fieldname: "show_announcements", fieldtype: "Check", label: __("Show feature announcements (e.g. \"New: Workspace Classic\")"), default: flags.show_announcements === false ? 0 : 1 },
+				{ fieldname: "grouped_finance_menus", fieldtype: "Check", label: __("Grouped finance menus (Invoicing, Banking, Taxes, Budget and Accounts Setup as separate modules)"), default: flags.grouped_finance_menus ? 1 : 0 },
 				{ fieldname: "reference", fieldtype: "HTML", options: profileReference },
 				{ fieldname: "users", fieldtype: "Code", label: __("User assignments (email → profile id JSON)"), options: "JSON", default: JSON.stringify(data.users || {}, null, 2) },
 				{ fieldname: "roles", fieldtype: "Code", label: __("Role assignments (role → profile id JSON)"), options: "JSON", default: JSON.stringify(data.roles || {}, null, 2) },
@@ -2836,15 +2842,19 @@ solvronix_desk.ThemeStudio = class ThemeStudio {
 					theme_lock: !!flags.theme_lock,
 					preview_admin_only: !!flags.preview_admin_only,
 					show_announcements: !!flags.show_announcements,
+					grouped_finance_menus: !!flags.grouped_finance_menus,
 				},
 			},
 			freeze: true,
 			callback: function (response) {
 				if (!response.message) return;
+				var menusChanged = !!(self.state.flags || {}).grouped_finance_menus !== !!flags.grouped_finance_menus;
 				self.state = response.message;
 				dialog && dialog.hide();
 				self.render();
 				frappe.show_alert({ message: __("Theme assignments saved"), indicator: "green" });
+				/* The menus come from the boot payload, so a changed menu layout needs a reload. */
+				if (menusChanged) setTimeout(function () { window.location.reload(); }, 600);
 			},
 		});
 	}

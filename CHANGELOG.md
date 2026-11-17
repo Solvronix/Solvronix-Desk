@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.1.0] — 2026-11-17 — Grouped finance menus, activity panel, stat buttons, dashboard filter, quick-entry Save & New, invoice tabs
+
+A new feature release. It is on for new installs and off on existing sites until an administrator switches it on, so updating never changes a site's menus. No Frappe version is dropped.
+
+Affects Frappe v16.50+ (the Dock and `Sidebar` / `Custom Sidebar` navigation; ERPNext 16.5x shows Banking, Taxes, Budgeting and Setup inside one long Accounts menu).
+
+### Added
+- Theme Studio → Theme assignments & permissions → **Grouped finance menus**: splits the Accounts menu into **Invoicing** (Sales and Purchase sections, with Credit and Debit Notes), **Banking**, **Taxes**, **Budget** and **Accounts Setup** (company, fiscal year, cost centres, dimensions, settings), each its own module on the dock and in the Workspace Classic top bar. Accounts keeps what is opened every day: Chart of Accounts, Payment Entry, Journal Entry and the reports. Nothing is lost: every item stays reachable in exactly the module it moved to
+- New installs of Solvronix Desk start with it on (when ERPNext's Accounts menu is present and the site has not customised it). Existing sites keep their menus until switched on
+- Switching it off puts the site back exactly as it was: only the records the feature created are removed, and it refuses to switch on if the site already customises the Accounts menu or the ERPNext dock instead of overwriting that
+- Forms: **Activity side panel**. On screens 1200px or wider, a record's comments and timeline sit in the right-hand column under Assign / Attachments / Tags, so the record and its conversation are visible together. A button in the form toolbar shows or hides it (remembered per user in the browser); narrower windows keep Frappe's layout. Only Frappe's own footer element is moved, so every Frappe behaviour keeps working. Theme Studio → Forms → "Activity side panel" switches it off for the site (Frappe v16.0+)
+- Forms: **Stat buttons**. Linked documents that have records (a customer's invoices and payments, an invoice's payments, ...) show as compact buttons with their counts above the form tabs; a click opens the same list as the Connections tab. It asks Frappe to count them on load instead of waiting for the Connections tab to scroll into view. Theme Studio → "Stat buttons" switches it off
+- Workspaces: **Dashboard date filter**. A bar at the top of a workspace page drives every chart and every document-count / sum number card with one date range (today, week, month, last month, quarter, year, last 30 days or custom). Cards filter on the document's posting or transaction date, else its creation date; report and custom cards are untouched. A company picker joins the bar when the site has several companies and filters the widgets whose document has a company field. Nothing is saved, and "All time" restores each widget exactly. Theme Studio → "Dashboard date filter" switches it off
+- Pop-ups: **Save & New** beside "Edit Full Form" in Frappe's quick-entry pop-ups (contact, address, customer, supplier, item, ...): it saves, stays on the page you are on and opens an empty pop-up for the next record. Not offered when the pop-up was opened from a link field. Theme Studio → "Save & New in quick-entry pop-ups" switches it off
+- Lists: **Sales | Purchase tabs** above the Sales Invoice and Purchase Invoice lists to flip between them in one click (each tab is its own list URL). Theme Studio → "Sales | Purchase tabs on invoice lists" switches it off
+- `solvronix_desk.menu_layouts.set_layout("Grouped Finance" | "Standard")` for scripts and `bench execute`
+
 ## [3.0.1] — 2026-11-12 — Frappe 16.56 compatibility
 
 Checked against Frappe v16.56.0 / ERPNext v16.54.0. Every Frappe API the compatibility layer uses is still present.

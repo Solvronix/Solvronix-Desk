@@ -3,7 +3,7 @@
 import frappe
 
 from solvronix_desk import chart_config, chart_registry, theme_engine
-from solvronix_desk import announcements, chart_preview
+from solvronix_desk import announcements, chart_preview, menu_layouts
 
 
 # ── 1. AUTHORIZATION / COMPLETE EDITOR STATE ──────────────────────────────────
@@ -75,6 +75,7 @@ def studio_state(settings=None):
             "theme_lock": bool(getattr(settings, "theme_lock", 0)),
             "preview_admin_only": bool(getattr(settings, "preview_admin_only", 1)),
             "show_announcements": announcements.enabled(),
+            "grouped_finance_menus": menu_layouts.current_layout() == menu_layouts.LAYOUT_GROUPED,
             "active_profile": getattr(settings, "active_profile", "") or "",
         },
         "options": {"users": users, "roles": roles, "companies": companies},
@@ -316,6 +317,10 @@ def save_theme_assignments(data, flags=None):
         frappe.defaults.set_global_default(
             announcements.ENABLED_KEY, "1" if theme_engine.bool_value(flag_data["show_announcements"]) else "0"
         )
+    if "grouped_finance_menus" in flag_data:
+        wanted = theme_engine.bool_value(flag_data["grouped_finance_menus"])
+        if wanted != (menu_layouts.current_layout() == menu_layouts.LAYOUT_GROUPED):
+            menu_layouts.set_layout(menu_layouts.LAYOUT_GROUPED if wanted else menu_layouts.LAYOUT_STANDARD)
     settings.save()
     return studio_state(settings)
 

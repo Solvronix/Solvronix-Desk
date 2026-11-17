@@ -138,6 +138,11 @@ DEFAULT_CONFIG = {
     "sticky_form_toolbar": True,
     "compact_forms": False,
     "grid_row_slide_panel": True,
+    "activity_panel": True,
+    "stat_buttons": True,
+    "dashboard_filter": True,
+    "quick_entry_save_new": True,
+    "invoice_tabs": True,
     # "Standard" keeps Frappe's sidebar desk; "Workspace" swaps it for a top
     # app bar with module menus, an app-icon home and sheet-style forms.
     "desk_layout": "Standard",
@@ -182,7 +187,9 @@ BOOL_FIELDS = {
     "sidebar_auto_collapse", "sticky_navbar", "sticky_form_toolbar",
     "compact_forms", "hide_powered", "high_contrast", "large_text",
     "enforce_wcag", "enable_custom_js", "enable_command_palette",
-    "enable_smart_home", "grid_row_slide_panel",
+    "enable_smart_home", "grid_row_slide_panel", "activity_panel",
+    "stat_buttons", "dashboard_filter",
+    "quick_entry_save_new", "invoice_tabs",
 }
 INT_RANGES = {
     "sidebar_width": (200, 360),
