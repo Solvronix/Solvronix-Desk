@@ -343,7 +343,7 @@ class IconRailTest(unittest.TestCase):
         hooks = HOOKS.read_text(encoding="utf-8")
 
         self.assertIn("/assets/solvronix_desk/css/sidebar.css?v=39", hooks)
-        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=71", hooks)
+        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=72", hooks)
         self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=22", hooks)
 
     def test_legacy_config_treats_never_set_icon_rail_width_as_unset_not_zero(self):

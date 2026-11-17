@@ -224,5 +224,34 @@
       if (!app || !has(sb, "app_landing_route")) return null;
       try { return sb.app_landing_route(app) || null; } catch (e) { return null; }
     },
+
+    /* Open a route the way Frappe's own app switcher does: a full URL in a
+       new tab, an app with its own UI outside the desk (e.g. "/crm") as a
+       page load, anything else through the desk router. A relative route
+       ("selling") is always a desk route. */
+    openRoute: function (route) {
+      if (!route) return false;
+      if (/^https?:\/\//i.test(route)) {
+        window.open(route, "_blank");
+        return true;
+      }
+      if (route.charAt(0) === "/" && !ST.compat.isDeskRoute(route)) {
+        window.location.href = route;
+        return true;
+      }
+      frappe.set_route(route);
+      return true;
+    },
+
+    /* Frappe 16.56+ has its own check; earlier minors use the same rule
+       (`/app` is the desk's old prefix and still redirects to `/desk`). */
+    isDeskRoute: function (route) {
+      var sb = sidebar();
+      if (has(sb, "is_desk_route")) {
+        try { return !!sb.is_desk_route(route); } catch (e) { /* fall through */ }
+      }
+      var root = String(route).replace(/^\//, "").split("/")[0];
+      return root === "desk" || root === "app";
+    },
   };
 })();

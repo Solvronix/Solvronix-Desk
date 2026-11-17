@@ -250,7 +250,7 @@ class ThemeStudioTest(unittest.TestCase):
         self.assertIn("/assets/solvronix_desk/css/theme_studio.css?v=22", hooks)
         self.assertIn("/assets/solvronix_desk/js/command_palette.js?v=10", hooks)
         self.assertIn("/assets/solvronix_desk/js/dark_mode.js?v=12", hooks)
-        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=71", hooks)
+        self.assertIn("/assets/solvronix_desk/js/solvronix_desk.js?v=72", hooks)
         self.assertIn("/assets/solvronix_desk/js/theme_runtime.js?v=13", hooks)
         self.assertIn("/assets/solvronix_desk/js/chart_runtime.js?v=5", hooks)
         self.assertIn("/assets/solvronix_desk/css/login.css?v=12", hooks)

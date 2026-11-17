@@ -113,6 +113,8 @@
      workspace content when navigating away — e.g. clicking the Home
      icon to Today's View). */
   var _hiddenContainer = null;
+  /* Workspaces Frappe leaves out because their module is blocked for the user */
+  var _hiddenByModule = 0;
 
   function fetchWorkspaces(cb) {
     if (_wsCache) { cb(_wsCache); return; }
@@ -120,6 +122,7 @@
       method: "solvronix_desk.api.get_workspaces",
       callback: function (r) {
         if (!r || !r.message) { cb([]); return; }
+        _hiddenByModule = r.message.hidden_by_module || 0;
         var pages = (r.message.pages || []).concat(r.message.private_pages || []);
         /* Keep only top-level pages (no parent) and visible ones */
         var topLevel = [];
@@ -409,5 +412,6 @@
     fetchWorkspaces: fetchWorkspaces,
     buildCard: buildCard,
     buildSkeletons: buildSkeletons,
+    hiddenByModule: function () { return _hiddenByModule; },
   };
 }());

@@ -48,7 +48,7 @@ class WorkspacePlaceholderTest(unittest.TestCase):
 
     def test_get_workspaces_filters_through_the_helper(self):
         src = API.read_text(encoding="utf-8")
-        self.assertIn("return _without_placeholders(result)", src)
+        self.assertIn("result = _without_placeholders(result)", src)
         self.assertIn('frappe.db.table_exists("Workspace Sidebar")', src)
 
 
