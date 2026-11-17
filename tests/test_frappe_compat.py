@@ -23,7 +23,7 @@ class FrappeCompatTest(unittest.TestCase):
         block = hooks[hooks.index("app_include_js = ["):]
         includes = re.findall(r'"/assets/solvronix_desk/js/([a-z_]+)\.js\?v=\d+"', block)
         self.assertEqual(includes[0], "frappe_compat")
-        self.assertIn("/assets/solvronix_desk/js/frappe_compat.js?v=4", hooks)
+        self.assertIn("/assets/solvronix_desk/js/frappe_compat.js?v=5", hooks)
         self.assertIn("/assets/solvronix_desk/css/dark_mode.css?v=19", hooks)
 
     def test_adapter_detects_by_feature_not_version(self):

@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.0.1] — 2026-11-12 — Frappe 16.56 compatibility
+
+Checked against Frappe v16.56.0 / ERPNext v16.54.0. Every Frappe API the compatibility layer uses is still present.
+
+### Fixed
+- Icon Rail: an app with its own page outside the desk (for example CRM at `/crm`) now opens that page instead of a "Page not found" inside the desk. Full URLs open in a new tab, as in Frappe's own app switcher. Affects Frappe v16.50+ wherever an app declares its own route; Frappe v16.56 sends more apps down this path
+- Notifications: a notification marked read no longer comes back as unread after a reload, and the bell's number now matches what is really unread. On Frappe v16.0 – v16.55 the list was served from the browser's cache for up to an hour and the number came from cached start-up data; both are now read live (the same fix Frappe made in v16.56). Applies to both the Solvronix bell and Frappe's own
+- Notifications: opening a notification marks it read, in both bells. Before, only the small dot or "Mark all as read" did (Frappe v16.0 – v16.55)
+- All Apps: when Frappe hides workspaces because their module is blocked for the user (User → Block Modules or Module Profile), the page now says how many are hidden instead of leaving them silently missing, e.g. ERPNext's CRM workspace (#31). Workspace Managers see everything, so they never get the note. Frappe v16.0+
+
 ## [3.0.0] — 2026-10-30 — Workspace Classic
 
 A major feature release: no Frappe version is dropped and nothing breaks; existing sites keep their current layout until someone switches.

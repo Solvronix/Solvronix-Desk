@@ -152,7 +152,7 @@
     frappe.call({
       method: "frappe.desk.doctype.notification_log.notification_log.get_notification_logs",
       args: { limit: MAX_ITEMS },
-      type: "GET",
+      type: "POST",
       callback: function (r) {
         var items = (r.message && r.message.notification_logs) || [];
         notifCache = items;
@@ -209,6 +209,7 @@
     });
 
     $item.on("click", function () {
+      if (!n.read) markOneRead(n.name, $item);
       if (n.document_type && n.document_name) {
         frappe.set_route("Form", n.document_type, n.document_name);
       } else if (n.link) {
@@ -292,6 +293,7 @@
           if (entry) entry.read = 1;
           updateBadge(notifCache);
         }
+        refreshCounts();
       },
     });
   }
@@ -304,6 +306,7 @@
         $list.find(".st-notif-mark-read").remove();
         $badge.addClass("st-hidden");
         if (notifCache) notifCache.forEach(function (n) { n.read = 1; });
+        refreshCounts();
       },
     });
   }
@@ -358,18 +361,68 @@
     frappe.call({
       method: "frappe.desk.doctype.notification_log.notification_log.get_notification_logs",
       args: { limit: MAX_ITEMS },
-      type: "GET",
+      type: "POST",
       callback: function (r) {
         var items = (r.message && r.message.notification_logs) || [];
         notifCache = items;
         updateBadge(items);
+        refreshCounts();
       },
+    });
+  }
+
+  /* ── Live unread count for both bells ──
+     Frappe 16.0 – 16.55 reads its bell's number from cached boot data, so it
+     comes back after a reload even when everything was read. Ask the server
+     and set ours and Frappe's own (update_count_badge updates every
+     .notification-count it finds: sidebar, dock or navbar). */
+  function refreshCounts() {
+    if (!frappe.session || frappe.session.user === "Guest") return;
+    frappe.call({
+      method: "solvronix_desk.notifications.get_unread_count",
+      type: "POST",
+      callback: function (r) {
+        var count = parseInt(r.message, 10) || 0;
+        frappe.boot.notification_unread_count = count;
+        if ($badge) {
+          if (count > 0) $badge.text(count > 99 ? "99+" : count).removeClass("st-hidden");
+          else $badge.addClass("st-hidden");
+        }
+        var native = frappe.app && frappe.app.sidebar && frappe.app.sidebar.notifications;
+        if (native && typeof native.update_count_badge === "function") {
+          native.update_count_badge(count);
+        }
+      },
+    });
+  }
+
+  /* Frappe's own dropdown: on 16.0 – 16.55 opening a notification does not
+     mark it read (only "Mark all as read" does). 16.56+ marks it itself;
+     mark_as_read only touches unread rows, so a second call changes nothing. */
+  function setupNativeDropdown() {
+    $(document).on("click", ".notification-item.unread[data-name]", function () {
+      var $item = $(this);
+      var name = $item.attr("data-name");
+      if (!name || $item.data("stMarking")) return;
+      $item.data("stMarking", true);
+      frappe.call({
+        method: "frappe.desk.doctype.notification_log.notification_log.mark_as_read",
+        args: { docname: name },
+        callback: function () {
+          $item.removeClass("unread");
+          refreshCounts();
+        },
+      });
     });
   }
 
   /* ── Init ── */
   function init() {
     if (!frappe.session || frappe.session.user === "Guest") return;
+
+    setupNativeDropdown();
+    /* Frappe builds its bell with the sidebar, after this script runs. */
+    setTimeout(refreshCounts, 1500);
 
     waitForToolbar(function () {
       injectBell();

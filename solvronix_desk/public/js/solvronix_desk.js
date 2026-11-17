@@ -487,12 +487,15 @@
         $rail.on("click", ".st-rail-app", function (e) {
           e.preventDefault();
           /* On Frappe 16.50+ an app opens where Frappe itself would open it
-             (its declared route, else its first dock module). */
+             (its declared route, else its first dock module). An app with
+             its own UI outside the desk (e.g. CRM at /crm) is a page load,
+             not a desk route. */
           var compat = ST.compat;
           var app = compat && compat.hasDock ? appMeta[$(this).attr("data-app")] : null;
           var route = (app && compat.appLandingRoute(app)) || $(this).attr("data-route");
           if (!route) return;
-          frappe.set_route(route);
+          if (compat && compat.openRoute) compat.openRoute(route);
+          else frappe.set_route(route);
           setTimeout(syncRailHighlight, 0);
         });
 

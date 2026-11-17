@@ -176,7 +176,47 @@ def get_workspaces():
     except Exception:
         frappe.log_error("solvronix_desk.api.get_workspaces failed")
         return {"pages": [], "private_pages": [], "unavailable": True}
-    return _without_placeholders(result)
+    result = _without_placeholders(result)
+    if isinstance(result, dict):
+        result["hidden_by_module"] = _hidden_by_module()
+    return result
+
+
+def _count_hidden_by_module(pages, blocked):
+    """Public, visible, top-level workspaces whose module is in `blocked`."""
+    blocked = set(blocked or ())
+    return sum(
+        1 for p in pages or ()
+        if p.get("public") and not p.get("is_hidden") and not p.get("parent_page")
+        and p.get("module") in blocked
+    )
+
+
+def _hidden_by_module():
+    """How many workspaces Frappe leaves out because the user blocked their
+    module (User → Block Modules / Module Profile). Only a count, so All Apps
+    can say why something is missing without naming what. 0 on any error and
+    for Workspace Managers, who see every workspace."""
+    try:
+        if "Workspace Manager" in frappe.get_roles():
+            return 0
+        try:
+            from frappe.utils.modules import get_blocked_modules
+            blocked = get_blocked_modules()
+        except ImportError:
+            blocked = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
+        if not blocked:
+            return 0
+        pages = frappe.get_all(
+            "Workspace",
+            filters={"public": 1, "module": ["in", list(blocked)]},
+            fields=["public", "is_hidden", "parent_page", "module"],
+            ignore_permissions=True,
+        )
+        return _count_hidden_by_module(pages, blocked)
+    except Exception:
+        frappe.log_error("solvronix_desk.api: hidden workspace count failed")
+        return 0
 
 
 # Blocks that only carry text. A public page made of nothing else, with no

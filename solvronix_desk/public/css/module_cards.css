@@ -28,6 +28,13 @@
   color: var(--text-muted, #8d99a6);
 }
 
+/* All Apps: "N workspaces are hidden by your module settings" */
+.st-ws-hidden-note {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-light, var(--text-muted));
+}
+
 /* ── Search bar ───────────────────────────────────────────────── */
 .st-ws-search-wrap {
   margin-bottom: 28px;

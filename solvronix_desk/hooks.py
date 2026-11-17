@@ -7,7 +7,7 @@ app_email = "sales@solvronix.com"
 app_license = "MIT"
 app_color = "#E8610A"
 app_icon = "octicon octicon-paintcan"
-app_version = "3.0.0"
+app_version = "3.0.1"
 
 required_apps = []
 
@@ -26,7 +26,7 @@ app_include_css = [
     "/assets/solvronix_desk/css/notification_center.css?v=4",
     "/assets/solvronix_desk/css/polish.css?v=4",
     "/assets/solvronix_desk/css/dark_mode.css?v=19",
-    "/assets/solvronix_desk/css/module_cards.css?v=4",
+    "/assets/solvronix_desk/css/module_cards.css?v=5",
     "/assets/solvronix_desk/css/density.css?v=4",
     "/assets/solvronix_desk/css/theme_studio.css?v=22",
     "/assets/solvronix_desk/css/grid_row_slide_panel.css?v=2",
@@ -34,15 +34,15 @@ app_include_css = [
     "/assets/solvronix_desk/css/announcements.css?v=3",
 ]
 app_include_js = [
-    "/assets/solvronix_desk/js/frappe_compat.js?v=4",
+    "/assets/solvronix_desk/js/frappe_compat.js?v=5",
     "/assets/solvronix_desk/js/dark_mode.js?v=12",
     "/assets/solvronix_desk/js/personalization.js?v=1",
-    "/assets/solvronix_desk/js/solvronix_desk.js?v=71",
+    "/assets/solvronix_desk/js/solvronix_desk.js?v=72",
     "/assets/solvronix_desk/js/sidebar.js?v=3",
     "/assets/solvronix_desk/js/command_palette.js?v=10",
     "/assets/solvronix_desk/js/progressive_forms.js?v=4",
-    "/assets/solvronix_desk/js/notification_center.js?v=4",
-    "/assets/solvronix_desk/js/module_cards.js?v=11",
+    "/assets/solvronix_desk/js/notification_center.js?v=5",
+    "/assets/solvronix_desk/js/module_cards.js?v=12",
     "/assets/solvronix_desk/js/theme_runtime.js?v=13",
     "/assets/solvronix_desk/js/chart_runtime.js?v=5",
     "/assets/solvronix_desk/js/grid_row_slide_panel.js?v=1",
@@ -55,6 +55,11 @@ boot_session = "solvronix_desk.boot.add_boot_data"
 
 after_install = "solvronix_desk.setup.after_install"
 after_migrate = "solvronix_desk.setup.after_migrate"
+
+# Notification read state: see solvronix_desk/notifications.py
+override_whitelisted_methods = {
+    "frappe.desk.doctype.notification_log.notification_log.get_notification_logs": "solvronix_desk.notifications.get_notification_logs",
+}
 
 doc_events = {
     "Theme Settings": {

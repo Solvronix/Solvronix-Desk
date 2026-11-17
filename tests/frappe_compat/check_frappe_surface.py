@@ -26,6 +26,13 @@ SURFACE = {
         "frappe/desk/desktop.py",
         "frappe/desk/doctype/desktop_icon",
         "frappe/boot.py",
+        "frappe/public/js/frappe/ui/toolbar",
+        "frappe/public/js/frappe/views/workspace",
+        "frappe/public/js/frappe/ui/notifications",
+    ],
+    "forms / grid": [
+        "frappe/public/js/frappe/form/grid_row.js",
+        "frappe/public/scss/desk",
     ],
     "theme variables": [
         "frappe/public/scss/common/css_variables.scss",

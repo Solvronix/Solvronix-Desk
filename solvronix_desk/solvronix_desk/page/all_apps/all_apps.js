@@ -43,6 +43,7 @@ solvronix_desk.AllApps = class AllApps {
 			  '<div class="st-ws-header">' +
 			    '<div class="st-ws-title">' + __("All Apps") + '</div>' +
 			    '<div class="st-ws-subtitle">' + __("Jump to any workspace from here") + '</div>' +
+			    '<div id="st-all-apps-hidden" class="st-ws-hidden-note" style="display:none"></div>' +
 			  '</div>' +
 			  '<div class="st-ws-search-wrap">' +
 			    '<input id="st-all-apps-search" class="st-ws-search" type="text" placeholder="' + __("Search apps…") + '" autocomplete="off">' +
@@ -57,6 +58,16 @@ solvronix_desk.AllApps = class AllApps {
 		wc.fetchWorkspaces(
 			function (pages) {
 				var $cards = this.$body.find("#st-all-apps-cards");
+				/* Frappe hides workspaces of modules blocked for this user;
+				   say so instead of leaving them silently missing. */
+				var hidden = wc.hiddenByModule ? wc.hiddenByModule() : 0;
+				if (hidden > 0) {
+					this.$body.find("#st-all-apps-hidden").text(
+						hidden === 1
+							? __("1 workspace is hidden by your module settings. Ask your administrator if you need it.")
+							: __("{0} workspaces are hidden by your module settings. Ask your administrator if you need them.", [hidden])
+					).show();
+				}
 				if (!pages || !pages.length) {
 					$cards.html('<div class="st-ws-cards"><div class="st-ws-empty">' + __("No workspaces found.") + "</div></div>");
 					return;
