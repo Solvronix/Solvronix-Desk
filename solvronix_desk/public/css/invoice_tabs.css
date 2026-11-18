@@ -1,0 +1,27 @@
+/* Sales | Purchase tab strip above the invoice lists (see invoice_tabs.js). */
+.st-invoice-tabs {
+  display: flex;
+  gap: var(--margin-md, 12px);
+  padding: 0 var(--padding-md, 12px);
+  margin-bottom: var(--margin-sm, 8px);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.st-invoice-tab {
+  padding: var(--padding-sm, 8px) var(--padding-xs, 4px);
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-size: var(--text-md, 13px);
+  text-decoration: none;
+}
+
+.st-invoice-tab:hover {
+  color: var(--text-color);
+}
+
+.st-invoice-tab.active {
+  border-bottom-color: var(--primary, var(--text-color));
+  color: var(--text-color);
+  font-weight: var(--weight-semibold, 600);
+}

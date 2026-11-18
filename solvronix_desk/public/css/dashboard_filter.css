@@ -1,0 +1,30 @@
+/* Dashboard date filter bar at the top of a workspace page (see dashboard_filter.js). */
+.st-dash-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--margin-sm, 8px);
+  padding: var(--padding-sm, 8px) 0;
+  margin-bottom: var(--margin-sm, 8px);
+}
+
+.st-dash-label {
+  color: var(--text-muted);
+  font-size: var(--text-sm, 12px);
+}
+
+.st-dash-filter .st-dash-select,
+.st-dash-filter .st-dash-date {
+  width: auto;
+  min-width: 130px;
+}
+
+.st-dash-custom {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--margin-xs, 4px);
+}
+
+.st-dash-range {
+  font-size: var(--text-sm, 12px);
+}

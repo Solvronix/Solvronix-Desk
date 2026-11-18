@@ -56,13 +56,13 @@ class AnnouncementAudienceTest(unittest.TestCase):
 
 
 class ReleaseWiringTest(unittest.TestCase):
-    def test_version_is_3_0_1_everywhere(self):
+    def test_version_is_3_1_0_everywhere(self):
         init = (APP / "__init__.py").read_text(encoding="utf-8")
         hooks = (APP / "hooks.py").read_text(encoding="utf-8")
         changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-        self.assertIn('__version__ = "3.0.1"', init)
-        self.assertIn('app_version = "3.0.1"', hooks)
-        self.assertTrue(changelog.split("\n## ", 2)[1].startswith("[3.0.1]"))
+        self.assertIn('__version__ = "3.1.0"', init)
+        self.assertIn('app_version = "3.1.0"', hooks)
+        self.assertTrue(changelog.split("\n## ", 2)[1].startswith("[3.1.0]"))
 
     def test_change_log_folders_hold_only_markdown(self):
         # Frappe parses every file name under change_log/v<major>/ as a version

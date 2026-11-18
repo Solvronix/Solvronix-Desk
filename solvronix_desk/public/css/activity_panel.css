@@ -1,0 +1,36 @@
+/* Activity side panel: comments and timeline live in the right column (>= 1200px).
+   Applied only while a form page carries .st-activity-on (see activity_panel.js). */
+body[data-route^="Form"] .st-activity-on .layout-side-section {
+  flex: 0 0 var(--st-activity-width, 380px);
+  width: var(--st-activity-width, 380px);
+  min-width: var(--st-activity-width, 380px);
+}
+
+body[data-route^="Form"] .st-activity-on .layout-side-section .form-sidebar {
+  width: 100%;
+}
+
+.st-activity-on .st-activity-host {
+  padding: var(--padding-md, 12px);
+  border-top: 1px solid var(--border-color);
+}
+
+.st-activity-on .st-activity-host .form-footer {
+  display: block;
+  max-width: none;
+  padding: 0;
+}
+
+.st-activity-on .st-activity-host .scroll-to-top {
+  display: none;
+}
+
+/* A previewed attachment takes the whole column; the activity returns when it closes. */
+.layout-main:has(.layout-side-section .attachment-preview:not(.hidden)) .st-activity-host {
+  display: none;
+}
+
+.st-activity-toggle.active {
+  color: var(--text-color);
+  background: var(--control-bg, var(--bg-light-gray));
+}

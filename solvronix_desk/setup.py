@@ -6,6 +6,8 @@ import frappe
 def after_install():
     """Seed default values into Theme Settings after app install."""
     _seed_defaults(login_layout="Split Screen")
+    from solvronix_desk import menu_layouts
+    menu_layouts.apply_if_possible()
 
 
 def _seed_defaults(login_layout):

@@ -1,0 +1,45 @@
+/* Stat buttons: linked-document counts at the top of a form (see stat_buttons.js). */
+.st-stat-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--margin-sm, 8px);
+  padding: var(--padding-sm, 8px) 0 var(--padding-md, 12px);
+}
+
+.st-stat-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius, 8px);
+  background: var(--card-bg, var(--fg-color));
+  color: var(--text-color);
+  font-size: var(--text-sm, 12px);
+  line-height: 1.4;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.st-stat-btn:hover,
+.st-stat-btn:focus-visible {
+  border-color: var(--primary, var(--text-muted));
+  background: var(--control-bg, var(--bg-light-gray));
+}
+
+.st-stat-count {
+  font-weight: var(--weight-semibold, 600);
+  color: var(--primary, var(--text-color));
+}
+
+.st-stat-label {
+  color: var(--text-muted);
+}
+
+.st-stat-open {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--bg-orange, var(--control-bg));
+  color: var(--text-on-orange, var(--text-color));
+  font-size: var(--text-xs, 11px);
+}
