@@ -125,6 +125,9 @@ DEFAULT_CONFIG = {
     "tagline": "",
     "footer_text": "",
     "hide_powered": False,
+    "hide_vendor_links": True,
+    "help_url": "",
+    "support_url": "",
     # Optional Desk features (stored in the same published Studio payload)
     "enable_command_palette": True,
     "enable_smart_home": True,
@@ -189,7 +192,7 @@ BOOL_FIELDS = {
     "enforce_wcag", "enable_custom_js", "enable_command_palette",
     "enable_smart_home", "grid_row_slide_panel", "activity_panel",
     "stat_buttons", "dashboard_filter",
-    "quick_entry_save_new", "invoice_tabs",
+    "quick_entry_save_new", "invoice_tabs", "hide_vendor_links",
 }
 INT_RANGES = {
     "sidebar_width": (200, 360),
@@ -242,6 +245,8 @@ TEXT_LIMITS = {
     "app_title": 160,
     "tagline": 240,
     "footer_text": 300,
+    "help_url": 500,
+    "support_url": 500,
     "custom_css": 50000,
     "custom_js": 30000,
 }
@@ -385,6 +390,8 @@ def sanitize_config(raw, base=None, validate_contrast=True, strict_charts=False)
         value = str(raw.get(field, result[field]) or "")[:limit]
         if field in {"custom_font_url", "company_logo", "login_bg_image", "favicon"}:
             value = clean_url(value)
+        elif field in {"help_url", "support_url"}:
+            value = value if value.startswith(("https://", "http://")) else ""
         elif field == "custom_css":
             value = clean_css(value, limit)
         result[field] = value

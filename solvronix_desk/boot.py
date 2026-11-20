@@ -39,6 +39,12 @@ def add_boot_data(bootinfo):
             "tagline":      config.get("tagline") or "",
         }
         bootinfo.st_theme_config = config
+        # Help menu without the vendor's sites, plus the site's own docs/support links
+        try:
+            from solvronix_desk import white_label
+            white_label.apply_to_boot(bootinfo, config)
+        except Exception:
+            frappe.log_error("solvronix_desk: white label boot failed")
         bootinfo.st_chart_schema = chart_config.load_schema()
         bootinfo.st_theme_profiles = [
             {"id": p["id"], "name": p["name"], "builtin": p["builtin"]}

@@ -7,7 +7,7 @@ app_email = "sales@solvronix.com"
 app_license = "MIT"
 app_color = "#E8610A"
 app_icon = "octicon octicon-paintcan"
-app_version = "3.1.0"
+app_version = "3.2.0"
 
 required_apps = []
 
@@ -36,6 +36,7 @@ app_include_css = [
     "/assets/solvronix_desk/css/stat_buttons.css?v=1",
     "/assets/solvronix_desk/css/dashboard_filter.css?v=2",
     "/assets/solvronix_desk/css/invoice_tabs.css?v=1",
+    "/assets/solvronix_desk/css/white_label.css?v=1",
 ]
 app_include_js = [
     "/assets/solvronix_desk/js/frappe_compat.js?v=5",
@@ -57,6 +58,7 @@ app_include_js = [
     "/assets/solvronix_desk/js/dashboard_filter.js?v=2",
     "/assets/solvronix_desk/js/quick_entry_extras.js?v=1",
     "/assets/solvronix_desk/js/invoice_tabs.js?v=1",
+    "/assets/solvronix_desk/js/white_label.js?v=2",
 ]
 
 # ── BOOT / INSTALL / DOCUMENT LIFECYCLE HOOKS ──────────────────────────────────
