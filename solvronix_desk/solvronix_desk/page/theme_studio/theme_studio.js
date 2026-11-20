@@ -109,6 +109,8 @@ solvronix_desk.theme_studio_sections = [
 			["login_card_opacity", "Login card opacity", "range", 55, 100, "%"],
 			["login_heading", "Welcome heading", "text"], ["login_description", "Welcome description", "textarea"],
 			["footer_text", "Footer text", "text"], ["hide_powered", "Hide “Powered by Frappe”", "check"],
+			["hide_vendor_links", "Hide Frappe links, promotions and help", "check"],
+			["help_url", "Your documentation URL (https://)", "text"], ["support_url", "Your support URL (https://)", "text"],
 		],
 	},
 	{

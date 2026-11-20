@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.2.0] — 2026-11-17 — White label: no vendor links in the Desk
+
+A new feature release for people who build their own branded product on Solvronix Desk. On by default; one switch in Theme Studio turns it off. No Frappe version is dropped.
+
+Affects Frappe v16.0+ (Help menu from Navbar Settings, sidebar promotions, contextual help links, About dialog).
+
+### Added
+- Theme Studio → Login footer → **Hide Frappe links, promotions and help**: removes the Help menu rows that open Frappe's, ERPNext's or Frappe Cloud's sites (Documentation, User Forum, Frappe School, Report an Issue, Frappe Support), the sidebar promotions for other Frappe products, contextual help links to vendor documentation, the vendor links in the About dialog, and menu rows that open a vendor page by script
+- **Your documentation URL** and **Your support URL**: your own links appear in the Help menu in their place (https:// addresses only)
+- One list of vendor addresses (`white_label.py`) is the single source of truth: the server cleans the Help menu with it and sends the same list to `white_label.js`, which hides the rest and blocks scripted `window.open` to those sites. Nothing under Frappe or ERPNext is edited, so it keeps working after updates
+- Kept on purpose: internal links, license / copyright / notice / attribution pages, the About dialog's version list and its source-code link, and anything users typed (fields, comments, timelines, lists, reports)
+
 ## [3.1.0] — 2026-11-17 — Grouped finance menus, activity panel, stat buttons, dashboard filter, quick-entry Save & New, invoice tabs
 
 A new feature release. It is on for new installs and off on existing sites until an administrator switches it on, so updating never changes a site's menus. No Frappe version is dropped.

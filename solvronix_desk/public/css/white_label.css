@@ -1,0 +1,5 @@
+/* Vendor links hidden by white_label.js. The script sets [hidden]; this keeps it hidden
+   against components that set their own display. */
+[data-st-vendor-hidden] {
+  display: none !important;
+}
